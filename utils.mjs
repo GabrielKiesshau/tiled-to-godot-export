@@ -84,6 +84,7 @@ export function getTilesetColumns(tileset) {
   const imageWidth = tileset.imageWidth + tileset.tileSpacing - tileset.margin
   const tileWidth = tileset.tileWidth + tileset.tileSpacing
   const calculatedColumnCount = imageWidth / tileWidth
+  
   // Tiled ignores "partial" tiles (extra unaccounted for pixels in the image),
   // so we need to return as Math.floor to avoid throwing off the tile indices.
   return Math.floor(calculatedColumnCount);
@@ -96,6 +97,7 @@ export function splitCommaSeparated(str) {
   if (!str) {
     return undefined;
   }
+  
   return str.split(',').map(s => s.trim());
 }
 
@@ -118,12 +120,15 @@ export function splitCommaSeparated(str) {
 export function stringifyNode(nodeProperties, contentProperties = {}, metaProperties = {}) {
   let str = '\n';
   str += '[node';
+
   for (const [key, value] of Object.entries(nodeProperties)) {
     if (value !== undefined) {
       str += ' ' + stringifyKeyValue(key, value, false, true, false);
     }
   }
+
   str += ']\n';
+
   for (const [key, value] of Object.entries(contentProperties)) {
     if (value !== undefined) {
       str += stringifyKeyValue(key, value, false, false, true) + '\n';
@@ -133,15 +138,19 @@ export function stringifyNode(nodeProperties, contentProperties = {}, metaProper
   if(mProps.length > 0) {
     str += '__meta__ = {\n';
     var count = 0;
+
     for(const [key, value] of mProps) {
-        if (count++ > 0){
-            str += ",\n";
-        }
-        var quoteValue = true;
-        if(typeof value === 'number' || typeof value === 'boolean') {
-            quoteValue = false;
-        }
-        str += stringifyKeyValue(key, value, true, quoteValue, true, ":");
+      if (count++ > 0){
+          str += ",\n";
+      }
+
+      var quoteValue = true;
+
+      if(typeof value === 'number' || typeof value === 'boolean') {
+          quoteValue = false;
+      }
+
+      str += stringifyKeyValue(key, value, true, quoteValue, true, ":");
     }
     str += '\n}\n';
   }
@@ -165,11 +174,14 @@ export function stringifyKeyValue(key, value, quoteKey, quoteValue, spaces, sepa
   } else if (quoteValue) {
     value = `"${value}"`;
   }
+
   if(quoteKey) {
     key = `"${key}"`;
   }
+
   if (!spaces) {
     return `${key}` + separator + `${value}`;
   }
+
   return `${key} ` + separator + ` ${value}`;
 }
