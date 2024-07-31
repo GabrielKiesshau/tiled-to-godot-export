@@ -185,3 +185,13 @@ export function stringifyKeyValue(key, value, quoteKey, quoteValue, spaces, sepa
 
   return `${key} ` + separator + ` ${value}`;
 }
+
+export function getFileName(path) {
+  // Extract the part after the last '/'
+  let fileNameWithExtension = path.split('/').pop();
+  
+  // Remove the extension
+  let fileName = fileNameWithExtension.split('.').slice(0, -1).join('.');
+  
+  return fileName;
+}

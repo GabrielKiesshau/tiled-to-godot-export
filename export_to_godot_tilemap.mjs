@@ -1,4 +1,4 @@
-import { getResPath, stringifyKeyValue, stringifyNode, splitCommaSeparated, getTilesetColumns } from './utils.mjs';
+import { getResPath, stringifyKeyValue, stringifyNode, splitCommaSeparated, getTilesetColumns, getFileName } from './utils.mjs';
 
 /*global tiled, TextFile */
 class GodotTilemapExporter {
@@ -570,7 +570,7 @@ class GodotTilemapExporter {
   getSceneTemplate() {
     const loadSteps = 2 + this.subResourceId;
     const type = this.map.property("godot:type") || "Node2D";
-    const name = this.map.property("godot:name") || "Node2D";
+    const name = this.map.property("godot:name") || getFileName(this.fileName);
 
     return `[gd_scene load_steps=${loadSteps} format=3]
 
