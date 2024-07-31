@@ -147,9 +147,13 @@ class GodotTilemapExporter {
 
       if (object.tile) {
         this.createTile(layer, layer_parent, object);
-      } else if (object.className == "Area2D" && object.width && object.height) {
+        continue;
+      }
+      if (object.className == "Area2D" && object.width && object.height) {
         this.createArea2D(layer, layer_parent, object, groups);
-      } else if (object.className == "Node2D") {
+        continue;
+      }
+      if (object.className == "Node2D") {
         this.createNode2D(layer, layer_parent, object, groups);
       }
     }
@@ -601,8 +605,6 @@ ${this.tileMapsString}
   getTileMapTemplate(tileMapName, mode, tilesetID, poolIntArrayString, layer, parent = ".") {
     const groups = splitCommaSeparated(layer.property("groups"));
     const zIndex = parseInt(layer.properties()['z_index'], 10);
-
-    tiled.log(`groups ${groups}`);
 
     return stringifyNode(
       {
