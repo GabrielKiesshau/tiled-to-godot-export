@@ -248,11 +248,13 @@ class GodotTilemapExporter {
     const shapeId = this.addSubResource("RectangleShape2D", {
       extents: `Vector2(${width}, ${height})`
     });
+    
+    let area2DName = object.name || "Area2D";
     this.tileMapsString += stringifyNode(
       {
         name: "CollisionShape2D",
         type: "CollisionShape2D",
-        parent: `${layer_parent}/${layer.name}/${object.name}`
+        parent: `${layer_parent}/${layer.name}/${area2DName}`
       }, 
       this.merge_properties(
         object.properties(),
@@ -295,8 +297,6 @@ class GodotTilemapExporter {
         set_props[key.substring(11)] = value;
       }
     }
-
-    tiled.log(`set_props ${set_props}`);
 
     return set_props;
   }
