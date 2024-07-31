@@ -41,7 +41,7 @@ class GodotTilemapExporter {
   }
 
   /**
-   * Adds a new subresource to the genrated file
+   * Adds a new subresource to the generated file
    *
    * @param {string} type the type of subresource
    * @param {object} contentProperties key:value map of properties
