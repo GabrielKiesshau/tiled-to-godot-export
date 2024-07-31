@@ -43,22 +43,28 @@ class GodotTilemapExporter {
   /**
    * Adds a new subresource to the generated file
    *
-   * @param {string} type the type of subresource
-   * @param {object} contentProperties key:value map of properties
-   * @returns {int} the created sub resource id
+   * @param {string} type - The type of subresource
+   * @param {object} contentProperties - Key-value map of properties
+   * @returns {number} - The created sub resource id
    */
   addSubResource(type, contentProperties) {
-    const id = this.subResourceId++;
+    if (typeof type !== 'string') {
+      throw new TypeError('type must be a string');
+    }
+    if (typeof contentProperties !== 'object' || contentProperties === null) {
+      throw new TypeError('contentProperties must be a non-null object');
+    }
 
-    this.subResourcesString += `
-[sub_resource type="${type}" id=${id}]
-`;
+    const id = this.subResourceId++;
+    const subResourceParts = [`\n[sub_resource type="${type}" id=${id}]`];
+
     for (const [key, value] of Object.entries(contentProperties)) {
       if (value !== undefined) {
-        this.subResourcesString += stringifyKeyValue(key, value, false, false, true) + '\n';
+        subResourceParts.push(stringifyKeyValue(key, value, false, false, true));
       }
     }
 
+    this.subResourcesString += subResourceParts.join('\n') + '\n';
     return id;
   }
 
@@ -572,7 +578,7 @@ ${this.tileMapsString}
 
   validateString(text)
   {
-    return (typeof text === 'text') ? text : undefined;
+    return (typeof text === 'string') ? text : undefined;
   }
 
   validateNumber(number)
