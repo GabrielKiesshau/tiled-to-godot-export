@@ -126,8 +126,7 @@ class GodotTilemapExporter {
         let tilesetName = layerData.tileset.name || "TileSet " + layerData.tilesetID;
         const tileMapName = layerName + " - " + tilesetName;
         this.mapLayerToTileset(layer.name, layerData.tilesetID);
-        // this.tileMapsString += this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, layer_parent);
-        this.tileMapsString += "wade is so hard to find";
+        this.tileMapsString += this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, layer_parent);
       }
     }
   }
