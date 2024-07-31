@@ -353,11 +353,8 @@ class GodotTilemapExporter {
       for (let x = boundingRect.left; x <= boundingRect.right; ++x) {
         // noinspection JSUnresolvedVariable,JSUnresolvedFunction
         let cell = layer.cellAt(x, y);
-        let tileId = cell.tileId;
-        let tileGodotID = tileId;
 
-        /** Check and don't export blank tiles **/
-        if (tileId !== -1) {
+        if (!cell.empty) {
           /**
            * Find the tileset on the list, if not found, add
            */
@@ -369,7 +366,7 @@ class GodotTilemapExporter {
             tileset = {
               tileset: tile.tileset,
               tilesetID: null,
-              tilesetColumns: getTilesetColumns(tile.tileset),
+              columns: getTilesetColumns(tile.tileset),
               layer: layer,
               isEmpty: tile.tileset === null,
               poolIntArrayString: "",
@@ -379,7 +376,10 @@ class GodotTilemapExporter {
             tilesetList.push(tileset);
           }
 
-          const tilesetColumns = tileset.tilesetColumns;
+          const tilesetColumns = tileset.columns;
+
+          let tileId = cell.tileId;
+          let tileGodotID = tileId;
 
           /** Handle Godot strange offset by rows in the tileset image **/
           if (tileId >= tilesetColumns) {
@@ -392,22 +392,34 @@ class GodotTilemapExporter {
            * Godot coordinates use an offset of 65536
            * Check the README.md: Godot Tilemap Encoding & Limits
            */
-          let yValue = y;
-          let xValue = x;
-          if (xValue < 0) {
-            yValue = y + 1;
+          let cellID = (x >= 0 ? y : y + 1) * this.tileOffset + x;
+
+          let alt = 0;
+          if (cell.rotatedHexagonal120) {
+            tiled.error("Hex tiles that are rotated by 120° degrees are not supported.");
           }
 
-          let firstParam = xValue + (yValue * this.tileOffset);
+          if (cell.flippedHorizontally) {
+            alt |= FlippedState.FlippedH;
+          }
 
-          /**
-           * This is texture image form the tileset in godot
-           * Tiled doesn't support more than one image in tileset
-           * Also this is used to encode the rotation of a tile... as it seems. :P
-           */
-          let secondParam = this.getSecondParam(cell);
+          if (cell.flippedVertically) {
+            alt |= FlippedState.FlippedV;
+          }
 
-          tileset.poolIntArrayString += firstParam + ", " + secondParam + ", " + tileGodotID + ", ";
+          if (cell.flippedAntiDiagonally) {
+            alt |= FlippedState.Transposed;
+          }
+
+          let srcX = tileId % tilesetColumns;
+          srcX *= this.tileOffset;
+          // srcX += tilesetInfo.atlasID;
+          tiled.log(`tilesetInfo.atlasID : ${"tilesetInfo.atlasID"}`);
+
+          let srcY = Math.floor(tileId / tilesetColumns);
+          srcY += alt * this.tileOffset;
+          
+          tileset.poolIntArrayString += `${cellID}, ${srcX}, ${srcY}, `;
         }
       }
     }
@@ -419,11 +431,13 @@ class GodotTilemapExporter {
 
     for (let idx = 0; idx < tilesetList.length; idx++) {
       const current = tilesetList[idx];
-      if (current.tileset !== null && current.poolIntArrayString !== "") {
-        current.tilesetID = this.getTilesetIDByTileset(current.tileset);
-      } else {
+      
+      if (current.tileset === null || current.poolIntArrayString === "") {
         tiled.log(`Error: The layer ${layer.name} is empty and has been skipped!`);
+        continue;
       }
+
+      current.tilesetID = this.getTilesetIDByTileset(current.tileset);
     }
 
     return tilesetList;
@@ -436,109 +450,6 @@ class GodotTilemapExporter {
    */
   getTilesetIDByTileset(tileset) {
     return this.tilesetsIndex.get(tileset.name);
-  }
-
-  /**
-   * Calculate the second parameter for the given cell
-   * @param {cell} cell the target cell
-   * @returns {number} the second parameter
-   */
-  getSecondParam(cell) {
-    /**
-     * no rotation or flips
-     * cell.cell.flippedHorizontally is false and
-     * cell.cell.flippedVertically is false
-     * cell.cell.flippedAntiDiagonally is false
-     */
-    let secondParam = 0;
-
-    /**
-     * rotated 1x left or
-     * rotated 3x right
-     */
-    if (
-      cell.flippedHorizontally === false &&
-      cell.flippedVertically === true &&
-      cell.flippedAntiDiagonally === true
-    ) {
-      secondParam = -1073741824;
-    }
-
-    /**
-     * rotated 2x left or 2x right or
-     * vertical and horizontal flip
-     */
-    if (
-      cell.flippedHorizontally === true &&
-      cell.flippedVertically === true &&
-      cell.flippedAntiDiagonally === false
-    ) {
-      secondParam = 1610612736;
-    }
-
-    /**
-     * rotated 3x left or
-     * rotated 1x right
-     */
-    if (
-      cell.flippedHorizontally === true &&
-      cell.flippedVertically === false &&
-      cell.flippedAntiDiagonally === true
-    ) {
-      secondParam = -1610612736;
-    }
-
-    /**
-     * flipped horizontal or
-     * flipped vertical and 2x times rotated left/right
-     */
-    if (
-      cell.flippedHorizontally === true &&
-      cell.flippedVertically === false &&
-      cell.flippedAntiDiagonally === false
-    ) {
-      secondParam = 536870912;
-    }
-
-    /**
-     * flipped horizontal and 1x rotated left or
-     * flipped vertical and 1x time rotated right
-     */
-    if (
-      cell.flippedHorizontally === false &&
-      cell.flippedVertically === false &&
-      cell.flippedAntiDiagonally === true
-    ) {
-      secondParam = -2147483648;
-    }
-
-    /**
-     * flipped horizontal and 2x times rotated left/right or
-     * flipped vertically
-     */
-    if (
-      cell.flippedHorizontally === false &&
-      cell.flippedVertically === true &&
-      cell.flippedAntiDiagonally === false
-    ) {
-      secondParam = 1073741824;
-    }
-
-    /**
-     * flipped horizontal and 3x rotated left or
-     * flipped vertically and 1x rotated left or
-     * flipped horizontal and 1x rotated right or
-     * flipped vertically and 3x rotated right
-     */
-    if (
-      cell.flippedHorizontally === true &&
-      cell.flippedVertically === true &&
-      cell.flippedAntiDiagonally === true
-    ) {
-      secondParam = -536870912;
-    }
-
-    return secondParam;
   }
 
   /**
@@ -673,6 +584,12 @@ ${this.tileMapsString}
     this.layersToTilesetIndex[layerName] = tilesetID;
   }
 }
+
+const FlippedState = {
+  FlippedH: 1 << 12,
+  FlippedV: 2 << 13,
+  Transposed: 4 << 14
+};
 
 const customTileMapFormat = {
   name: "Godot Tilemap format",
