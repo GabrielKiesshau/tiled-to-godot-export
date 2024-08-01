@@ -147,18 +147,13 @@ class GodotTilemapExporter {
 
     for (const object of layer.objects) {
       const groups = splitCommaSeparatedString(object.property("groups"));
-
+      
       if (object.tile) {
         this.generateTileNode(layer, parentLayerPath, object);
         continue;
       }
-      if (object.className == "Area2D" && object.width && object.height) {
-        this.generateArea2DNode(layer, parentLayerPath, object, groups);
-        continue;
-      }
-      if (object.className == "Node2D") {
-        this.generateNode2D(layer, parentLayerPath, object, groups);
-      }
+
+      this.generateArea2DNode(layer, parentLayerPath, object, groups);
     }
   }
 
@@ -232,13 +227,44 @@ class GodotTilemapExporter {
   }
 
   /**
-   * Generates an Area2D node with a rectangle shape.
+   * Generates an Area2D node.
    * @param {Layer} layer - The layer containing the object.
    * @param {string} parentLayerPath - Path of the parent layer.
    * @param {Object} object - The object representing the Area2D.
    * @param {Array<string>} groups - The groups the Area2D belongs to.
    */
   generateArea2DNode(layer, parentLayerPath, object, groups) {
+    switch (object.shape) {
+      case MapObjectShape.Rectangle:
+        this.generateRectangle(layer, parentLayerPath, object, groups);
+        break;
+      case MapObjectShape.Polygon:
+        this.generatePolygon(layer, parentLayerPath, object, groups, PolygonBuildMode.Polygon);
+        break;
+      case MapObjectShape.Polyline:
+        this.generatePolygon(layer, parentLayerPath, object, groups, PolygonBuildMode.Polyline);
+        break;
+      case MapObjectShape.Ellipse:
+        this.generateEllipse(layer, parentLayerPath, object, groups);
+        break;
+      // case MapObjectShape.Text:
+      //   this.generateText(layer, parentLayerPath, object, groups);
+      //   break;
+      case MapObjectShape.Point:
+        this.generatePoint(layer, parentLayerPath, object, groups);
+        break;
+    }
+  }
+
+  /**
+   * Generates a Area2D node with a rectangle shape.
+   * @param {Layer} layer - The layer containing the object.
+   * @param {string} parentLayerPath - Path of the parent layer.
+   * @param {Object} object - The object representing the Area2D.
+   * @param {Array<string>} groups - The groups the Area2D belongs to.
+   */
+  generateRectangle(layer, parentLayerPath, object, groups) {
+    const name = object.name || "Node2D";
     const position = {x: object.x, y: object.y};
     const size = {
       width: object.width,
@@ -249,7 +275,7 @@ class GodotTilemapExporter {
 
     this.tilemapNodeString += convertNodeToString(
       {
-        name: object.name || "Area2D",
+        name: name,
         type: "Area2D",
         parent: `${parentLayerPath}/${layer.name}`,
         groups: groups
@@ -264,7 +290,7 @@ class GodotTilemapExporter {
       this.meta_properties(object.properties())
     );
 
-    const shapeId = this.addSubResource("RectangleShape2D", {
+    const shapeID = this.addSubResource("RectangleShape2D", {
       extents: `Vector2(${size.width / 2}, ${size.height / 2})`,
     });
     
@@ -278,7 +304,122 @@ class GodotTilemapExporter {
       this.merge_properties(
         object.properties(),
         {
-          shape: `SubResource(${shapeId})`,
+          shape: `SubResource(${shapeID})`,
+          position: `Vector2(${center.x}, ${center.y})`,
+          rotation: degreesToRadians(object.rotation),
+        }
+      ),
+      {}
+    );
+  }
+  
+  /**
+   * Generates a Area2D node with a polygon shape.
+   * @param {Layer} layer - The layer containing the object.
+   * @param {string} parentLayerPath - Path of the parent layer.
+   * @param {Object} object - The object representing the Area2D.
+   * @param {Array<string>} groups - The groups the Area2D belongs to.
+   * @param {PolygonBuildMode} buildMode - Whether the mode of the polygon should be solid or just use lines for collision.
+   */
+  generatePolygon(layer, parentLayerPath, object, groups, buildMode) {
+    const name = object.name || "Node2D";
+    const position = {x: object.x, y: object.y};
+    const size = {
+      width: object.width,
+      height: object.height,
+    };
+    
+    const center = getRotatedRectangleCenter(position, size, object.rotation);
+
+    this.tilemapNodeString += convertNodeToString(
+      {
+        name: name,
+        type: "Area2D",
+        parent: `${parentLayerPath}/${layer.name}`,
+        groups: groups
+      }, 
+      this.merge_properties(
+        object.properties(),
+        {
+          collision_layer: object.property("collision_layer"),
+          collision_mask: object.property("collision_mask"),
+        }
+      ),
+      this.meta_properties(object.properties())
+    );
+
+    let polygonPoints = object.polygon.map(point => `${point.x}, ${point.y}`).join(', ');
+    
+    const area2DName = object.name || "Area2D";
+    this.tilemapNodeString += convertNodeToString(
+      {
+        name: "CollisionPolygon2D",
+        type: "CollisionPolygon2D",
+        parent: `${parentLayerPath}/${layer.name}/${area2DName}`
+      }, 
+      this.merge_properties(
+        object.properties(),
+        {
+          build_mode: buildMode,
+          position: `Vector2(${center.x}, ${center.y})`,
+          rotation: degreesToRadians(object.rotation),
+          polygon: `PackedVector2Array(${polygonPoints})`,
+        }
+      ),
+      {}
+    );
+  }
+
+  /**
+   * Generates a Area2D node with a polyline shape.
+   * @param {Layer} layer - The layer containing the object.
+   * @param {string} parentLayerPath - Path of the parent layer.
+   * @param {Object} object - The object representing the Area2D.
+   * @param {Array<string>} groups - The groups the Area2D belongs to.
+   */
+  generateEllipse(layer, parentLayerPath, object, groups) {
+    const name = object.name || "Node2D";
+    const position = {x: object.x, y: object.y};
+    const size = {
+      width: object.width,
+      height: object.height,
+    };
+    const radius = object.width / 2;
+    
+    const center = getRotatedRectangleCenter(position, size, object.rotation);
+
+    this.tilemapNodeString += convertNodeToString(
+      {
+        name: name,
+        type: "Area2D",
+        parent: `${parentLayerPath}/${layer.name}`,
+        groups: groups
+      }, 
+      this.merge_properties(
+        object.properties(),
+        {
+          collision_layer: object.property("collision_layer"),
+          collision_mask: object.property("collision_mask"),
+        }
+      ),
+      this.meta_properties(object.properties())
+    );
+
+    const shapeID = this.addSubResource("CircleShape2D", {
+      radius: radius,
+    });
+    
+    const area2DName = object.name || "Area2D";
+    this.tilemapNodeString += convertNodeToString(
+      {
+        name: "CollisionShape2D",
+        type: "CollisionShape2D",
+        parent: `${parentLayerPath}/${layer.name}/${area2DName}`
+      }, 
+      this.merge_properties(
+        object.properties(),
+        {
+          shape: `SubResource(${shapeID})`,
           position: `Vector2(${center.x}, ${center.y})`,
           rotation: degreesToRadians(object.rotation),
         }
@@ -288,24 +429,28 @@ class GodotTilemapExporter {
   }
 
   /**
-   * Generates a Node2D.
+   * Generates a Point.
    * @param {Layer} layer - The layer containing the object.
    * @param {string} parentLayerPath - Path of the parent layer.
    * @param {Object} object - The object representing the Node2D.
    * @param {Array<string>} groups - The groups the Node2D belongs to.
    */
-  generateNode2D(layer, parentLayerPath, object, groups) {
+  generatePoint(layer, parentLayerPath, object, groups) {
+    const name = object.name || "Node2D";
+    const type = object.property("godot:type") || "Node2D";
+
     this.tilemapNodeString += convertNodeToString(
       {
-        name: object.name || "Node2D",
-        type: "Node2D",
+        name: name,
+        type: type,
         parent: `${parentLayerPath}/${layer.name}`,
-        groups: groups
+        groups: groups,
       },
       this.merge_properties(
         object.properties(), 
         {
-          position: `Vector2(${object.x}, ${object.y})`
+          position: `Vector2(${object.x}, ${object.y})`,
+          rotation: degreesToRadians(object.rotation),
         }
       ),
       this.meta_properties(object.properties())
@@ -616,6 +761,20 @@ const FlippedState = {
   FlippedH: 1 << 12,
   FlippedV: 2 << 13,
   Transposed: 4 << 14
+};
+
+const MapObjectShape = {
+  Rectangle: 0,
+  Polygon: 1,
+  Polyline: 2,
+  Ellipse: 3,
+  Text: 4,
+  Point: 5,
+};
+
+const PolygonBuildMode = {
+  Polygon: 0,
+  Polyline: 1,
 };
 
 const customTileMapFormat = {
