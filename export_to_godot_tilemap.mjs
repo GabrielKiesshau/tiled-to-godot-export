@@ -1,4 +1,4 @@
-import { getResPath, stringifyKeyValue, stringifyNode, splitCommaSeparated, getTilesetColumns, getFileName } from './utils.mjs';
+import { getResPath, stringifyKeyValue, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getFileName } from './utils.mjs';
 
 /*global tiled, TextFile */
 class GodotTilemapExporter {
@@ -12,17 +12,17 @@ class GodotTilemapExporter {
     this.map = map;
     this.fileName = fileName;
     this.tileOffset = 65536;
-    this.tileMapsString = "";
-    this.tilesetsString = "";
+    this.tilemapNodeString = "";
+    this.tilesetResourceString = "";
     this.subResourcesString = "";
-    this.extResourceId = 0;
+    this.externalResourceID = 0;
     this.subResourceId = 0;
 
     /**
      * Tiled doesn't have tileset ID so we create a map
      * Tileset name to generated tilesetId.
      */
-    this.tilesetsIndex = new Map();
+    this.tilesetIndexMap = new Map();
 
     /**
      * Godot Tilemap has only one Tileset.
@@ -36,7 +36,7 @@ class GodotTilemapExporter {
   write() {
     this.setTilesetsString();
     this.setTileMapsString();
-    this.writeToFile();
+    this.saveToFile();
     tiled.log(`Tilemap exported successfully to ${this.fileName}`);
   }
 
@@ -78,11 +78,12 @@ class GodotTilemapExporter {
     for (let index = 0; index < this.map.tilesets.length; ++index) {
       // noinspection JSUnresolvedVariable
       const tileset = this.map.tilesets[index];
-      this.extResourceId = index + 1;
-      this.tilesetsIndex.set(tileset.name, this.extResourceId);
+      this.externalResourceID = index + 1;
+      this.tilesetIndexMap.set(tileset.name, this.externalResourceID);
       // noinspection JSUnresolvedFunction
-      let tilesetPath = getResPath(this.map.property("projectRoot"), this.map.property("relativePath"), tileset.asset.fileName.replace('.tsx', '.tres'));
-      this.tilesetsString += this.getTilesetResourceTemplate(this.extResourceId, tilesetPath, "TileSet");
+      // let tilesetPath = getResPath(tileset.property("projectRoot"), tileset.property("relativePath"), tileset.asset.fileName.replace('.tsx', '.tres'));
+      let tilesetPath = tileset.property("resPath");
+      this.tilesetResourceString += this.getTilesetResourceTemplate(this.externalResourceID, tilesetPath, "TileSet");
     }
   }
 
@@ -90,133 +91,138 @@ class GodotTilemapExporter {
    * Creates the Tilemap nodes. One Tilemap per one layer from Tiled.
    */
   setTileMapsString() {
-    const mode = this.map.orientation === TileMap.Isometric ? 1 : undefined
+    const isIsometric = this.map.orientation === TileMap.Isometric;
+    const mode = isIsometric ? 1 : undefined
     
     // noinspection JSUnresolvedVariable
-    for (let i = 0; i < this.map.layerCount; ++i) {
+    for (let layerIndex = 0; layerIndex < this.map.layerCount; ++layerIndex) {
       // noinspection JSUnresolvedFunction
-      let layer = this.map.layerAt(i);
+      let layer = this.map.layerAt(layerIndex);
       this.handleLayer(layer, mode, ".");
     }
   }
 
   /**
-   * Handle exporting a single layer
-   * @param {Layer} layer the target layer
-   * @param {number} mode the layer mode
-   * @param {string} layer_parent path of the parent of the layer
+   * Handle exporting a single layer.
+   * @param {Layer} layer - The target layer.
+   * @param {number} mode - The layer mode.
+   * @param {string} parentLayerPath - Path of the parent of the layer.
    */
-  handleLayer(layer, mode, layer_parent) {
+  handleLayer(layer, mode, parentLayerPath) {
     // noinspection JSUnresolvedVariable
     if (layer.isTileLayer) {
-      this.handleTileLayer(layer, mode, layer_parent);
+      this.handleTileLayer(layer, mode, parentLayerPath);
       return;
     }
     if (layer.isObjectLayer) {
-      this.handleObjectLayer(layer, mode, layer_parent);
+      this.handleObjectLayer(layer, mode, parentLayerPath);
       return;
     }
     if (layer.isGroupLayer) {
-      this.handleGroupLayer(layer, mode, layer_parent);
+      this.handleGroupLayer(layer, mode, parentLayerPath);
     }
   }
 
-  handleTileLayer(layer, mode, layer_parent) {
+  handleTileLayer(layer, mode, parentLayerPath) {
     const layerDataList = this.getLayerDataList(layer);
 
-    for (let idx = 0; idx < layerDataList.length; idx++) {
-      const layerData = layerDataList[idx];
-
+    for (const layerData of layerDataList) {
       if (!layerData.isEmpty) {
-        let layerName = layer.name || "TileMap " + layer.id
-        let tilesetName = layerData.tileset.name || "TileSet " + layerData.tilesetID;
-        const tileMapName = layerName + " - " + tilesetName;
+        const layerName = layer.name || `TileMap ${layer.id}`;
+        const tilesetName = layerData.tileset.name || `TileSet ${layerData.tilesetID}`;
+        const tileMapName = `${layerName} - ${tilesetName}`;
         this.mapLayerToTileset(layer.name, layerData.tilesetID);
-        this.tileMapsString += this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, layer_parent);
+        this.tilemapNodeString += this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, parentLayerPath);
       }
     }
   }
 
-  handleObjectLayer(layer, mode, layer_parent) {
-    // create layer
-    this.tileMapsString += stringifyNode({
+  handleObjectLayer(layer, mode, parentLayerPath) {
+    this.tilemapNodeString += convertNodeToString({
       name: layer.name,
       type: "Node2D",
-      parent: layer_parent,
-      groups: splitCommaSeparated(layer.property("groups"))
+      parent: parentLayerPath,
+      groups: splitCommaSeparatedString(layer.property("groups"))
     });
 
-    // add entities
     for (const object of layer.objects) {
-      const groups = splitCommaSeparated(object.property("groups"));
+      const groups = splitCommaSeparatedString(object.property("groups"));
 
       if (object.tile) {
-        this.createTile(layer, layer_parent, object);
+        this.generateTileNode(layer, parentLayerPath, object);
         continue;
       }
       if (object.className == "Area2D" && object.width && object.height) {
-        this.createArea2D(layer, layer_parent, object, groups);
+        this.generateArea2DNode(layer, parentLayerPath, object, groups);
         continue;
       }
       if (object.className == "Node2D") {
-        this.createNode2D(layer, layer_parent, object, groups);
+        this.generateNode2D(layer, parentLayerPath, object, groups);
       }
     }
   }
 
-  handleGroupLayer(layer, mode, layer_parent) {
-    var node_type = layer.property("godot:type") || "Node2D";
-    this.tileMapsString += stringifyNode(
+  handleGroupLayer(layer, mode, parentLayerPath) {
+    const node_type = layer.property("godot:type") || "Node2D";
+    this.tilemapNodeString += convertNodeToString(
       {
         name: layer.name,
         type: node_type,
-        parent: layer_parent,
-        groups: splitCommaSeparated(layer.property("groups"))
+        parent: parentLayerPath,
+        groups: splitCommaSeparatedString(layer.property("groups"))
       }, 
-      this.merge_properties(
-        layer.properties(),
-        {
-        }
-      ),
+      this.merge_properties(layer.properties(), {}),
       this.meta_properties(layer.properties())
     );
-    for(var i = 0; i < layer.layerCount; ++i) { 
-      this.handleLayer(layer.layers[i], mode, layer_parent + "/" + layer.name);
+
+    for(let i = 0; i < layer.layerCount; ++i) { 
+      this.handleLayer(layer.layers[i], mode, `${parentLayerPath}/${layer.name}`);
     }
   }
 
-  createTile(layer, layer_parent, object) {
-    let tilesetsIndexKey = object.tile.tileset.name + "_Image";
-    let textureResourceId = 0;
+  /**
+   * Generates a Tile node.
+   * @param {Layer} layer - The layer containing the tile.
+   * @param {string} parentLayerPath - Path of the parent layer.
+   * @param {Object} object - The object representing the tile.
+   */
+  generateTileNode(layer, parentLayerPath, object) {
+    const tilesetsIndexKey = `${object.tile.tileset.name}_Image`;
+    let textureResourceID = 0;
 
-    if (!this.tilesetsIndex.get(tilesetsIndexKey)) {
-      this.extResourceId = this.extResourceId + 1;
-      textureResourceId = this.extResourceId;
-      this.tilesetsIndex.set(tilesetsIndexKey, this.extResourceId);
+    if (!this.tilesetIndexMap.get(tilesetsIndexKey)) {
+      this.externalResourceID += 1;
+      textureResourceID = this.externalResourceID;
+      this.tilesetIndexMap.set(tilesetsIndexKey, this.externalResourceID);
+
       // noinspection JSUnresolvedFunction
-      let tilesetPath = getResPath(this.map.property("projectRoot"), this.map.property("relativePath"), object.tile.tileset.image);
-      this.tilesetsString += this.getTilesetResourceTemplate(this.extResourceId, tilesetPath, "Texture");
+      const tilesetPath = getResPath(
+        this.map.property("projectRoot"),
+        this.map.property("relativePath"),
+        object.tile.tileset.image,
+      );
+      this.tilesetResourceString += this.getTilesetResourceTemplate(this.externalResourceID, tilesetPath, "Texture");
     } else {
-      textureResourceId = this.tilesetsIndex.get(tilesetsIndexKey);
+      textureResourceID = this.tilesetIndexMap.get(tilesetsIndexKey);
     }
 
-    let tileOffset = this.getTileOffset(object.tile.tileset, object.tile.id);
+    const tileOffset = this.getTileOffset(object.tile.tileset, object.tile.id);
 
     // Account for anchoring in Godot (corner vs. middle):
-    let objectPositionX = object.x + (object.tile.width / 2);
-    let objectPositionY = object.y - (object.tile.height / 2);
+    const objectPositionX = object.x + (object.tile.width / 2);
+    const objectPositionY = object.y - (object.tile.height / 2);
 
-    this.tileMapsString += stringifyNode(
+    this.tilemapNodeString += convertNodeToString(
       {
         name: object.name || "Sprite2D",
         type: "Sprite2D",
-        parent: layer_parent + "/" + layer.name
-      }, 
+        parent: `${parentLayerPath}/${layer.name}`
+      },
       this.merge_properties(
         object.properties(),
         {
           position: `Vector2(${objectPositionX}, ${objectPositionY})`,
-          texture: `ExtResource(${textureResourceId})`,
+          texture: `ExtResource(${textureResourceID})`,
           region_enabled: true,
           region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${object.tile.width}, ${object.tile.height})`
         }
@@ -225,19 +231,25 @@ class GodotTilemapExporter {
     );
   }
 
-  createArea2D(layer, layer_parent, object, groups) {
-    // Creates an Area2D node with a rectangle shape inside
+  /**
+   * Generates an Area2D node with a rectangle shape.
+   * @param {Layer} layer - The layer containing the object.
+   * @param {string} parentLayerPath - Path of the parent layer.
+   * @param {Object} object - The object representing the Area2D.
+   * @param {Array<string>} groups - The groups the Area2D belongs to.
+   */
+  generateArea2DNode(layer, parentLayerPath, object, groups) {
     // TODO add support for rotation
     const width = object.width / 2;
     const height = object.height / 2;
     const objectPositionX = object.x + width;
     const objectPositionY = object.y + height;
 
-    this.tileMapsString += stringifyNode(
+    this.tilemapNodeString += convertNodeToString(
       {
         name: object.name || "Area2D",
         type: "Area2D",
-        parent: layer_parent + "/" + layer.name,
+        parent: `${parentLayerPath}/${layer.name}`,
         groups: groups
       }, 
       this.merge_properties(
@@ -254,12 +266,12 @@ class GodotTilemapExporter {
       extents: `Vector2(${width}, ${height})`
     });
     
-    let area2DName = object.name || "Area2D";
-    this.tileMapsString += stringifyNode(
+    const area2DName = object.name || "Area2D";
+    this.tilemapNodeString += convertNodeToString(
       {
         name: "CollisionShape2D",
         type: "CollisionShape2D",
-        parent: `${layer_parent}/${layer.name}/${area2DName}`
+        parent: `${parentLayerPath}/${layer.name}/${area2DName}`
       }, 
       this.merge_properties(
         object.properties(),
@@ -272,12 +284,19 @@ class GodotTilemapExporter {
     );
   }
 
-  createNode2D(layer, layer_parent, object, groups) {
-    this.tileMapsString += stringifyNode(
+  /**
+   * Generates a Node2D.
+   * @param {Layer} layer - The layer containing the object.
+   * @param {string} parentLayerPath - Path of the parent layer.
+   * @param {Object} object - The object representing the Node2D.
+   * @param {Array<string>} groups - The groups the Node2D belongs to.
+   */
+  generateNode2D(layer, parentLayerPath, object, groups) {
+    this.tilemapNodeString += convertNodeToString(
       {
         name: object.name || "Node2D",
         type: "Node2D",
-        parent: layer_parent + "/" + layer.name,
+        parent: `${parentLayerPath}/${layer.name}`,
         groups: groups
       },
       this.merge_properties(
@@ -291,10 +310,10 @@ class GodotTilemapExporter {
   }
 
   /**
-   * Prepare properties for a Godot node
-   * @param {TiledObjectProperties} object_props Properties from the layer
-   * @param {TiledObjectProperties} set_props The base properties for the node
-   * @returns {TiledObjectProperties} the merged property set for the node
+   * Prepare properties for a Godot node.
+   * @param {TiledObjectProperties} object_props - Properties from the layer.
+   * @param {TiledObjectProperties} set_props - The base properties for the node.
+   * @returns {TiledObjectProperties} - The merged property set for the node.
    */
   merge_properties(object_props, set_props) {
     for (const [key, value] of Object.entries(object_props)) {
@@ -322,11 +341,10 @@ class GodotTilemapExporter {
     return results;
   }
     
-  writeToFile() {
-    // noinspection JSUnresolvedVariable
-    let file = new TextFile(this.fileName, TextFile.WriteOnly);
-    let tileMapTemplate = this.getSceneTemplate();
-    file.write(tileMapTemplate);
+  saveToFile() {
+    const file = new TextFile(this.fileName, TextFile.WriteOnly);
+    const sceneTemplate = this.getSceneTemplate();
+    file.write(sceneTemplate);
     file.commit();
   }
 
@@ -455,7 +473,7 @@ class GodotTilemapExporter {
    * @returns {string|undefined} the id of the tileset if found, undefined otherwise
    */
   getTilesetIDByTileset(tileset) {
-    return this.tilesetsIndex.get(tileset.name);
+    return this.tilesetIndexMap.get(tileset.name);
   }
 
   /**
@@ -467,11 +485,11 @@ class GodotTilemapExporter {
    * @returns {object} - An object with pixel offset in the format {x: int, y: int}
    */
   getTileOffset(tileset, tileId) {
-    let columnCount = getTilesetColumns(tileset);
-    let row = Math.floor(tileId / columnCount);
-    let col = tileId % columnCount;
-    let xOffset = tileset.margin + (tileset.tileSpacing * col);
-    let yOffset = tileset.margin + (tileset.tileSpacing * row);
+    const columnCount = getTilesetColumns(tileset);
+    const row = Math.floor(tileId / columnCount);
+    const col = tileId % columnCount;
+    const xOffset = tileset.margin + (tileset.tileSpacing * col);
+    const yOffset = tileset.margin + (tileset.tileSpacing * row);
 
     return {
       x: (col * tileset.tileWidth) + xOffset,
@@ -490,10 +508,10 @@ class GodotTilemapExporter {
 
     return `[gd_scene load_steps=${loadSteps} format=3]
 
-${this.tilesetsString}
+${this.tilesetResourceString}
 ${this.subResourcesString}
 [node name="${name}" type="${type}"]
-${this.tileMapsString}
+${this.tilemapNodeString}
 `;
   }
 
@@ -519,10 +537,10 @@ ${this.tileMapsString}
    * @returns {string}
    */
   getTileMapTemplate(tileMapName, mode, tilesetID, poolIntArrayString, layer, parent = ".") {
-    const groups = splitCommaSeparated(layer.property("groups"));
+    const groups = splitCommaSeparatedString(layer.property("groups"));
     const zIndex = parseInt(layer.properties()['z_index'], 10);
 
-    return stringifyNode(
+    return convertNodeToString(
       {
         name: tileMapName,
         type: "TileMap",

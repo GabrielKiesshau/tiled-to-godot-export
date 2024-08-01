@@ -93,7 +93,7 @@ export function getTilesetColumns(tileset) {
 /**
  * @param {string} str comma separated items
  */
-export function splitCommaSeparated(str) {
+export function splitCommaSeparatedString(str) {
   if (!str) {
     return undefined;
   }
@@ -117,7 +117,7 @@ export function splitCommaSeparated(str) {
             }
  *         ```
  */
-export function stringifyNode(nodeProperties, contentProperties = {}, metaProperties = {}) {
+export function convertNodeToString(nodeProperties, contentProperties = {}, metaProperties = {}) {
   let str = '\n';
   str += '[node';
 
