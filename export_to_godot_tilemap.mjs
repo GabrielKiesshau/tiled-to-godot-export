@@ -320,7 +320,7 @@ class GodotTilemapExporter {
    */
   merge_properties(object_props, set_props) {
     for (const [key, value] of Object.entries(object_props)) {
-      if(key.startsWith("godot:node:")){
+      if(key.startsWith("godot:node:")) {
         set_props[key.substring(11)] = value;
       }
     }
