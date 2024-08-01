@@ -195,3 +195,36 @@ export function getFileName(path) {
   
   return fileName;
 }
+
+/**
+ * Calculates the center coordinate of a rectangle after rotation.
+ * @param {object} position - The coordinate of the top-left corner of the rectangle.
+ * @param {object} size - The size of the rectangle.
+ * @param {number} rotationDegrees - The rotation of the rectangle in degrees.
+ * @returns {Object} - An object containing the x and y coordinates of the center.
+ */
+export function getRotatedRectangleCenter(position, size, rotationDegrees) {
+  // Calculate the original center of the rectangle
+  const center = {
+    x: position.x + size.width / 2,
+    y: position.y + size.height / 2,
+  };
+
+  // Rotation in radians
+  const rotationRadians = rotationDegrees * (Math.PI / 180);
+
+  // Adjust the position of the center based on the rotation around the top-left corner
+  const rotatedCenterX = position.x + (center.x - position.x) * Math.cos(rotationRadians) - (center.y - position.y) * Math.sin(rotationRadians);
+  const rotatedCenterY = position.y + (center.x - position.x) * Math.sin(rotationRadians) + (center.y - position.y) * Math.cos(rotationRadians);
+
+  return { x: rotatedCenterX, y: rotatedCenterY };
+}
+
+/**
+ * Converts degrees to radians.
+ * @param {number} degrees - The angle in degrees.
+ * @returns {number} - The angle in radians.
+ */
+export function degreesToRadians(degrees) {
+  return degrees * (Math.PI / 180);
+}

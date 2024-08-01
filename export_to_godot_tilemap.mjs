@@ -1,4 +1,4 @@
-import { getResPath, stringifyKeyValue, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getFileName } from './utils.mjs';
+import { getResPath, stringifyKeyValue, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getFileName, getRotatedRectangleCenter, degreesToRadians } from './utils.mjs';
 
 /*global tiled, TextFile */
 class GodotTilemapExporter {
@@ -239,11 +239,13 @@ class GodotTilemapExporter {
    * @param {Array<string>} groups - The groups the Area2D belongs to.
    */
   generateArea2DNode(layer, parentLayerPath, object, groups) {
-    // TODO add support for rotation
-    const width = object.width / 2;
-    const height = object.height / 2;
-    const objectPositionX = object.x + width;
-    const objectPositionY = object.y + height;
+    const position = {x: object.x, y: object.y};
+    const size = {
+      width: object.width,
+      height: object.height,
+    };
+    
+    const center = getRotatedRectangleCenter(position, size, object.rotation);
 
     this.tilemapNodeString += convertNodeToString(
       {
@@ -256,14 +258,14 @@ class GodotTilemapExporter {
         object.properties(),
         {
           collision_layer: object.property("collision_layer"),
-          collision_mask: object.property("collision_mask")
+          collision_mask: object.property("collision_mask"),
         }
       ),
       this.meta_properties(object.properties())
     );
 
     const shapeId = this.addSubResource("RectangleShape2D", {
-      extents: `Vector2(${width}, ${height})`
+      extents: `Vector2(${size.width / 2}, ${size.height / 2})`,
     });
     
     const area2DName = object.name || "Area2D";
@@ -277,7 +279,8 @@ class GodotTilemapExporter {
         object.properties(),
         {
           shape: `SubResource(${shapeId})`,
-          position: `Vector2(${objectPositionX}, ${objectPositionY})`,
+          position: `Vector2(${center.x}, ${center.y})`,
+          rotation: degreesToRadians(object.rotation),
         }
       ),
       {}
@@ -438,7 +441,7 @@ class GodotTilemapExporter {
           let srcX = tileId % tilesetColumns;
           srcX *= this.tileOffset;
           // srcX += tilesetInfo.atlasID;
-          tiled.log(`tilesetInfo.atlasID : ${"tilesetInfo.atlasID"}`);
+          // tiled.log(`tilesetInfo.atlasID : ${"tilesetInfo.atlasID"}`);
 
           let srcY = Math.floor(tileId / tilesetColumns);
           srcY += alt * this.tileOffset;
