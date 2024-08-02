@@ -776,7 +776,7 @@ const PolygonBuildMode = {
 };
 
 const customTileMapFormat = {
-  name: "Godot Tilemap format",
+  name: "Godot 4 Tilemap format",
   extension: "tscn",
 
   /**
