@@ -45,9 +45,41 @@ Point:
 Name = Defaults to "Node2D";
 godot:type = Defaults to "Node2D";
 
+List of Z indexes:
+Background: 10 to 39
+Playable Area: 40 to 49
+Foreground: 50+
 
-
-TODO: Prepare a list displaying the available z indexes.
-TODO: Prepare a list displaying the available groups.
-TODO: Prepare a list displaying the available collision layers.
-TODO: Prepare a list displaying the available collision masks.
+List of collision layers:
+01: environment
+02: player
+03: enemy
+04: collectable
+05: player_projectile
+06: enemy_projectile
+07: warp
+08: 
+09: 
+10: 
+11: 
+12: 
+13: 
+14: 
+15: 
+16: 
+17: 
+18: 
+19: 
+20: 
+21: 
+22: 
+23: 
+24: 
+25: 
+26: 
+27: 
+28: 
+29: 
+30: 
+31: 
+32: 
