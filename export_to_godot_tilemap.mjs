@@ -108,19 +108,19 @@ class GodotTilemapExporter {
     }
   }
 
-  handleObjectLayer(layer, parentLayerPath, groups) {
+  handleObjectLayer(layer, parentLayerPath, layerGroups) {
     this.tilemapNodeString += convertNodeToString({
       name: layer.name,
       type: "Node2D",
       parent: parentLayerPath,
-      groups: groups,
+      groups: layerGroups,
     });
 
     for (const mapObject of layer.objects) {
       const mapObjectGroups = splitCommaSeparatedString(mapObject.property("godot:groups"));
       
       if (mapObject.tile) {
-        this.generateTileNode(layer, parentLayerPath, mapObject);
+        this.generateTileNode(layer, parentLayerPath, mapObject, mapObjectGroups);
         continue;
       }
 
@@ -152,7 +152,7 @@ class GodotTilemapExporter {
    * @param {string} parentLayerPath - Path of the parent layer.
    * @param {MapObject} mapObject - An object that can be part of an ObjectGroup.
    */
-  generateTileNode(layer, parentLayerPath, mapObject) {
+  generateTileNode(layer, parentLayerPath, mapObject, groups) {
     const tilesetsIndexKey = `${mapObject.tile.tileset.name}_Image`;
     let textureResourceID = 0;
 
@@ -184,6 +184,7 @@ class GodotTilemapExporter {
         name: mapObject.name || "Sprite2D",
         type: "Sprite2D",
         parent: `${parentLayerPath}/${layer.name}`,
+        groups: groups,
       },
       this.merge_properties(
         mapObject.properties(),
@@ -192,9 +193,9 @@ class GodotTilemapExporter {
           texture: `ExtResource(${textureResourceID})`,
           region_enabled: true,
           region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
-        }
+        },
       ),
-      this.meta_properties(layer.properties())
+      this.meta_properties(layer.properties()),
     );
   }
 
@@ -247,7 +248,7 @@ class GodotTilemapExporter {
         name: name,
         type: "Area2D",
         parent: `${parentLayerPath}/${layer.name}`,
-        groups: groups
+        groups: groups,
       }, 
       this.merge_properties(
         mapObject.properties(),
@@ -256,7 +257,7 @@ class GodotTilemapExporter {
           collision_mask: mapObject.property("godot:collision_mask"),
         }
       ),
-      this.meta_properties(mapObject.properties())
+      this.meta_properties(mapObject.properties()),
     );
 
     const shapeID = this.addSubResource("RectangleShape2D", {
@@ -268,7 +269,7 @@ class GodotTilemapExporter {
       {
         name: "CollisionShape2D",
         type: "CollisionShape2D",
-        parent: `${parentLayerPath}/${layer.name}/${area2DName}`
+        parent: `${parentLayerPath}/${layer.name}/${area2DName}`,
       }, 
       this.merge_properties(
         mapObject.properties(),
@@ -278,7 +279,7 @@ class GodotTilemapExporter {
           rotation: degreesToRadians(mapObject.rotation),
         }
       ),
-      {}
+      {},
     );
   }
   
@@ -305,16 +306,16 @@ class GodotTilemapExporter {
         name: name,
         type: "Area2D",
         parent: `${parentLayerPath}/${layer.name}`,
-        groups: groups
+        groups: groups,
       }, 
       this.merge_properties(
         mapObject.properties(),
         {
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
-        }
+        },
       ),
-      this.meta_properties(mapObject.properties())
+      this.meta_properties(mapObject.properties()),
     );
 
     let polygonPoints = mapObject.polygon.map(point => `${point.x}, ${point.y}`).join(', ');
@@ -324,7 +325,7 @@ class GodotTilemapExporter {
       {
         name: "CollisionPolygon2D",
         type: "CollisionPolygon2D",
-        parent: `${parentLayerPath}/${layer.name}/${area2DName}`
+        parent: `${parentLayerPath}/${layer.name}/${area2DName}`,
       }, 
       this.merge_properties(
         mapObject.properties(),
@@ -333,9 +334,9 @@ class GodotTilemapExporter {
           position: `Vector2(${center.x}, ${center.y})`,
           rotation: degreesToRadians(mapObject.rotation),
           polygon: `PackedVector2Array(${polygonPoints})`,
-        }
+        },
       ),
-      {}
+      {},
     );
   }
 
@@ -362,16 +363,16 @@ class GodotTilemapExporter {
         name: name,
         type: "Area2D",
         parent: `${parentLayerPath}/${layer.name}`,
-        groups: groups
+        groups: groups,
       }, 
       this.merge_properties(
         mapObject.properties(),
         {
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
-        }
+        },
       ),
-      this.meta_properties(mapObject.properties())
+      this.meta_properties(mapObject.properties()),
     );
 
     const shapeID = this.addSubResource("CircleShape2D", {
@@ -383,7 +384,7 @@ class GodotTilemapExporter {
       {
         name: "CollisionShape2D",
         type: "CollisionShape2D",
-        parent: `${parentLayerPath}/${layer.name}/${area2DName}`
+        parent: `${parentLayerPath}/${layer.name}/${area2DName}`,
       }, 
       this.merge_properties(
         mapObject.properties(),
@@ -391,9 +392,9 @@ class GodotTilemapExporter {
           shape: `SubResource(${shapeID})`,
           position: `Vector2(${center.x}, ${center.y})`,
           rotation: degreesToRadians(mapObject.rotation),
-        }
+        },
       ),
-      {}
+      {},
     );
   }
 
@@ -420,9 +421,9 @@ class GodotTilemapExporter {
         {
           position: `Vector2(${mapObject.x}, ${mapObject.y})`,
           rotation: degreesToRadians(mapObject.rotation),
-        }
+        },
       ),
-      this.meta_properties(mapObject.properties())
+      this.meta_properties(mapObject.properties()),
     );
   }
 
@@ -532,7 +533,7 @@ class GodotTilemapExporter {
               layer: layer,
               isEmpty: tile.tileset === null,
               poolIntArrayString: "",
-              parent: tilesetList.length === 0 ? "." : layer.name
+              parent: tilesetList.length === 0 ? "." : layer.name,
             };
 
             tilesetList.push(tileset);
@@ -631,7 +632,7 @@ class GodotTilemapExporter {
 
     return {
       x: (col * tileset.tileWidth) + xOffset,
-      y: (row * tileset.tileHeight) + yOffset
+      y: (row * tileset.tileHeight) + yOffset,
     };
   }
 
@@ -690,7 +691,7 @@ ${this.tilemapNodeString}
         name: tileMapName,
         type: "TileMap",
         parent: parent,
-        groups: groups
+        groups: groups,
       }, 
       this.merge_properties(
         layer.properties(),
@@ -735,7 +736,7 @@ ${this.tilemapNodeString}
           texture_repeat: undefined,//0,
         }
       ),
-      this.meta_properties(layer.properties())
+      this.meta_properties(layer.properties()),
     );
   }
 
