@@ -11,17 +11,14 @@ godot:resPath = The file path of the Godot tileset. Required;
 -----------------------------------------------------------------------------------------------------
 Layer properties:
 Name
-//TODO Move groups here
+godot:groups = Groups this Godot object is part of. Multiple groups are allowed, separated by comma;
 
 Group layer properties:
-godot:groups = Groups this Godot object is part of. Multiple groups are allowed, separated by comma;
 godot:type = Root node type, defaults to "Node2D";
 
 Object layer properties:
-godot:groups = Groups this Godot object is part of. Multiple groups are allowed, separated by comma;
 
 Tile layer properties:
-godot:groups = Groups this Godot object is part of. Multiple groups are allowed, separated by comma;
 godot:z_index = The z index of the layer. Defaults to 10;
 
 -----------------------------------------------------------------------------------------------------
@@ -50,7 +47,6 @@ godot:type = Defaults to "Node2D";
 
 
 
-TODO: Move Groups to base layer;
 TODO: Prepare a list displaying the available z indexes.
 TODO: Prepare a list displaying the available groups.
 TODO: Prepare a list displaying the available collision layers.
