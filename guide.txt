@@ -1,0 +1,57 @@
+
+Take into consideration that exporting the map will overwrite the map, so any changes made in Godot will be lost.
+
+Map properties:
+godot:type = Root node type, defaults to "Node2D";
+godot:name = Map name, defaults to the file name;
+
+Tileset properties:
+godot:resPath = The file path of the Godot tileset. Required;
+
+-----------------------------------------------------------------------------------------------------
+Layer properties:
+Name
+//TODO Move groups here
+
+Group layer properties:
+godot:groups = Groups this Godot object is part of. Multiple groups are allowed, separated by comma;
+godot:type = Root node type, defaults to "Node2D";
+
+Object layer properties:
+godot:groups = Groups this Godot object is part of. Multiple groups are allowed, separated by comma;
+
+Tile layer properties:
+godot:groups = Groups this Godot object is part of. Multiple groups are allowed, separated by comma;
+godot:z_index = The z index of the layer. Defaults to 10;
+
+-----------------------------------------------------------------------------------------------------
+Object properties:
+Tile:
+Name = Defaults to "Sprite2D";
+
+Rectangle:
+Name = Defaults to "Area2D";
+godot:collision_layer = The collision layer of the Area2D;
+godot:collision_mask = The collision mask of the Area2D;
+
+Polygon:
+Name = Defaults to "Area2D";
+godot:collision_layer = The collision layer of the Area2D;
+godot:collision_mask = The collision mask of the Area2D;
+
+Ellipse:
+Name = Defaults to "Area2D";
+godot:collision_layer = The collision layer of the Area2D;
+godot:collision_mask = The collision mask of the Area2D;
+
+Point:
+Name = Defaults to "Node2D";
+godot:type = Defaults to "Node2D";
+
+
+
+TODO: Move Groups to base layer;
+TODO: Prepare a list displaying the available z indexes.
+TODO: Prepare a list displaying the available groups.
+TODO: Prepare a list displaying the available collision layers.
+TODO: Prepare a list displaying the available collision masks.
