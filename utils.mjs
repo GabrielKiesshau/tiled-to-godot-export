@@ -203,7 +203,7 @@ export function getFileName(path) {
  * @param {number} rotationDegrees - The rotation of the rectangle in degrees.
  * @returns {Object} - An object containing the x and y coordinates of the center.
  */
-export function getRotatedRectangleCenter(position, size, rotationDegrees) {
+export function getAreaCenter(position, size, rotationDegrees) {
   // Calculate the original center of the rectangle
   const center = {
     x: position.x + size.width / 2,

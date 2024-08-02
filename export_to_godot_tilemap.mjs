@@ -1,4 +1,4 @@
-import { getResPath, stringifyKeyValue, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getFileName, getRotatedRectangleCenter, degreesToRadians } from './utils.mjs';
+import { getResPath, stringifyKeyValue, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getFileName, getAreaCenter, degreesToRadians } from './utils.mjs';
 
 /*global tiled, TextFile */
 class GodotTilemapExporter {
@@ -241,7 +241,7 @@ class GodotTilemapExporter {
       height: mapObject.height,
     };
     
-    const center = getRotatedRectangleCenter(position, size, mapObject.rotation);
+    const center = getAreaCenter(position, size, mapObject.rotation);
 
     this.tilemapNodeString += convertNodeToString(
       {
@@ -299,7 +299,7 @@ class GodotTilemapExporter {
       height: mapObject.height,
     };
     
-    const center = getRotatedRectangleCenter(position, size, mapObject.rotation);
+    const center = getAreaCenter(position, size, mapObject.rotation);
 
     this.tilemapNodeString += convertNodeToString(
       {
@@ -356,7 +356,7 @@ class GodotTilemapExporter {
     };
     const radius = mapObject.width / 2;
     
-    const center = getRotatedRectangleCenter(position, size, mapObject.rotation);
+    const center = getAreaCenter(position, size, mapObject.rotation);
 
     this.tilemapNodeString += convertNodeToString(
       {
