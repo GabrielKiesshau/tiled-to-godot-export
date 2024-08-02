@@ -3,7 +3,7 @@
 **Exporting the Map:**
 
 1. In Tiled, go to **File > Export As** (or press **Ctrl + Shift + E**).
-2. Choose the location where you want to save your converted map.
+2. Choose the location where you want to save your converted map, and make sure the selected format is **Godot 4 Tilemap format (*.tscn)**.
 
    **Note:** Exporting the map will overwrite any changes made in Godot to a map with the same name.
 
