@@ -118,42 +118,38 @@ export function splitCommaSeparatedString(str) {
  *         ```
  */
 export function convertNodeToString(nodeProperties, contentProperties = {}, metaProperties = {}) {
-  let str = '\n';
-  str += '[node';
+  let str = '\n[node';
 
-  for (const [key, value] of Object.entries(nodeProperties)) {
-    if (value !== undefined) {
-      str += ' ' + stringifyKeyValue(key, value, false, true, false);
-    }
-  }
-
+  // Convert node properties to string
+  str += Object.entries(nodeProperties)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => ` ${stringifyKeyValue(key, value, false, true, false)}`)
+    .join('');
+  
   str += ']\n';
 
-  for (const [key, value] of Object.entries(contentProperties)) {
-    if (value !== undefined) {
-      str += stringifyKeyValue(key, value, false, false, true) + '\n';
-    }
-  }
-  const mProps = Object.entries(metaProperties);
-  if(mProps.length > 0) {
+  // Convert content properties to string
+  str += Object.entries(contentProperties)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => `${stringifyKeyValue(key, value, false, false, true)}\n`)
+    .join('');
+
+  // Convert meta properties to string if any
+  const metaEntries = Object.entries(metaProperties);
+  if (metaEntries.length > 0) {
     str += '__meta__ = {\n';
-    var count = 0;
 
-    for(const [key, value] of mProps) {
-      if (count++ > 0){
-          str += ",\n";
-      }
+    str += metaEntries
+      .map(([key, value], index) => {
+        const quoteValue = typeof value !== 'number' && typeof value !== 'boolean';
+        const prefix = index > 0 ? ',\n' : '';
+        return `${prefix}${stringifyKeyValue(key, value, true, quoteValue, true, ":")}`;
+      })
+      .join('');
 
-      var quoteValue = true;
-
-      if(typeof value === 'number' || typeof value === 'boolean') {
-          quoteValue = false;
-      }
-
-      str += stringifyKeyValue(key, value, true, quoteValue, true, ":");
-    }
     str += '\n}\n';
   }
+
   return str;
 }
 
@@ -168,22 +164,22 @@ export function convertNodeToString(nodeProperties, contentProperties = {}, meta
  * @param {string} separator
  */
 export function stringifyKeyValue(key, value, quoteKey, quoteValue, spaces, separator = "=") {
-  // flatten arrays
+  // Flatten arrays and quote values if needed
   if (Array.isArray(value)) {
-    value = '[\n"' + value.join('","') + '",\n]';
+    value = `[\n"${value.join('","')}",\n]`;
   } else if (quoteValue) {
     value = `"${value}"`;
   }
 
-  if(quoteKey) {
+  // Quote key if needed
+  if (quoteKey) {
     key = `"${key}"`;
   }
 
-  if (!spaces) {
-    return `${key}` + separator + `${value}`;
-  }
+  // Handle spacing around the separator
+  const space = spaces ? ' ' : '';
 
-  return `${key} ` + separator + ` ${value}`;
+  return `${key}${space}${separator}${space}${value}`;
 }
 
 export function getFileName(path) {
