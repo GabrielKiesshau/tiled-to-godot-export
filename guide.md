@@ -1,13 +1,20 @@
 ### How to Export a Map from Tiled to Godot
 
+**Assigning tilesets to their .tres files:**
+1. a
+2. b
+3. c
+
 **Exporting the Map:**
 
 1. In Tiled, go to **File > Export As** (or press **Ctrl + Shift + E**).
 2. Choose the location where you want to save your converted map, and make sure the selected format is **Godot 4 Tilemap format (*.tscn)**.
 
-   **Note:** Exporting the map will overwrite any changes made in Godot to a map with the same name.
-
 3. For a quicker export without the file prompt, go to **File > Export** (or press **Ctrl + E**). Tiled will export your map to the last saved file name.
+
+**Additional notes:**
+1. Exporting the map will overwrite any changes made in Godot to a map with the same name.
+2. There's no oval in Godot, so the ellipse in Tiled will use its width as its radius.
 
 **Customizing Properties:**
 

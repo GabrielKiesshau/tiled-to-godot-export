@@ -11,7 +11,6 @@ class GodotTilemapExporter {
   constructor(map, fileName) {
     this.map = map;
     this.fileName = fileName;
-    this.tileOffset = 65536;
     this.tilemapNodeString = "";
     this.tilesetResourceString = "";
     this.subResourcesString = "";
@@ -249,16 +248,17 @@ class GodotTilemapExporter {
         type: "Area2D",
         parent: `${parentLayerPath}/${layer.name}`,
         groups: groups,
-      }, 
+      },
       this.merge_properties(
         mapObject.properties(),
         {
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
-        }
+        },
       ),
       this.meta_properties(mapObject.properties()),
     );
+    this.tilemapNodeString += this.availableRectangleClasses(mapObject.className);
 
     const shapeID = this.addSubResource("RectangleShape2D", {
       extents: `Vector2(${size.width / 2}, ${size.height / 2})`,
@@ -270,17 +270,33 @@ class GodotTilemapExporter {
         name: "CollisionShape2D",
         type: "CollisionShape2D",
         parent: `${parentLayerPath}/${layer.name}/${area2DName}`,
-      }, 
+      },
       this.merge_properties(
         mapObject.properties(),
         {
           shape: `SubResource(${shapeID})`,
           position: `Vector2(${center.x}, ${center.y})`,
           rotation: degreesToRadians(mapObject.rotation),
-        }
+        },
       ),
       {},
     );
+  }
+
+  // How can we get doors to work here?
+  availableRectangleClasses(className) {
+//     switch(className) {
+//       case "Warp":
+//         return `z_index = 100
+// position = Vector2(636, 180)
+// collision_mask = 2
+// script = ExtResource("4_bhf01")
+// target_room = ExtResource("6_pd8y0")
+// is_fade_enabled = false
+// `;
+//     }
+
+    return "";
   }
   
   /**
@@ -408,6 +424,14 @@ class GodotTilemapExporter {
   generatePoint(layer, parentLayerPath, mapObject, groups) {
     const name = mapObject.name || "Node2D";
     const type = mapObject.property("godot:type") || "Node2D";
+
+    // const prefab = mapObject.property("godot:prefab");
+
+    // var prefabDirectory = tiled.project?.property("godot:prefab_directory");
+    // tiled.log(x);
+    // [ext_resource type="PackedScene" uid="uid://c0a5dtnw817wl" path=`${prefabDirectory}characters/npcs/cell_naive.tscn" id="3_l2prl"]
+    // [node name="NaiveCell" parent="." instance=ExtResource("3_l2prl")]
+    // position = Vector2(637, 461)
 
     this.tilemapNodeString += convertNodeToString(
       {
@@ -548,14 +572,14 @@ class GodotTilemapExporter {
           if (tileId >= tilesetColumns) {
             let tileY = Math.floor(tileId / tilesetColumns);
             let tileX = (tileId % tilesetColumns);
-            tileGodotID = tileX + (tileY * this.tileOffset);
+            tileGodotID = tileX + (tileY * TileOffset);
           }
 
           /**
            * Godot coordinates use an offset of 65536
            * Check the README.md: Godot Tilemap Encoding & Limits
            */
-          let cellID = (x >= 0 ? y : y + 1) * this.tileOffset + x;
+          let cellID = (x >= 0 ? y : y + 1) * TileOffset + x;
 
           let alt = 0;
           if (cell.rotatedHexagonal120) {
@@ -575,12 +599,12 @@ class GodotTilemapExporter {
           }
 
           let srcX = tileId % tilesetColumns;
-          srcX *= this.tileOffset;
+          srcX *= TileOffset;
           // srcX += tilesetInfo.atlasID;
           // tiled.log(`tilesetInfo.atlasID : ${"tilesetInfo.atlasID"}`);
 
           let srcY = Math.floor(tileId / tilesetColumns);
-          srcY += alt * this.tileOffset;
+          srcY += alt * TileOffset;
           
           tileset.poolIntArrayString += `${cellID}, ${srcX}, ${srcY}, `;
         }
@@ -754,6 +778,8 @@ ${this.tilemapNodeString}
     this.layersToTilesetIndex[layerName] = tilesetID;
   }
 }
+
+const TileOffset = 65536;
 
 const FlippedState = {
   FlippedH: 1 << 12,
