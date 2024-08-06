@@ -273,7 +273,7 @@ class GodotTilemapExporter {
         parent: `${parentLayerPath}/${layer.name}/${area2DName}`,
       },
       this.merge_properties(
-        mapObject.properties(),
+        {},
         {
           shape: `SubResource(${shapeID})`,
         },
@@ -329,7 +329,7 @@ class GodotTilemapExporter {
         parent: `${parentLayerPath}/${layer.name}/${area2DName}`,
       }, 
       this.merge_properties(
-        mapObject.properties(),
+        {},
         {
           build_mode: buildMode,
           polygon: `PackedVector2Array(${polygonPoints})`,
@@ -388,7 +388,7 @@ class GodotTilemapExporter {
         parent: `${parentLayerPath}/${layer.name}/${area2DName}`,
       }, 
       this.merge_properties(
-        mapObject.properties(),
+        {},
         {
           shape: `SubResource(${shapeID})`,
         },
