@@ -252,13 +252,14 @@ class GodotTilemapExporter {
       this.merge_properties(
         mapObject.properties(),
         {
+          position: `Vector2(${center.x}, ${center.y})`,
+          rotation: degreesToRadians(mapObject.rotation),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
       ),
       this.meta_properties(mapObject.properties()),
     );
-    this.tilemapNodeString += this.availableRectangleClasses(mapObject.className);
 
     const shapeID = this.addSubResource("RectangleShape2D", {
       extents: `Vector2(${size.width / 2}, ${size.height / 2})`,
@@ -275,28 +276,10 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           shape: `SubResource(${shapeID})`,
-          position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(mapObject.rotation),
         },
       ),
       {},
     );
-  }
-
-  // How can we get doors to work here?
-  availableRectangleClasses(className) {
-//     switch(className) {
-//       case "Warp":
-//         return `z_index = 100
-// position = Vector2(636, 180)
-// collision_mask = 2
-// script = ExtResource("4_bhf01")
-// target_room = ExtResource("6_pd8y0")
-// is_fade_enabled = false
-// `;
-//     }
-
-    return "";
   }
   
   /**
@@ -327,6 +310,8 @@ class GodotTilemapExporter {
       this.merge_properties(
         mapObject.properties(),
         {
+          position: `Vector2(${center.x}, ${center.y})`,
+          rotation: degreesToRadians(mapObject.rotation),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -347,8 +332,6 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           build_mode: buildMode,
-          position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(mapObject.rotation),
           polygon: `PackedVector2Array(${polygonPoints})`,
         },
       ),
@@ -384,6 +367,8 @@ class GodotTilemapExporter {
       this.merge_properties(
         mapObject.properties(),
         {
+          position: `Vector2(${center.x}, ${center.y})`,
+          rotation: degreesToRadians(mapObject.rotation),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -406,8 +391,6 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           shape: `SubResource(${shapeID})`,
-          position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(mapObject.rotation),
         },
       ),
       {},

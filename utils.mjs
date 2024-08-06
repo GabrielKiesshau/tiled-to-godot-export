@@ -120,7 +120,7 @@ export function splitCommaSeparatedString(str) {
 export function convertNodeToString(nodeProperties, contentProperties = {}, metaProperties = {}) {
   let str = '\n[node';
 
-  // Convert node properties to string
+  // Convert node heading properties to string
   str += Object.entries(nodeProperties)
     .filter(([, value]) => value !== undefined)
     .map(([key, value]) => ` ${stringifyKeyValue(key, value, false, true, false)}`)
@@ -128,13 +128,13 @@ export function convertNodeToString(nodeProperties, contentProperties = {}, meta
   
   str += ']\n';
 
-  // Convert content properties to string
+  // Convert node properties to string
   str += Object.entries(contentProperties)
     .filter(([, value]) => value !== undefined)
     .map(([key, value]) => `${stringifyKeyValue(key, value, false, false, true)}\n`)
     .join('');
 
-  // Convert meta properties to string if any
+  // Convert node meta properties to string if any
   const metaEntries = Object.entries(metaProperties);
   if (metaEntries.length > 0) {
     str += '__meta__ = {\n';
