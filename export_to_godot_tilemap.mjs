@@ -13,7 +13,7 @@ class GodotTilemapExporter {
     this.fileName = fileName;
     this.externalResourceList = [];
     this.subResourceList = [];
-    this.tilemapNode = [];
+    this.nodeList = [];
     this.externalResourceID = 0;
     this.subResourceID = 0;
 
@@ -106,7 +106,7 @@ class GodotTilemapExporter {
         
         const tilemap = this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, parentLayerPath, groups);
 
-        this.tilemapNode.push(tilemap);
+        this.nodeList.push(tilemap);
       }
     }
   }
@@ -118,7 +118,7 @@ class GodotTilemapExporter {
       parent: parentLayerPath,
       groups: layerGroups,
     });
-    this.tilemapNode.push(node);
+    this.nodeList.push(node);
 
     for (const mapObject of layer.objects) {
       const mapObjectGroups = splitCommaSeparatedString(mapObject.property("godot:groups"));
@@ -144,7 +144,7 @@ class GodotTilemapExporter {
       this.merge_properties(layer.properties(), {}),
       this.meta_properties(layer.properties()),
     );
-    this.tilemapNode.push(node);
+    this.nodeList.push(node);
 
     for(let i = 0; i < layer.layerCount; ++i) { 
       this.handleLayer(layer.layers[i], mode, `${parentLayerPath}/${layer.name}`);
@@ -204,7 +204,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(layer.properties()),
     );
-    this.tilemapNode.push(node);
+    this.nodeList.push(node);
   }
 
   /**
@@ -269,7 +269,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
-    this.tilemapNode.push(area2DNode);
+    this.nodeList.push(area2DNode);
 
     const subResource = this.createSubResource(
       SubResource.RectangleShape2D,
@@ -293,7 +293,7 @@ class GodotTilemapExporter {
       ),
       {},
     );
-    this.tilemapNode.push(collisionShapeNode);
+    this.nodeList.push(collisionShapeNode);
   }
   
   /**
@@ -332,7 +332,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
-    this.tilemapNode.push(area2DNode);
+    this.nodeList.push(area2DNode);
 
     let polygonPoints = mapObject.polygon.map(point => `${point.x}, ${point.y}`).join(', ');
     
@@ -352,7 +352,7 @@ class GodotTilemapExporter {
       ),
       {},
     );
-    this.tilemapNode.push(collisionShapeNode);
+    this.nodeList.push(collisionShapeNode);
   }
 
   /**
@@ -391,7 +391,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
-    this.tilemapNode.push(area2DNode);
+    this.nodeList.push(area2DNode);
 
     const subResource = this.createSubResource(
       SubResource.CircleShape2D,
@@ -415,7 +415,7 @@ class GodotTilemapExporter {
       ),
       {},
     );
-    this.tilemapNode.push(collisionShapeNode);
+    this.nodeList.push(collisionShapeNode);
   }
 
   /**
@@ -453,7 +453,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
-    this.tilemapNode.push(node);
+    this.nodeList.push(node);
   }
 
   /**
@@ -743,7 +743,7 @@ ${nodeString}
    * @returns {string} - Serialized external resources.
    */
   formatNodeList() {
-    return this.tilemapNode.join("");
+    return this.nodeList.join("");
   }
 
   /**
