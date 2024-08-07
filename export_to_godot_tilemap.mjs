@@ -393,7 +393,7 @@ class GodotTilemapExporter {
 
     const subResource = this.createSubResource(
       SubResource.CircleShape2D,
-      { radius: radius },
+      { radius: radius.toFixed(1) },
     );
 
     this.subResourceList.push(subResource);
