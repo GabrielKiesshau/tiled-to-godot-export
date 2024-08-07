@@ -15,7 +15,7 @@ class GodotTilemapExporter {
     this.tilesetResourceString = "";
     this.subResourcesString = "";
     this.externalResourceID = 0;
-    this.subResourceId = 0;
+    this.subResourceID = 0;
 
     /**
      * Tiled doesn't have tileset ID so we create a map
@@ -462,7 +462,7 @@ class GodotTilemapExporter {
         throw new TypeError('contentProperties must be a non-null object');
       }
   
-      const id = this.subResourceId++;
+      const id = this.subResourceID++;
       const subResourceParts = [`\n[sub_resource type="${type}" id=${id}]`];
   
       for (const [key, value] of Object.entries(contentProperties)) {
@@ -693,7 +693,7 @@ class GodotTilemapExporter {
    * @returns {string}
    */
   getSceneTemplate() {
-    const loadSteps = 2 + this.subResourceId;
+    const loadSteps = 2 + this.subResourceID;
     const type = this.map.property("godot:type") || "Node2D";
     const name = this.map.property("godot:name") || getFileName(this.fileName);
 
