@@ -274,9 +274,10 @@ class GodotTilemapExporter {
       this.meta_properties(mapObject.properties()),
     );
 
-    const shapeID = this.addSubResource("RectangleShape2D", {
-      extents: `Vector2(${size.width / 2}, ${size.height / 2})`,
-    });
+    const shapeID = this.addSubResource(
+      "RectangleShape2D",
+      { extents: `Vector2(${size.width / 2}, ${size.height / 2})` },
+    );
     
     const area2DName = mapObject.name || "Area2D";
     this.tilemapNodeString += convertNodeToString(
@@ -389,9 +390,10 @@ class GodotTilemapExporter {
       this.meta_properties(mapObject.properties()),
     );
 
-    const shapeID = this.addSubResource("CircleShape2D", {
-      radius: radius,
-    });
+    const shapeID = this.addSubResource(
+      "CircleShape2D",
+      { radius: radius },
+    );
     
     const area2DName = mapObject.name || "Area2D";
     this.tilemapNodeString += convertNodeToString(
