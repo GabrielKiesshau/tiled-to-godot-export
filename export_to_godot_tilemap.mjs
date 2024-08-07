@@ -12,8 +12,9 @@ class GodotTilemapExporter {
     this.map = map;
     this.fileName = fileName;
     this.tilemapNodeString = "";
-    this.tilesetResourceString = "";
-    this.subResourcesString = "";
+    this.externalResourceList = [];
+    this.subResourceList = [];
+    this.tilemapNode = {};
     this.externalResourceID = 0;
     this.subResourceID = 0;
 
@@ -48,19 +49,14 @@ class GodotTilemapExporter {
     for (let index = 0; index < this.map.tilesets.length; ++index) {
       const tileset = this.map.tilesets[index];
 
-      this.externalResourceID = index + 1;
       this.tilesetIndexMap.set(tileset.name, this.externalResourceID);
       
       // let tilesetPath = getResPath(tileset.property("godot:projectRoot"), tileset.property("godot:relativePath"), tileset.asset.fileName.replace('.tsx', '.tres'));
-      let tilesetPath = tileset.property("godot:resPath");
+      const tilesetPath = tileset.property("godot:resPath");
+      
+      const externalResource = this.createExternalResource(ExternalResource.TileSet, tilesetPath);
 
-      const externalResource = {
-        type: ExternalResource.TileSet,
-        id: this.externalResourceID,
-        path: tilesetPath,
-      };
-
-      this.tilesetResourceString += this.createExternalResource(externalResource);
+      this.externalResourceList.push(externalResource);
     }
   }
 
@@ -172,13 +168,9 @@ class GodotTilemapExporter {
         mapObject.tile.tileset.image,
       );
 
-      const externalResource = {
-        type: ExternalResource.Texture,
-        id: this.externalResourceID,
-        path: tilesetPath,
-      };
+      const externalResource = this.createExternalResource(ExternalResource.Texture, tilesetPath);
 
-      this.tilesetResourceString += this.createExternalResource(externalResource);
+      this.externalResourceList.push(externalResource);
     } else {
       textureResourceID = this.tilesetIndexMap.get(tilesetsIndexKey);
     }
@@ -274,7 +266,7 @@ class GodotTilemapExporter {
       this.meta_properties(mapObject.properties()),
     );
 
-    const shapeID = this.addSubResource(
+    const shapeID = this.createSubResource(
       "RectangleShape2D",
       { extents: `Vector2(${size.width / 2}, ${size.height / 2})` },
     );
@@ -390,7 +382,7 @@ class GodotTilemapExporter {
       this.meta_properties(mapObject.properties()),
     );
 
-    const shapeID = this.addSubResource(
+    const shapeID = this.createSubResource(
       "CircleShape2D",
       { radius: radius },
     );
@@ -450,34 +442,6 @@ class GodotTilemapExporter {
   }
 
   /**
-   * Adds a new subresource to the generated file
-   *
-   * @param {string} type - The type of subresource
-   * @param {object} contentProperties - Key-value map of properties
-   * @returns {number} - The created sub resource id
-   */
-    addSubResource(type, contentProperties) {
-      if (typeof type !== 'string') {
-        throw new TypeError('type must be a string');
-      }
-      if (typeof contentProperties !== 'object' || contentProperties === null) {
-        throw new TypeError('contentProperties must be a non-null object');
-      }
-  
-      const id = this.subResourceID++;
-      const subResourceParts = [`\n[sub_resource type="${type}" id=${id}]`];
-  
-      for (const [key, value] of Object.entries(contentProperties)) {
-        if (value !== undefined) {
-          subResourceParts.push(stringifyKeyValue(key, value, false, false, true));
-        }
-      }
-  
-      this.subResourcesString += subResourceParts.join('\n') + '\n';
-      return id;
-    }
-
-  /**
    * Prepare properties for a Godot node.
    * @param {TiledObjectProperties} object_props - Properties from the layer.
    * @param {TiledObjectProperties} set_props - The base properties for the node.
@@ -511,7 +475,9 @@ class GodotTilemapExporter {
       //   set_props[key.substring(15)] = `ExtResource("${resourceID}")`;
       }
 
-      // let x = this.createExternalResource(ExternalResource.Script, value);
+      // const externalResource = this.createExternalResource(ExternalResource.Script, value);
+
+      // this.externalResourceList.push(externalResource);
     }
 
     return set_props;
@@ -699,24 +665,66 @@ class GodotTilemapExporter {
     const type = this.map.property("godot:type") || "Node2D";
     const name = this.map.property("godot:name") || getFileName(this.fileName);
 
+    const externalResourcesString = this.externalResourceList.join("\n");
+    const subResourcesString = this.subResourceList.join("");
+    // const tilemapNodeString = this.tilemapNode.join("");
+
     return `[gd_scene load_steps=${loadSteps} format=3]
 
-${this.tilesetResourceString}
-${this.subResourcesString}
+${externalResourcesString}
+${subResourcesString}
 [node name="${name}" type="${type}"]
 ${this.tilemapNodeString}
 `;
   }
 
   /**
-   * Create an external resource
-   * @returns {string}
+   * Creates an external resource.
+   * 
+   * @param {string} type - The type of subresource.
+   * @param {string} path - Path of the external resource file.
+   * @returns {object} - The created external resource.
    */
-  createExternalResource(externalResource) {
+  createExternalResource(type, path) {
     // Strip leading slashes to prevent invalid triple slashes in Godot res:// path:
-    externalResource.path = externalResource.path.replace(/^\/+/, '');
+    path = path.replace(/^\/+/, '');
+    
+    const externalResourceString = `[ext_resource type="${type}" path="res://${path}" id=${this.externalResourceID}]`;
 
-    return `[ext_resource type="${externalResource.type}" path="res://${externalResource.path}" id=${externalResource.id}]`;
+    this.externalResourceID += 1;
+
+    return externalResourceString;
+  }
+
+  /**
+   * Creates a new subresource.
+   *
+   * @param {string} type - The type of subresource.
+   * @param {object} contentProperties - Key-value map of properties.
+   * @returns {object} - The created sub resource.
+   */
+  createSubResource(type, contentProperties) {
+    if (typeof type !== 'string') {
+      throw new TypeError('type must be a string');
+    }
+    if (typeof contentProperties !== 'object' || contentProperties === null) {
+      throw new TypeError('contentProperties must be a non-null object');
+    }
+
+    const id = this.subResourceID++;
+    const subResourceParts = [`\n[sub_resource type="${type}" id=${id}]`];
+
+    for (const [key, value] of Object.entries(contentProperties)) {
+      if (value !== undefined) {
+        subResourceParts.push(stringifyKeyValue(key, value, false, false, true));
+      }
+    }
+    
+    const subResource = subResourceParts.join('\n') + '\n';
+
+    this.subResourceList.push(subResource);
+
+    return id;
   }
 
   /**
