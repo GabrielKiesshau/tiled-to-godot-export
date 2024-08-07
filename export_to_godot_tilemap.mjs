@@ -158,7 +158,6 @@ class GodotTilemapExporter {
     let textureResourceID = 0;
 
     if (!this.tilesetIndexMap.get(tilesetsIndexKey)) {
-      this.externalResourceID += 1;
       textureResourceID = this.externalResourceID;
       this.tilesetIndexMap.set(tilesetsIndexKey, this.externalResourceID);
 
@@ -266,10 +265,12 @@ class GodotTilemapExporter {
       this.meta_properties(mapObject.properties()),
     );
 
-    const shapeID = this.createSubResource(
+    const subResource = this.createSubResource(
       "RectangleShape2D",
       { extents: `Vector2(${size.width / 2}, ${size.height / 2})` },
     );
+
+    this.subResourceList.push(subResource);
     
     const area2DName = mapObject.name || "Area2D";
     this.tilemapNodeString += convertNodeToString(
@@ -281,7 +282,7 @@ class GodotTilemapExporter {
       this.merge_properties(
         {},
         {
-          shape: `SubResource(${shapeID})`,
+          shape: `SubResource(${subResource.id})`,
         },
       ),
       {},
@@ -382,10 +383,12 @@ class GodotTilemapExporter {
       this.meta_properties(mapObject.properties()),
     );
 
-    const shapeID = this.createSubResource(
+    const subResource = this.createSubResource(
       "CircleShape2D",
       { radius: radius },
     );
+
+    this.subResourceList.push(subResource);
     
     const area2DName = mapObject.name || "Area2D";
     this.tilemapNodeString += convertNodeToString(
@@ -397,7 +400,7 @@ class GodotTilemapExporter {
       this.merge_properties(
         {},
         {
-          shape: `SubResource(${shapeID})`,
+          shape: `SubResource(${subResource.id})`,
         },
       ),
       {},
@@ -661,12 +664,12 @@ class GodotTilemapExporter {
    * @returns {string}
    */
   getSceneTemplate() {
-    const loadSteps = 2 + this.subResourceID;
+    const loadSteps = 1 + this.externalResourceList.length + this.subResourceList.length;
     const type = this.map.property("godot:type") || "Node2D";
     const name = this.map.property("godot:name") || getFileName(this.fileName);
-
-    const externalResourcesString = this.externalResourceList.join("\n");
-    const subResourcesString = this.subResourceList.join("");
+    
+    const externalResourcesString = this.formatExternalResourceList();
+    const subResourcesString = this.formatSubResourceList();
     // const tilemapNodeString = this.tilemapNode.join("");
 
     return `[gd_scene load_steps=${loadSteps} format=3]
@@ -676,6 +679,50 @@ ${subResourcesString}
 [node name="${name}" type="${type}"]
 ${this.tilemapNodeString}
 `;
+  }
+
+  /**
+   * Formats the external resources list to fit Godot structure.
+   *
+   * @returns {string} - Serialized external resources.
+   */
+  formatExternalResourceList() {
+    let externalResourcesString = "";
+
+    for (const externalResource of this.externalResourceList) {
+      let uid = "";
+      
+      if (externalResource.uid != undefined) {
+        uid = `uid="${externalResource.uid}" `;
+      }
+
+      externalResourcesString += `[ext_resource type="${externalResource.type}" ${uid}path="res://${externalResource.path}" id=${externalResource.id}]\n`;
+    }
+
+    return externalResourcesString;
+  }
+
+  /**
+   * Formats the subresources list to fit Godot structure.
+   *
+   * @returns {string} - Serialized subresources.
+   */
+  formatSubResourceList() {
+    let subResourcesString = "";
+
+    for (const subResource of this.subResourceList) {
+      subResourcesString += `[sub_resource type="${subResource.type}" id=${subResource.id}]\n`;
+      
+      for (const [key, value] of Object.entries(subResource.properties)) {
+        if (value !== undefined) {
+          const keyValue = stringifyKeyValue(key, value, false, false, true);
+          subResourcesString += `${keyValue}\n`;
+        }
+      }
+      subResourcesString += "\n";
+    }
+
+    return subResourcesString;
   }
 
   /**
@@ -689,11 +736,15 @@ ${this.tilemapNodeString}
     // Strip leading slashes to prevent invalid triple slashes in Godot res:// path:
     path = path.replace(/^\/+/, '');
     
-    const externalResourceString = `[ext_resource type="${type}" path="res://${path}" id=${this.externalResourceID}]`;
+    const externalResource = {
+      type: type,
+      path: path,
+      id: this.externalResourceID,
+    };
 
     this.externalResourceID += 1;
 
-    return externalResourceString;
+    return externalResource;
   }
 
   /**
@@ -703,28 +754,23 @@ ${this.tilemapNodeString}
    * @param {object} contentProperties - Key-value map of properties.
    * @returns {object} - The created sub resource.
    */
-  createSubResource(type, contentProperties) {
+  createSubResource(type, properties) {
     if (typeof type !== 'string') {
       throw new TypeError('type must be a string');
     }
-    if (typeof contentProperties !== 'object' || contentProperties === null) {
-      throw new TypeError('contentProperties must be a non-null object');
+    if (typeof properties !== 'object' || properties === null) {
+      throw new TypeError('properties must be a non-null object');
     }
 
-    const id = this.subResourceID++;
-    const subResourceParts = [`\n[sub_resource type="${type}" id=${id}]`];
+    const subResource = {
+      type: type,
+      id: this.subResourceID,
+      properties: properties,
+    };
 
-    for (const [key, value] of Object.entries(contentProperties)) {
-      if (value !== undefined) {
-        subResourceParts.push(stringifyKeyValue(key, value, false, false, true));
-      }
-    }
-    
-    const subResource = subResourceParts.join('\n') + '\n';
+    this.subResourceID += 1;
 
-    this.subResourceList.push(subResource);
-
-    return id;
+    return subResource;
   }
 
   /**
