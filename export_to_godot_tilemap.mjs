@@ -54,7 +54,13 @@ class GodotTilemapExporter {
       // let tilesetPath = getResPath(tileset.property("godot:projectRoot"), tileset.property("godot:relativePath"), tileset.asset.fileName.replace('.tsx', '.tres'));
       let tilesetPath = tileset.property("godot:resPath");
 
-      this.tilesetResourceString += this.getTilesetResourceTemplate(this.externalResourceID, tilesetPath, "TileSet");
+      const externalResource = {
+        type: ExternalResource.TileSet,
+        id: this.externalResourceID,
+        path: tilesetPath,
+      };
+
+      this.tilesetResourceString += this.createExternalResource(externalResource);
     }
   }
 
@@ -165,14 +171,21 @@ class GodotTilemapExporter {
         this.map.property("godot:relativePath"),
         mapObject.tile.tileset.image,
       );
-      this.tilesetResourceString += this.getTilesetResourceTemplate(this.externalResourceID, tilesetPath, "Texture");
+
+      const externalResource = {
+        type: ExternalResource.Texture,
+        id: this.externalResourceID,
+        path: tilesetPath,
+      };
+
+      this.tilesetResourceString += this.createExternalResource(externalResource);
     } else {
       textureResourceID = this.tilesetIndexMap.get(tilesetsIndexKey);
     }
 
     const tileOffset = this.getTileOffset(mapObject.tile.tileset, mapObject.tile.id);
 
-    // Converts Tiled pitot (top left corner) to Godot pivot (center);
+    // Converts Tiled pivot (top left corner) to Godot pivot (center);
     const mapObjectPosition = {
       x: mapObject.x + (mapObject.tile.width / 2),
       y: mapObject.y - (mapObject.tile.height / 2),
@@ -472,7 +485,31 @@ class GodotTilemapExporter {
     for (const [key, value] of Object.entries(object_props)) {
       if(key.startsWith("godot:node:")) {
         set_props[key.substring(11)] = value;
+        continue;
       }
+
+      if(key.startsWith("godot:script")) {
+      //   let externalResource = {
+      //     type: ExternalResource.Script,
+      //     path: value,
+      //     id: "",
+      //   };
+      //   set_props["script"] = `ExtResource("${resourceID}")`;
+
+        continue;
+      }
+
+      if(key.startsWith("godot:resource:")) {
+      //   let externalResource = {
+      //     type: ExternalResource.Resource,
+      //     path: value,
+      //     id: "",
+      //     uid: "",
+      //   };
+      //   set_props[key.substring(15)] = `ExtResource("${resourceID}")`;
+      }
+
+      // let x = this.createExternalResource(ExternalResource.Script, value);
     }
 
     return set_props;
@@ -485,6 +522,7 @@ class GodotTilemapExporter {
    */
   meta_properties(object_props) {
     let results = {};
+
     for (const [key, value] of Object.entries(object_props)) {
       if(key.startsWith("godot:meta:")) {
         results[key.substring(11)] = value;
@@ -669,14 +707,14 @@ ${this.tilemapNodeString}
   }
 
   /**
-   * Template for a tileset resource
+   * Create an external resource
    * @returns {string}
    */
-  getTilesetResourceTemplate(id, path, type) {
+  createExternalResource(externalResource) {
     // Strip leading slashes to prevent invalid triple slashes in Godot res:// path:
-    path = path.replace(/^\/+/, '');
+    externalResource.path = externalResource.path.replace(/^\/+/, '');
 
-    return `[ext_resource type="${type}" path="res://${path}" id=${id}]`;
+    return `[ext_resource type="${externalResource.type}" path="res://${externalResource.path}" id=${externalResource.id}]`;
   }
 
   /**
@@ -782,6 +820,13 @@ const MapObjectShape = {
 const PolygonBuildMode = {
   Polygon: 0,
   Polyline: 1,
+};
+
+const ExternalResource = {
+  Script: "Script",
+  Resource: "Resource",
+  Texture: "Texture",
+  TileSet: "TileSet",
 };
 
 const customTileMapFormat = {
