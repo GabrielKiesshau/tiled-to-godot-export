@@ -104,7 +104,7 @@ class GodotTilemapExporter {
         const tileMapName = `${layerName} - ${tilesetName}`;
         this.mapLayerToTileset(layer.name, layerData.tilesetID);
         
-        const tilemap = this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, parentLayerPath, groups);
+        const tilemap = this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.packedIntArrayString, layer, parentLayerPath, groups);
 
         this.nodeList.push(tilemap);
       }
@@ -197,7 +197,7 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           position: `Vector2(${mapObjectPosition.x}, ${mapObjectPosition.y})`,
-          texture: `ExtResource(${textureResourceID})`,
+          texture: `ExtResource("${textureResourceID}")`,
           region_enabled: true,
           region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
         },
@@ -262,7 +262,7 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(mapObject.rotation),
+          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -273,7 +273,7 @@ class GodotTilemapExporter {
 
     const subResource = this.createSubResource(
       SubResource.RectangleShape2D,
-      { extents: `Vector2(${size.width / 2}, ${size.height / 2})` },
+      { size: `Vector2(${size.width}, ${size.height})` },
     );
 
     this.subResourceList.push(subResource);
@@ -287,9 +287,7 @@ class GodotTilemapExporter {
       },
       this.merge_properties(
         {},
-        {
-          shape: `SubResource(${subResource.id})`,
-        },
+        { shape: `SubResource("${subResource.id}")` },
       ),
       {},
     );
@@ -325,7 +323,7 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(mapObject.rotation),
+          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -346,7 +344,7 @@ class GodotTilemapExporter {
       this.merge_properties(
         {},
         {
-          build_mode: buildMode,
+          build_mode: this.validateNumber(buildMode),
           polygon: `PackedVector2Array(${polygonPoints})`,
         },
       ),
@@ -384,7 +382,7 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(mapObject.rotation),
+          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -409,9 +407,7 @@ class GodotTilemapExporter {
       }, 
       this.merge_properties(
         {},
-        {
-          shape: `SubResource(${subResource.id})`,
-        },
+        { shape: `SubResource("${subResource.id}")` },
       ),
       {},
     );
@@ -448,7 +444,7 @@ class GodotTilemapExporter {
         mapObject.properties(), 
         {
           position: `Vector2(${mapObject.x}, ${mapObject.y})`,
-          rotation: degreesToRadians(mapObject.rotation),
+          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
         },
       ),
       this.meta_properties(mapObject.properties()),
@@ -470,29 +466,27 @@ class GodotTilemapExporter {
       }
 
       if(key.startsWith("godot:script")) {
-      //   let externalResource = {
-      //     type: ExternalResource.Script,
-      //     path: value,
-      //     id: "",
-      //   };
-      //   set_props["script"] = `ExtResource("${resourceID}")`;
+        if (value == "") {
+          continue;
+        }
 
+        const externalResource = this.createExternalResource(ExternalResource.Script, value);
+        set_props["script"] = `ExtResource("${externalResource.id}")`;
+
+        this.externalResourceList.push(externalResource);
         continue;
       }
 
       if(key.startsWith("godot:resource:")) {
-      //   let externalResource = {
-      //     type: ExternalResource.Resource,
-      //     path: value,
-      //     id: "",
-      //     uid: "",
-      //   };
-      //   set_props[key.substring(15)] = `ExtResource("${resourceID}")`;
+        if (value == "") {
+          continue;
+        }
+
+        const externalResource = this.createExternalResource(ExternalResource.Resource, value);
+        set_props[key.substring(15)] = `ExtResource("${externalResource.id}")`;
+
+        this.externalResourceList.push(externalResource);
       }
-
-      // const externalResource = this.createExternalResource(ExternalResource.Script, value);
-
-      // this.externalResourceList.push(externalResource);
     }
 
     return set_props;
@@ -522,7 +516,7 @@ class GodotTilemapExporter {
    *   tilesetColumns: number,
    *   layer: Layer,
    *   isEmpty: boolean,
-   *   poolIntArrayString: string,
+   *   packedIntArrayString: string,
    *   parent: string
    * }} LayerData
    */
@@ -560,7 +554,7 @@ class GodotTilemapExporter {
               columns: getTilesetColumns(tile.tileset),
               layer: layer,
               isEmpty: tile.tileset === null,
-              poolIntArrayString: "",
+              packedIntArrayString: "",
               parent: tilesetList.length === 0 ? "." : layer.name,
             };
 
@@ -610,20 +604,20 @@ class GodotTilemapExporter {
           let srcY = Math.floor(tileId / tilesetColumns);
           srcY += alt * TileOffset;
           
-          tileset.poolIntArrayString += `${cellID}, ${srcX}, ${srcY}, `;
+          tileset.packedIntArrayString += `${cellID}, ${srcX}, ${srcY}, `;
         }
       }
     }
 
     // Remove trailing commas and blank
-    tilesetList.forEach(i => {
-      i.poolIntArrayString = i.poolIntArrayString.replace(/,\s*$/, "");
+    tilesetList.forEach(tileset => {
+      tileset.packedIntArrayString = tileset.packedIntArrayString.replace(/,\s*$/, "");
     });
 
     for (let idx = 0; idx < tilesetList.length; idx++) {
       const current = tilesetList[idx];
       
-      if (current.tileset === null || current.poolIntArrayString === "") {
+      if (current.tileset === null || current.packedIntArrayString === "") {
         tiled.log(`Error: The layer ${layer.name} is empty and has been skipped!`);
         continue;
       }
@@ -673,7 +667,7 @@ class GodotTilemapExporter {
 
   /**
    * Template for a scene
-   * @returns {string}
+   * @returns {string} - Serialized scene structure.
    */
   getSceneTemplate() {
     const loadSteps = 1 + this.externalResourceList.length + this.subResourceList.length;
@@ -708,7 +702,7 @@ ${nodeString}
         uid = `uid="${externalResource.uid}" `;
       }
 
-      externalResourcesString += `[ext_resource type="${externalResource.type}" ${uid}path="res://${externalResource.path}" id=${externalResource.id}]\n`;
+      externalResourcesString += `[ext_resource type="${externalResource.type}" ${uid}path="res://${externalResource.path}" id="${externalResource.id}"]\n`;
     }
 
     return externalResourcesString;
@@ -723,7 +717,7 @@ ${nodeString}
     let subResourcesString = "";
 
     for (const subResource of this.subResourceList) {
-      subResourcesString += `[sub_resource type="${subResource.type}" id=${subResource.id}]\n`;
+      subResourcesString += `[sub_resource type="${subResource.type}" id="${subResource.id}"]\n`;
       
       for (const [key, value] of Object.entries(subResource.properties)) {
         if (value !== undefined) {
@@ -760,11 +754,13 @@ ${nodeString}
 
     // Strip leading slashes to prevent invalid triple slashes in Godot res:// path:
     path = path.replace(/^\/+/, '');
+    const uid = undefined;
     
     const externalResource = {
       type: type,
       path: path,
       id: this.externalResourceID,
+      uid: uid,
     };
 
     this.externalResourceID += 1;
@@ -803,14 +799,14 @@ ${nodeString}
    * @param {string} tileMapName
    * @param {number} mode
    * @param {number} tilesetID
-   * @param {string} poolIntArrayString
+   * @param {string} packedIntArrayString
    * @param {Layer} layer
    * @param {string} parent
    * @param {Array<string>} groups - The groups this Node belongs to.
    * @returns {string}
    */
-  getTileMapTemplate(tileMapName, mode, tilesetID, poolIntArrayString, layer, parent = ".", groups) {
-    const zIndex = parseInt(layer.properties()['z_index'], 10);
+  getTileMapTemplate(tileMapName, mode, tilesetID, packedIntArrayString, layer, parent = ".", groups) {
+    const properties = layer.properties();
 
     return convertNodeToString(
       {
@@ -822,18 +818,18 @@ ${nodeString}
       this.merge_properties(
         layer.properties(),
         {
+          tile_set: `ExtResource("${tilesetID}")`,
           format: 2,
-          tile_set: `ExtResource(${tilesetID})`,
           // TileMap properties
-          rendering_quadrant_size: undefined,//16,
-          collision_animatable: undefined,//false,
-          collision_visibility_mode: undefined,//0,
-          navigation_visibility_mode: undefined,//0,
+          rendering_quadrant_size: this.validateNumber(properties['rendering_quadrant_size'], 16),
+          collision_animatable: this.validateBool(properties['collision_animatable']),
+          collision_visibility_mode: this.validateNumber(properties['collision_visibility_mode']),
+          navigation_visibility_mode: this.validateNumber(properties['navigation_visibility_mode']),
           // Layers properties
-          cell_size: `Vector2(${layer.map.tileWidth}, ${layer.map.tileHeight})`,
-          cell_custom_transform: `Transform2D(16, 0, 0, 16, 0, 0)`,
+          tile_data: `PackedInt32Array(${packedIntArrayString})`,
           mode: mode,
-          tile_data: `PackedInt32Array(${poolIntArrayString})`,
+          // cell_size: `Vector2(${layer.map.tileWidth}, ${layer.map.tileHeight})`,
+          // cell_custom_transform: `Transform2D(16, 0, 0, 16, 0, 0)`,
           // layer_0/name: undefined,//"layer",
           // layer_0/enabled: undefined,//true,
           // layer_0/modulate: undefined,//`Color(1, 1, 1, ${layer.opacity})`,
@@ -842,38 +838,60 @@ ${nodeString}
           // layer_0/z_index: undefined,//0
           // layer_0/navigation_enabled: undefined,//true
           // Node2D properties
-          position: `Vector2(${layer.offset.x}, ${layer.offset.y})`,
-          rotation: undefined,//0,
-          scale: undefined,//`Vector2(1, 1)`,
-          skew: undefined,// 0,
+          position: this.validateVector2(layer.offset),
+          rotation: degreesToRadians(this.validateNumber(properties['rotation'])),
+          // scale: this.validateVector2(properties['scale'], { x: 1, y: 1 }),
+          skew: this.validateNumber(properties['skew']),
           // CanvasItem properties
-          visible: layer.visible,
-          modulate: `Color(1, 1, 1, ${layer.opacity})`,
-          self_modulate: undefined,//`Color(1, 1, 1, ${layer.opacity})`,
-          show_behind_parent: undefined,//false,
-          top_level: undefined,//false,
-          clip_children: undefined,//0,
-          light_mask: undefined,//1,
-          visibility_layer: undefined,//1,
-          z_index: this.validateNumber(zIndex),
-          z_as_relative: undefined,//false,
-          y_sort_enabled: undefined,//true,
-          texture_filter: undefined,//0,
-          texture_repeat: undefined,//0,
+          visible: this.validateBool(layer.visible, true),
+          show_behind_parent: this.validateBool(properties['show_behind_parent']),
+          top_level: this.validateBool(properties['top_level']),
+          clip_children: this.validateNumber(properties['clip_children']),
+          light_mask: this.validateNumber(properties['light_mask'], 1),
+          visibility_layer: this.validateNumber(properties['visibility_layer'], 1),
+          z_index: this.validateNumber(properties['z_index']),
+          z_as_relative: this.validateBool(properties['z_as_relative']),
+          y_sort_enabled: this.validateBool(properties['y_sort_enabled'], true),
+          texture_filter: this.validateNumber(properties['texture_filter']),
+          texture_repeat: this.validateNumber(properties['texture_repeat']),
         }
       ),
       this.meta_properties(layer.properties()),
     );
   }
 
-  validateString(text)
+  validateString(value, defaultValue = "")
   {
-    return (typeof text === 'string') ? text : undefined;
+    if (typeof value === 'string' && value !== defaultValue) {
+      return value;
+    }
+    return undefined;
   }
 
-  validateNumber(number)
+  validateBool(value, defaultValue = false)
   {
-    return (typeof number === 'number' && !isNaN(number)) ? number : undefined;
+    if (typeof value === 'boolean' && value !== defaultValue) {
+      return value;
+    }
+    return undefined;
+  }
+
+  validateNumber(value, defaultValue = 0)
+  {
+    const parsedValue = parseInt(value, 10);
+
+    if (typeof value === 'number' && value !== defaultValue && !isNaN(parsedValue)) {
+      return value;
+    }
+    return undefined;
+  }
+
+  validateVector2(value, defaultValue = { x: 0, y: 0 })
+  {
+    if (typeof value === 'object' && value.x != defaultValue.x & value.y != defaultValue.y) {
+      return `Vector2(${value.x}, ${value.y})`;
+    }
+    return undefined;
   }
 
   mapLayerToTileset(layerName, tilesetID) {
@@ -904,8 +922,9 @@ const PolygonBuildMode = {
 };
 
 const ExternalResource = {
-  Script: "Script",
+  PackedScene: "PackedScene",
   Resource: "Resource",
+  Script: "Script",
   Texture: "Texture",
   TileSet: "TileSet",
 };

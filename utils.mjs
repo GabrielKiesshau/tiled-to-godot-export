@@ -222,5 +222,9 @@ export function getAreaCenter(position, size, rotationDegrees) {
  * @returns {number} - The angle in radians.
  */
 export function degreesToRadians(degrees) {
+  if (degrees == undefined) {
+    return undefined;
+  }
+  
   return degrees * (Math.PI / 180);
 }
