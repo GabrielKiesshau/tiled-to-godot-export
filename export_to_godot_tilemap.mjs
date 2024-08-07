@@ -266,7 +266,7 @@ class GodotTilemapExporter {
     );
 
     const subResource = this.createSubResource(
-      "RectangleShape2D",
+      SubResource.RectangleShape2D,
       { extents: `Vector2(${size.width / 2}, ${size.height / 2})` },
     );
 
@@ -384,7 +384,7 @@ class GodotTilemapExporter {
     );
 
     const subResource = this.createSubResource(
-      "CircleShape2D",
+      SubResource.CircleShape2D,
       { radius: radius },
     );
 
@@ -883,6 +883,11 @@ const ExternalResource = {
   Resource: "Resource",
   Texture: "Texture",
   TileSet: "TileSet",
+};
+
+const SubResource = {
+  RectangleShape2D: "RectangleShape2D",
+  CircleShape2D: "CircleShape2D",
 };
 
 const customTileMapFormat = {
