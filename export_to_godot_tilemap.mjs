@@ -11,10 +11,9 @@ class GodotTilemapExporter {
   constructor(map, fileName) {
     this.map = map;
     this.fileName = fileName;
-    this.tilemapNodeString = "";
     this.externalResourceList = [];
     this.subResourceList = [];
-    this.tilemapNode = {};
+    this.tilemapNode = [];
     this.externalResourceID = 0;
     this.subResourceID = 0;
 
@@ -104,18 +103,22 @@ class GodotTilemapExporter {
         const tilesetName = layerData.tileset.name || `TileSet ${layerData.tilesetID}`;
         const tileMapName = `${layerName} - ${tilesetName}`;
         this.mapLayerToTileset(layer.name, layerData.tilesetID);
-        this.tilemapNodeString += this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, parentLayerPath, groups);
+        
+        const tilemap = this.getTileMapTemplate(tileMapName, mode, layerData.tilesetID, layerData.poolIntArrayString, layer, parentLayerPath, groups);
+
+        this.tilemapNode.push(tilemap);
       }
     }
   }
 
   handleObjectLayer(layer, parentLayerPath, layerGroups) {
-    this.tilemapNodeString += convertNodeToString({
+    const node = convertNodeToString({
       name: layer.name,
       type: "Node2D",
       parent: parentLayerPath,
       groups: layerGroups,
     });
+    this.tilemapNode.push(node);
 
     for (const mapObject of layer.objects) {
       const mapObjectGroups = splitCommaSeparatedString(mapObject.property("godot:groups"));
@@ -131,16 +134,17 @@ class GodotTilemapExporter {
 
   handleGroupLayer(layer, mode, parentLayerPath, groups) {
     const nodeType = layer.property("godot:type") || "Node2D";
-    this.tilemapNodeString += convertNodeToString(
+    const node = convertNodeToString(
       {
         name: layer.name,
         type: nodeType,
         parent: parentLayerPath,
         groups: groups,
-      }, 
+      },
       this.merge_properties(layer.properties(), {}),
       this.meta_properties(layer.properties()),
     );
+    this.tilemapNode.push(node);
 
     for(let i = 0; i < layer.layerCount; ++i) { 
       this.handleLayer(layer.layers[i], mode, `${parentLayerPath}/${layer.name}`);
@@ -182,7 +186,7 @@ class GodotTilemapExporter {
       y: mapObject.y - (mapObject.tile.height / 2),
     };
 
-    this.tilemapNodeString += convertNodeToString(
+    const node = convertNodeToString(
       {
         name: mapObject.name || "Sprite2D",
         type: "Sprite2D",
@@ -200,6 +204,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(layer.properties()),
     );
+    this.tilemapNode.push(node);
   }
 
   /**
@@ -246,7 +251,7 @@ class GodotTilemapExporter {
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
-    this.tilemapNodeString += convertNodeToString(
+    const area2DNode = convertNodeToString(
       {
         name: name,
         type: "Area2D",
@@ -264,6 +269,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
+    this.tilemapNode.push(area2DNode);
 
     const subResource = this.createSubResource(
       SubResource.RectangleShape2D,
@@ -273,7 +279,7 @@ class GodotTilemapExporter {
     this.subResourceList.push(subResource);
     
     const area2DName = mapObject.name || "Area2D";
-    this.tilemapNodeString += convertNodeToString(
+    const collisionShapeNode = convertNodeToString(
       {
         name: "CollisionShape2D",
         type: "CollisionShape2D",
@@ -287,6 +293,7 @@ class GodotTilemapExporter {
       ),
       {},
     );
+    this.tilemapNode.push(collisionShapeNode);
   }
   
   /**
@@ -307,7 +314,7 @@ class GodotTilemapExporter {
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
-    this.tilemapNodeString += convertNodeToString(
+    const area2DNode = convertNodeToString(
       {
         name: name,
         type: "Area2D",
@@ -325,11 +332,12 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
+    this.tilemapNode.push(area2DNode);
 
     let polygonPoints = mapObject.polygon.map(point => `${point.x}, ${point.y}`).join(', ');
     
     const area2DName = mapObject.name || "Area2D";
-    this.tilemapNodeString += convertNodeToString(
+    const collisionShapeNode = convertNodeToString(
       {
         name: "CollisionPolygon2D",
         type: "CollisionPolygon2D",
@@ -344,6 +352,7 @@ class GodotTilemapExporter {
       ),
       {},
     );
+    this.tilemapNode.push(collisionShapeNode);
   }
 
   /**
@@ -364,7 +373,7 @@ class GodotTilemapExporter {
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
-    this.tilemapNodeString += convertNodeToString(
+    const area2DNode = convertNodeToString(
       {
         name: name,
         type: "Area2D",
@@ -382,6 +391,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
+    this.tilemapNode.push(area2DNode);
 
     const subResource = this.createSubResource(
       SubResource.CircleShape2D,
@@ -391,7 +401,7 @@ class GodotTilemapExporter {
     this.subResourceList.push(subResource);
     
     const area2DName = mapObject.name || "Area2D";
-    this.tilemapNodeString += convertNodeToString(
+    const collisionShapeNode = convertNodeToString(
       {
         name: "CollisionShape2D",
         type: "CollisionShape2D",
@@ -405,6 +415,7 @@ class GodotTilemapExporter {
       ),
       {},
     );
+    this.tilemapNode.push(collisionShapeNode);
   }
 
   /**
@@ -426,7 +437,7 @@ class GodotTilemapExporter {
     // [node name="NaiveCell" parent="." instance=ExtResource("3_l2prl")]
     // position = Vector2(637, 461)
 
-    this.tilemapNodeString += convertNodeToString(
+    const node = convertNodeToString(
       {
         name: name,
         type: type,
@@ -442,6 +453,7 @@ class GodotTilemapExporter {
       ),
       this.meta_properties(mapObject.properties()),
     );
+    this.tilemapNode.push(node);
   }
 
   /**
@@ -670,14 +682,14 @@ class GodotTilemapExporter {
     
     const externalResourcesString = this.formatExternalResourceList();
     const subResourcesString = this.formatSubResourceList();
-    // const tilemapNodeString = this.tilemapNode.join("");
+    const nodeString = this.formatNodeList();
 
     return `[gd_scene load_steps=${loadSteps} format=3]
 
 ${externalResourcesString}
 ${subResourcesString}
 [node name="${name}" type="${type}"]
-${this.tilemapNodeString}
+${nodeString}
 `;
   }
 
@@ -726,6 +738,15 @@ ${this.tilemapNodeString}
   }
 
   /**
+   * Formats the external resources list to fit Godot structure.
+   *
+   * @returns {string} - Serialized external resources.
+   */
+  formatNodeList() {
+    return this.tilemapNode.join("");
+  }
+
+  /**
    * Creates an external resource.
    * 
    * @param {string} type - The type of subresource.
@@ -733,6 +754,10 @@ ${this.tilemapNodeString}
    * @returns {object} - The created external resource.
    */
   createExternalResource(type, path) {
+    if (typeof type !== 'string') {
+      throw new TypeError('type must be a string');
+    }
+
     // Strip leading slashes to prevent invalid triple slashes in Godot res:// path:
     path = path.replace(/^\/+/, '');
     
