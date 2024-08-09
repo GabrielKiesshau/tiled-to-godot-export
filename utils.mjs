@@ -213,7 +213,7 @@ export function getAreaCenter(position, size, rotationDegrees) {
   const rotatedCenterX = position.x + (center.x - position.x) * Math.cos(rotationRadians) - (center.y - position.y) * Math.sin(rotationRadians);
   const rotatedCenterY = position.y + (center.x - position.x) * Math.sin(rotationRadians) + (center.y - position.y) * Math.cos(rotationRadians);
 
-  return { x: rotatedCenterX, y: rotatedCenterY };
+  return { x: roundToDecimals(rotatedCenterX), y: roundToDecimals(rotatedCenterY) };
 }
 
 /**
@@ -227,4 +227,79 @@ export function degreesToRadians(degrees) {
   }
   
   return degrees * (Math.PI / 180);
+}
+
+/**
+ * Rounds a number to a specified number of decimal places.
+ * The rounding is based on the digit following the specified decimal places.
+ *
+ * @param {number} num - The number to be rounded.
+ * @param {number} [decimalPlaces=3] - The number of decimal places to round to (default is 3).
+ * @returns {number} The rounded number with the specified number of decimal places.
+ *
+ * @example
+ * roundToDecimals(3.141592, 3); // returns 3.142
+ * roundToDecimals(2.71828, 2);  // returns 2.72
+ * roundToDecimals(1.234567, 4); // returns 1.2346
+ * roundToDecimals(4.55554, 1);  // returns 4.6
+ * roundToDecimals(4.55544);     // returns 4.555 (default is 3 decimal places)
+ */
+export function roundToDecimals(num, decimalPlaces = 3) {
+  const factor = Math.pow(10, decimalPlaces);
+  return Math.round(num * factor) / factor;
+}
+
+/**
+ * Validates, converts a rotation from degrees to radians, and rounds the result to a specified number of decimal places.
+ * Returns `undefined` if the input `rotationDegrees` is `undefined`.
+ *
+ * @param {number|undefined} rotationDegrees - The rotation value in degrees to be validated and converted.
+ * @returns {number|undefined} The rotation in radians, rounded to the specified number of decimal places, or `undefined` if input is `undefined`.
+ */
+export function getRotation(rotationDegrees) {
+  const validatedRotation = validateNumber(rotationDegrees);
+
+  if (validatedRotation === undefined) {
+    return undefined;
+  }
+
+  const rotationInRadians = degreesToRadians(validatedRotation);
+  const roundedRotation = roundToDecimals(rotationInRadians, 6);
+
+  return roundedRotation;
+}
+
+export function validateString(value, defaultValue = "")
+{
+  if (typeof value === 'string' && value !== defaultValue) {
+    return value;
+  }
+  return undefined;
+}
+
+export function validateBool(value, defaultValue = false)
+{
+  if (typeof value === 'boolean' && value !== defaultValue) {
+    return value;
+  }
+  return undefined;
+}
+
+export function validateNumber(value, defaultValue = 0)
+{
+  const parsedValue = parseInt(value, 10);
+
+  if (typeof value === 'number' && value !== defaultValue && !isNaN(parsedValue)) {
+    return value;
+  }
+
+  return undefined;
+}
+
+export function validateVector2(value, defaultValue = { x: 0, y: 0 })
+{
+  if (typeof value === 'object' && value.x != defaultValue.x & value.y != defaultValue.y) {
+    return `Vector2(${value.x}, ${value.y})`;
+  }
+  return undefined;
 }

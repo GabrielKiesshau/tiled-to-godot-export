@@ -1,4 +1,4 @@
-import { getResPath, stringifyKeyValue, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getFileName, getAreaCenter, degreesToRadians } from './utils.mjs';
+import { getResPath, stringifyKeyValue, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getFileName, getAreaCenter, getRotation, validateNumber, validateBool, validateVector2, roundToDecimals } from './utils.mjs';
 
 /*global tiled, TextFile */
 class GodotTilemapExporter {
@@ -243,7 +243,7 @@ class GodotTilemapExporter {
    */
   generateRectangle(layer, parentLayerPath, mapObject, groups) {
     const name = mapObject.name || "Area2D";
-    const position = {x: mapObject.x, y: mapObject.y};
+    const position = { x: mapObject.x, y: mapObject.y };
     const size = {
       width: mapObject.width,
       height: mapObject.height,
@@ -262,7 +262,7 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
+          rotation: getRotation(mapObject.rotation),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -304,7 +304,7 @@ class GodotTilemapExporter {
    */
   generatePolygon(layer, parentLayerPath, mapObject, groups, buildMode) {
     const name = mapObject.name || "Area2D";
-    const position = {x: mapObject.x, y: mapObject.y};
+    const position = { x: mapObject.x, y: mapObject.y };
     const size = {
       width: mapObject.width,
       height: mapObject.height,
@@ -323,7 +323,7 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
+          rotation: getRotation(mapObject.rotation),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -344,7 +344,7 @@ class GodotTilemapExporter {
       this.merge_properties(
         {},
         {
-          build_mode: this.validateNumber(buildMode),
+          build_mode: validateNumber(buildMode),
           polygon: `PackedVector2Array(${polygonPoints})`,
         },
       ),
@@ -362,7 +362,7 @@ class GodotTilemapExporter {
    */
   generateEllipse(layer, parentLayerPath, mapObject, groups) {
     const name = mapObject.name || "Area2D";
-    const position = {x: mapObject.x, y: mapObject.y};
+    const position = { x: mapObject.x, y: mapObject.y };
     const size = {
       width: mapObject.width,
       height: mapObject.height,
@@ -382,7 +382,7 @@ class GodotTilemapExporter {
         mapObject.properties(),
         {
           position: `Vector2(${center.x}, ${center.y})`,
-          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
+          rotation: getRotation(mapObject.rotation),
           collision_layer: mapObject.property("godot:collision_layer"),
           collision_mask: mapObject.property("godot:collision_mask"),
         },
@@ -424,14 +424,7 @@ class GodotTilemapExporter {
   generatePoint(layer, parentLayerPath, mapObject, groups) {
     const name = mapObject.name || "Node2D";
     const type = mapObject.property("godot:type") || "Node2D";
-
-    // const prefab = mapObject.property("godot:prefab");
-
-    // var prefabDirectory = tiled.project?.property("godot:prefab_directory");
-    // tiled.log(x);
-    // [ext_resource type="PackedScene" uid="uid://c0a5dtnw817wl" path=`${prefabDirectory}characters/npcs/cell_naive.tscn" id="3_l2prl"]
-    // [node name="NaiveCell" parent="." instance=ExtResource("3_l2prl")]
-    // position = Vector2(637, 461)
+    const position = { x: roundToDecimals(mapObject.x), y: roundToDecimals(mapObject.y) };
 
     const node = convertNodeToString(
       {
@@ -441,10 +434,10 @@ class GodotTilemapExporter {
         groups: groups,
       },
       this.merge_properties(
-        mapObject.properties(), 
+        mapObject.properties(),
         {
-          position: `Vector2(${mapObject.x}, ${mapObject.y})`,
-          rotation: degreesToRadians(this.validateNumber(mapObject.rotation)),
+          position: `Vector2(${position.x}, ${position.y})`,
+          rotation: getRotation(mapObject.rotation),
         },
       ),
       this.meta_properties(mapObject.properties()),
@@ -821,10 +814,10 @@ ${nodeString}
           tile_set: `ExtResource("${tilesetID}")`,
           format: 2,
           // TileMap properties
-          rendering_quadrant_size: this.validateNumber(properties['rendering_quadrant_size'], 16),
-          collision_animatable: this.validateBool(properties['collision_animatable']),
-          collision_visibility_mode: this.validateNumber(properties['collision_visibility_mode']),
-          navigation_visibility_mode: this.validateNumber(properties['navigation_visibility_mode']),
+          rendering_quadrant_size: validateNumber(properties['rendering_quadrant_size'], 16),
+          collision_animatable: validateBool(properties['collision_animatable']),
+          collision_visibility_mode: validateNumber(properties['collision_visibility_mode']),
+          navigation_visibility_mode: validateNumber(properties['navigation_visibility_mode']),
           // Layers properties
           tile_data: `PackedInt32Array(${packedIntArrayString})`,
           mode: mode,
@@ -838,60 +831,26 @@ ${nodeString}
           // layer_0/z_index: undefined,//0
           // layer_0/navigation_enabled: undefined,//true
           // Node2D properties
-          position: this.validateVector2(layer.offset),
-          rotation: degreesToRadians(this.validateNumber(properties['rotation'])),
-          // scale: this.validateVector2(properties['scale'], { x: 1, y: 1 }),
-          skew: this.validateNumber(properties['skew']),
+          position: validateVector2(layer.offset),
+          rotation: getRotation(properties['rotation']),
+          // scale: validateVector2(properties['scale'], { x: 1, y: 1 }),
+          skew: validateNumber(properties['skew']),
           // CanvasItem properties
-          visible: this.validateBool(layer.visible, true),
-          show_behind_parent: this.validateBool(properties['show_behind_parent']),
-          top_level: this.validateBool(properties['top_level']),
-          clip_children: this.validateNumber(properties['clip_children']),
-          light_mask: this.validateNumber(properties['light_mask'], 1),
-          visibility_layer: this.validateNumber(properties['visibility_layer'], 1),
-          z_index: this.validateNumber(properties['z_index']),
-          z_as_relative: this.validateBool(properties['z_as_relative']),
-          y_sort_enabled: this.validateBool(properties['y_sort_enabled'], true),
-          texture_filter: this.validateNumber(properties['texture_filter']),
-          texture_repeat: this.validateNumber(properties['texture_repeat']),
+          visible: validateBool(layer.visible, true),
+          show_behind_parent: validateBool(properties['show_behind_parent']),
+          top_level: validateBool(properties['top_level']),
+          clip_children: validateNumber(properties['clip_children']),
+          light_mask: validateNumber(properties['light_mask'], 1),
+          visibility_layer: validateNumber(properties['visibility_layer'], 1),
+          z_index: validateNumber(properties['z_index']),
+          z_as_relative: validateBool(properties['z_as_relative']),
+          y_sort_enabled: validateBool(properties['y_sort_enabled'], true),
+          texture_filter: validateNumber(properties['texture_filter']),
+          texture_repeat: validateNumber(properties['texture_repeat']),
         }
       ),
       this.meta_properties(layer.properties()),
     );
-  }
-
-  validateString(value, defaultValue = "")
-  {
-    if (typeof value === 'string' && value !== defaultValue) {
-      return value;
-    }
-    return undefined;
-  }
-
-  validateBool(value, defaultValue = false)
-  {
-    if (typeof value === 'boolean' && value !== defaultValue) {
-      return value;
-    }
-    return undefined;
-  }
-
-  validateNumber(value, defaultValue = 0)
-  {
-    const parsedValue = parseInt(value, 10);
-
-    if (typeof value === 'number' && value !== defaultValue && !isNaN(parsedValue)) {
-      return value;
-    }
-    return undefined;
-  }
-
-  validateVector2(value, defaultValue = { x: 0, y: 0 })
-  {
-    if (typeof value === 'object' && value.x != defaultValue.x & value.y != defaultValue.y) {
-      return `Vector2(${value.x}, ${value.y})`;
-    }
-    return undefined;
   }
 
   mapLayerToTileset(layerName, tilesetID) {
@@ -925,7 +884,7 @@ const ExternalResource = {
   PackedScene: "PackedScene",
   Resource: "Resource",
   Script: "Script",
-  Texture: "Texture",
+  Texture: "Texture2D",
   TileSet: "TileSet",
 };
 

@@ -159,7 +159,7 @@ class GodotTilesetExporter {
     // noinspection JSUnresolvedVariable
     return `[gd_resource type="TileSet" load_steps=3 format=2]
 
-[ext_resource path="res://${this.spriteImagePath}" type="Texture" id=1]
+[ext_resource path="res://${this.spriteImagePath}" type="Texture2D" id=1]
 
 ${this.shapesResources}[resource]
 0/name = "${this.tileset.name} 0"
