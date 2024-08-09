@@ -453,35 +453,40 @@ class GodotTilemapExporter {
    * @returns {TiledObjectProperties} - The merged property set for the node.
    */
   merge_properties(object_props, set_props) {
-    for (const [key, value] of Object.entries(object_props)) {
-      if(key.startsWith("godot:node:")) {
-        set_props[key.substring(11)] = value;
-        continue;
-      }
-
-      if(key.startsWith("godot:script")) {
-        if (value == "") {
-          continue;
+    const updateProperties = (prefix, handler) => {
+      for (const [key, value] of Object.entries(object_props)) {
+        if (key.startsWith(prefix) && value !== "") {
+          handler(key, value);
         }
-
-        const externalResource = this.createExternalResource(ExternalResource.Script, value);
-        set_props["script"] = `ExtResource("${externalResource.id}")`;
-
-        this.externalResourceList.push(externalResource);
-        continue;
       }
+    };
 
-      if(key.startsWith("godot:resource:")) {
-        if (value == "") {
-          continue;
-        }
+    // Handle node properties
+    const nodePropertyKey = "godot:node:";
+    updateProperties(nodePropertyKey, (key, value) => {
+      set_props[key.substring(nodePropertyKey.length)] = value;
+    });
 
-        const externalResource = this.createExternalResource(ExternalResource.Resource, value);
-        set_props[key.substring(15)] = `ExtResource("${externalResource.id}")`;
+    // Handle script properties
+    updateProperties("godot:script", (_, value) => {
+      const externalResource = this.createExternalResource(ExternalResource.Script, value);
+      set_props["script"] = `ExtResource("${externalResource.id}")`;
+      this.externalResourceList.push(externalResource);
+    });
 
-        this.externalResourceList.push(externalResource);
-      }
-    }
+    // Handle script variables properties
+    const scriptVarPropertyKey = "godot:var:";
+    updateProperties(scriptVarPropertyKey, (key, value) => {
+      set_props[key.substring(scriptVarPropertyKey.length)] = value;
+    });
+
+    // Handle script resource properties
+    const scriptResourcePropertyKey = "godot:resource:";
+    updateProperties(scriptResourcePropertyKey, (key, value) => {
+      const externalResource = this.createExternalResource(ExternalResource.Resource, value);
+      set_props[key.substring(scriptResourcePropertyKey.length)] = `ExtResource("${externalResource.id}")`;
+      this.externalResourceList.push(externalResource);
+    });
 
     return set_props;
   }
