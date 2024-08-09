@@ -146,8 +146,9 @@ class GodotTilemapExporter {
     );
     this.nodeList.push(node);
 
-    for(let i = 0; i < layer.layerCount; ++i) { 
-      this.handleLayer(layer.layers[i], mode, `${parentLayerPath}/${layer.name}`);
+    for (let i = 0; i < layer.layerCount; ++i) {
+      const layerPath = parentLayerPath === "." ? layer.name : `${parentLayerPath}/${layer.name}`;
+      this.handleLayer(layer.layers[i], mode, layerPath);
     }
   }
 
