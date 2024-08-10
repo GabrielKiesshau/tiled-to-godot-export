@@ -11,7 +11,6 @@ class GodotTilesetExporter {
   constructor(tileset, fileName) {
     this.tileset = tileset;
     this.fileName = fileName;
-    // noinspection JSUnresolvedFunction
     this.spriteImagePath = getResPath(this.tileset.property("projectRoot"), this.tileset.property("relativePath"), this.tileset.image);
     this.shapesResources = "";
     this.shapes = "";
@@ -27,7 +26,6 @@ class GodotTilesetExporter {
   }
 
   writeToFile() {
-    // noinspection JSUnresolvedVariable
     const file = new TextFile(this.fileName, TextFile.WriteOnly);
     let tilesetTemplate = this.getTilesetTemplate();
     file.write(tilesetTemplate);
@@ -37,7 +35,6 @@ class GodotTilesetExporter {
   iterateTiles() {
     let autotileCoordinates = { x: 0, y: 0 };
 
-    // noinspection JSUnresolvedVariable
     let tiles = this.tileset.tiles;
 
     let minNavId = tiles.reduce((id, tile) => {
@@ -60,16 +57,11 @@ class GodotTilesetExporter {
         else this.zIndexMap.push([autotileCoordinates.x, autotileCoordinates.y, zIndexFloat]);
       }
 
-      // noinspection JSUnresolvedVariable
       if (tile.objectGroup !== null) {
-        // noinspection JSUnresolvedVariable
         let tileObjects = tile.objectGroup.objects;
 
-        // noinspection JSUnresolvedVariable
         if (tileObjects.length > 0) {
-          // noinspection JSUnresolvedVariable
           for (let oIndex = 0; oIndex < tileObjects.length; oIndex++) {
-            // noinspection JSUnresolvedVariable
             let object = tileObjects[oIndex];
 
             //TODO: add occlusions
@@ -96,7 +88,6 @@ class GodotTilesetExporter {
    * @param {point} autotileCoordinates autotile coordinates for the tile
    */
   exportCollisions(object, tile, autotileCoordinates) {
-    // noinspection JSUnresolvedVariable
     if (object.polygon.length > 0) {
       this.shapesResources += this.getCollisionShapePolygon(tile.id, object);
       this.exportShapes(tile, autotileCoordinates);
@@ -156,7 +147,6 @@ class GodotTilesetExporter {
   }
 
   getTilesetTemplate() {
-    // noinspection JSUnresolvedVariable
     return `[gd_resource type="TileSet" load_steps=3 format=2]
 
 [ext_resource path="res://${this.spriteImagePath}" type="Texture2D" id=1]
@@ -201,7 +191,7 @@ ${this.shapesResources}[resource]
 
   getCollisionShapePolygon(id, object) {
     let coordinateString = "";
-    // noinspection JSUnresolvedVariable
+
     object.polygon.forEach((coordinate) => {
         let coordinateX = (object.x + coordinate.x);
         let coordinateY = (object.y + coordinate.y);
@@ -230,7 +220,7 @@ points = PackedVector2Array( ${topLeft.x}, ${topLeft.y}, ${topRight.x}, ${topRig
 
   getNavigationShapePolygon(id, object) {
     let coordinateString = "";
-    // noinspection JSUnresolvedVariable
+
     object.polygon.forEach((coordinate) => {
       let coordinateX = object.x + coordinate.x;
       let coordinateY = object.y + coordinate.y;
@@ -281,5 +271,4 @@ const customTilesetFormat = {
   }
 };
 
-// noinspection JSUnresolvedFunction
 tiled.registerTilesetFormat("Godot", customTilesetFormat);
