@@ -126,7 +126,7 @@ class GodotTilesetExporter {
    */
   exportShapes(tile, autotileCoordinates) {
     if (this.firstShapeID === "") {
-      this.firstShapeID = 'SubResource( ' + tile.id + ' )';
+      this.firstShapeID = `SubResource( ${tile.id} )`;
     }
 
     this.shapes += this.getShapesTemplate(
