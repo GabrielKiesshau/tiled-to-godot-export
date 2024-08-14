@@ -1,4 +1,35 @@
-import { getResPath, getTilesetColumns } from './utils.mjs';
+import { getResPath } from './utils.mjs';
+
+const DEFAULT_MARGIN = 0;
+const DEFAULT_TILE_SPACING = 0;
+const DEFAULT_TILE_SIZE = 16;
+const DEFAULT_TILE_SHAPE = 0;
+const DEFAULT_TILE_LAYOUT = 0;
+const DEFAULT_USE_TEXTURE_PADDING = true;
+const Orientation = {
+  ORTHOGONAL: 0,
+  ISOMETRIC: 1,
+};
+const TileShape = {
+  TILE_SHAPE_SQUARE: 0,
+  TILE_SHAPE_ISOMETRIC: 1,
+  TILE_SHAPE_HEXAGON: 2,
+};
+const TileLayout = {
+  TILE_LAYOUT_STACKED: 0,
+  TILE_LAYOUT_DIAMOND_DOWN: 1,
+};
+const MapObject = {
+  Rectangle: 0,
+  Polygon: 1,
+  Polyline: 2,
+  Ellipse: 3,
+};
+const Flip = {
+  FlippedAntiDiagonally: 1 << 12,
+  FlippedHorizontally: 1 << 13,
+  FlippedVertically: 1 << 14,
+};
 
 /*global tiled, TextFile */
 class GodotTilesetExporter {
@@ -9,247 +40,239 @@ class GodotTilesetExporter {
    * @param {string} fileName path of the file the tileset should be exported to
    */
   constructor(tileset, fileName) {
-    this.tileset = tileset;
+    this.asset = {
+      id: "",
+      atlasID: -1,
+      tileset: tileset,
+      usedTiles: [],
+      hasCollisions: false,
+    },
     this.fileName = fileName;
-    this.spriteImagePath = getResPath(this.tileset.property("projectRoot"), this.tileset.property("relativePath"), this.tileset.image);
-    this.shapesResources = "";
-    this.shapes = "";
-    this.navpolyMap = [];
-    this.zIndexMap = [];
-    this.firstShapeID = "0";
   };
 
   write() {
-    this.iterateTiles();
     this.writeToFile();
     tiled.log(`Tileset exported successfully to ${this.fileName}`);
   }
 
   writeToFile() {
     const file = new TextFile(this.fileName, TextFile.WriteOnly);
-    let tilesetTemplate = this.getTilesetTemplate();
+    let tilesetTemplate = this.buildTileset();
     file.write(tilesetTemplate);
     file.commit();
   }
 
-  iterateTiles() {
-    let autotileCoordinates = { x: 0, y: 0 };
-
-    let tiles = this.tileset.tiles;
-
-    let minNavId = tiles.reduce((id, tile) => {
-      return Math.max(id, tile.id)
-    }, 0);
-
-    for (let index = 0; index < tiles.length; index++) {
-      let tile = tiles[index];
-
-      const tilesetColumns = getTilesetColumns(this.tileset);
-      if ((autotileCoordinates.x + 1) > tilesetColumns) {
-        autotileCoordinates.x = 0;
-        autotileCoordinates.y += 1;
-      }
-
-      const zIndex = tile.property('godot:z_index');
-      if (zIndex !== undefined) {
-        const zIndexFloat = parseFloat(zIndex);
-        if (isNaN(zIndexFloat)) tiled.warn(`Skipping export of godot:z_index on tile with id ${tile.id} because it can not be converted to float. value: ${zIndex}`);
-        else this.zIndexMap.push([autotileCoordinates.x, autotileCoordinates.y, zIndexFloat]);
-      }
-
-      if (tile.objectGroup !== null) {
-        let tileObjects = tile.objectGroup.objects;
-
-        if (tileObjects.length > 0) {
-          for (let oIndex = 0; oIndex < tileObjects.length; oIndex++) {
-            let object = tileObjects[oIndex];
-
-            //TODO: add occlusions
-            if (object.type === "navigation") {
-              minNavId++;
-              this.exportNavigations(object, minNavId, autotileCoordinates);
-            } else {
-              this.exportCollisions(object, tile, autotileCoordinates);
-            }
-          }
-        }
-      }
-
-      autotileCoordinates.x += 1;
-    }
-
-    this.shapes = this.shapes.replace(/,\s*$/, "");
-  }
-
-  /**
-   * Exports the collision shape for an object
-   * @param {MapObject} object the object to export collision shape from
-   * @param {Tile} tile the tile the object is part of
-   * @param {point} autotileCoordinates autotile coordinates for the tile
-   */
-  exportCollisions(object, tile, autotileCoordinates) {
-    if (object.polygon.length > 0) {
-      this.shapesResources += this.getCollisionShapePolygon(tile.id, object);
-      this.exportShapes(tile, autotileCoordinates);
-      return;
-    }
-
-    if (object.width > 0 && object.height > 0) {
-      this.shapesResources += this.getCollisionShapeRectangle(tile.id, object);
-      this.exportShapes(tile, autotileCoordinates);
-    }
-  }
-
-  /**
-   * Exports the navigation shapes for an object
-   * @param {MapObject} object the object to export navigation shapes from
-   * @param {number} id the navigation shape id
-   * @param {point} autotileCoordinates autotile coordinates for the tile
-   */
-  exportNavigations(object, id, autotileCoordinates) {
-    if (object.polygon.length > 0) {
-      this.shapesResources += this.getNavigationShapePolygon(id, object);
-      this.exportNavigationShape(id, autotileCoordinates);
-      return;
-    }
-
-    if (object.width > 0 && object.height > 0) {
-      this.shapesResources += this.getNavigationShapeRectangle(id, object);
-      this.exportNavigationShape(id, autotileCoordinates);
-    }
-  }
-
-  /**
-   * Exports the shape resources for a tile
-   * @param {Tile} tile the target tile
-   * @param {point} autotileCoordinates autotile coordinates for the tile
-   */
-  exportShapes(tile, autotileCoordinates) {
-    if (this.firstShapeID === "") {
-      this.firstShapeID = `SubResource( ${tile.id} )`;
-    }
-
-    this.shapes += this.getShapesTemplate(
-      autotileCoordinates,
-      false,
-      tile.id
-    );
-  }
-
-  /**
-   * Export a single navigation shape
-   * @param {number} id id of the shape
-   * @param {point} autotileCoordinates autotile coordinates for the tile
-   */
-  exportNavigationShape(id, autotileCoordinates) {
-    this.navpolyMap.push(`Vector2( ${autotileCoordinates.x}, ${autotileCoordinates.y} )`)
-    this.navpolyMap.push(`SubResource( ${id} )`)
-  }
-
-  getTilesetTemplate() {
-    return `[gd_resource type="TileSet" load_steps=3 format=2]
-
-[ext_resource path="res://${this.spriteImagePath}" type="Texture2D" id=1]
-
-${this.shapesResources}[resource]
-0/name = "${this.tileset.name} 0"
-0/texture = ExtResource( 1 )
-0/tex_offset = Vector2( 0, 0 )
-0/modulate = Color( 1, 1, 1, 1 )
-0/region = Rect2( ${this.tileset.margin}, ${this.tileset.margin}, ${this.tileset.imageWidth - this.tileset.margin}, ${this.tileset.imageHeight - this.tileset.margin} )
-0/tile_mode = 2
-0/autotile/icon_coordinate = Vector2( 0, 0 )
-0/autotile/tile_size = Vector2( ${this.tileset.tileWidth}, ${this.tileset.tileHeight} )
-0/autotile/spacing = ${this.tileset.tileSpacing}
-0/autotile/occluder_map = [  ]
-0/autotile/navpoly_map = [ ${this.navpolyMap.join(', ')} ]
-0/autotile/priority_map = [  ]
-0/autotile/z_index_map = [ ${this.zIndexMap.map(item => `Vector3( ${item.join(', ')} )`).join(', ')} ]
-0/occluder_offset = Vector2( 0, 0 )
-0/navigation_offset = Vector2( 0, 0 )
-0/shape_offset = Vector2( 0, 0 )
-0/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
-0/shape = ${this.firstShapeID}
-0/shape_one_way = false
-0/shape_one_way_margin = 1.0
-0/shapes = [ ${this.shapes} ]
-0/z_index = 0
-`;
-  }
-
-  getShapesTemplate(coordinates, isOneWay, shapeID) {
-    let coordinateString = coordinates.x + ", " + coordinates.y;
-
-    return `{
-"autotile_coord": Vector2( ${coordinateString} ),
-"one_way": ${isOneWay},
-"one_way_margin": 1.0,
-"shape": SubResource( ${shapeID} ),
-"shape_transform": Transform2D( 1, 0, 0, 1, 0, 0 )
-}, `;
-  }
-
-  getCollisionShapePolygon(id, object) {
-    let coordinateString = "";
-
-    object.polygon.forEach((coordinate) => {
-        let coordinateX = (object.x + coordinate.x);
-        let coordinateY = (object.y + coordinate.y);
-        coordinateString += coordinateX + ", " + coordinateY + ", ";
-    });
-    // Remove trailing commas and blank
-    coordinateString = coordinateString.replace(/,\s*$/, "");
-
-    return `[sub_resource type="ConvexPolygonShape2D" id=${id}]
-points = PackedVector2Array( ${coordinateString} )
-
-`;
-  }
-
-  getCollisionShapeRectangle(id, object) {
-    const topLeft = { x: object.x, y: object.y };
-    const topRight = { x: (object.x + object.width), y: object.y };
-    const bottomRight = { x: (object.x + object.width), y: (object.y + object.height) };
-    const bottomLeft = { x: object.x, y: (object.y + object.height) };
-
-    return `[sub_resource type="ConvexPolygonShape2D" id=${id}]
-points = PackedVector2Array( ${topLeft.x}, ${topLeft.y}, ${topRight.x}, ${topRight.y}, ${bottomRight.x}, ${bottomRight.y}, ${bottomLeft.x}, ${bottomLeft.y} )
-
-`;
-  }
-
-  getNavigationShapePolygon(id, object) {
-    let coordinateString = "";
-
-    object.polygon.forEach((coordinate) => {
-      let coordinateX = object.x + coordinate.x;
-      let coordinateY = object.y + coordinate.y;
-      coordinateString += coordinateX + ", " + coordinateY + ", ";
-    });
-    // Remove trailing commas and blank
-    coordinateString = coordinateString.replace(/,\s*$/, "");
-
-    return `[sub_resource type="NavigationPolygon" id=${id}]
-vertices = PackedVector2Array( ${coordinateString} )
-polygons = [ PackedInt32Array ( ${object.polygon.map((_value, index) => index).join(', ')} ) ]
-
-`;
-  }
-
-  getNavigationShapeRectangle(id, object) {
-    const topLeft = { x: object.x, y: object.y };
-    const topRight = { x: object.x + object.width, y: object.y };
-    const bottomRight = {
-      x: object.x + object.width,
-      y: object.y + object.height,
+  buildTileset() {
+    const tileset = this.asset.tileset;
+    const atlasID = "0";
+    const subResource = {
+      id: `TileSetAtlasSource_${atlasID}`,
     };
-    const bottomLeft = { x: object.x, y: object.y + object.height };
+    const texture = {
+      id: "1",
+      filePath: getResPath(tileset.property("projectRoot"), tileset.property("relativePath"), tileset.image),
+    };
 
-    return `[sub_resource type="NavigationPolygon" id=${id}]
-vertices = PackedVector2Array( ${topLeft.x}, ${topLeft.y}, ${topRight.x}, ${topRight.y}, ${bottomRight.x}, ${bottomRight.y}, ${bottomLeft.x}, ${bottomLeft.y} )
-polygons = [ PackedInt32Array( 0, 1, 2, 3 ) ]
+    let result = "";
 
-`;
+    result += `[gd_resource type="TileSet" load_steps=3 format=3]\n\n`;
+
+    // Texture2D nodes
+    result += `[ext_resource type="Texture2D" path="res://${texture.filePath}" id="${texture.id}"]\n\n`;
+
+    // TileSetAtlasSource nodes
+    result += `[sub_resource type="TileSetAtlasSource" id="${subResource.id}"]\n`;
+    result += `resource_name = "${tileset.name}"\n`;
+    result += `texture = ExtResource("${texture.id}")\n`;
+
+    if (tileset.margin != DEFAULT_MARGIN) {
+      result += `margins = Vector2i(${tileset.margin}, ${tileset.margin})\n`;
+    }
+
+    if (tileset.tileSpacing != DEFAULT_TILE_SPACING) {
+      result += `separation = Vector2i(${tileset.tileSpacing}, ${tileset.tileSpacing})\n`;
+    }
+
+    if (tileset.tileWidth != DEFAULT_TILE_SIZE || tileset.tileHeight != DEFAULT_TILE_SIZE) {
+      result += `texture_region_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
+    }
+
+    const useTexturePadding = tileset.property("godot:use_texture_padding") || DEFAULT_USE_TEXTURE_PADDING;
+    if (useTexturePadding != DEFAULT_USE_TEXTURE_PADDING) {
+      result += `use_texture_padding = ${useTexturePadding}\n`;
+    }
+
+    // Tile data
+    for (const tile of tileset.tiles) {
+      // Ignore transparent tiles (without collision or custom properties)
+      // Ignore animated tiles frames that are not the first
+      
+      const columnCount = tileset.columnCount;
+
+      const x = tile.id % columnCount;
+      const y = Math.floor(tile.id / columnCount);
+      const alt = 0;
+
+      const tileName = `${x}:${y}/${alt}`;
+
+      result += `${tileName} = ${alt}\n`;
+
+      if (alt & tile.FlippedHorizontally) {
+        result += `${tileName}/flip_h = true\n`;
+      }
+
+      if (alt & tile.FlippedVertically) {
+        result += `${tileName}/flip_v = true\n`;
+      }
+
+      if (alt & tile.RotatedHexagonal120) {
+        result += `${tileName}/transpose = true\n`;
+      }
+
+      result += this.buildTileCollision(tile, tileName);
+    }
+
+    result += `\n`;
+
+    // Tileset node
+    result += `[resource]\n`;
+
+    let tileShape = TileShape.TILE_SHAPE_SQUARE;
+    let tileLayout = TileLayout.TILE_LAYOUT_STACKED;
+
+    switch (tileset.orientation) {
+      default:
+      case Orientation.ORTHOGONAL:
+        tileShape = TileShape.TILE_SHAPE_SQUARE;
+        tileLayout = TileLayout.TILE_LAYOUT_STACKED;
+        break;
+      case Orientation.ISOMETRIC:
+        tileShape = TileShape.TILE_SHAPE_ISOMETRIC;
+        tileLayout = TileLayout.TILE_LAYOUT_DIAMOND_DOWN;
+        break;
+    }
+    
+    if (tileShape != DEFAULT_TILE_SHAPE) {
+      result += `tile_shape = ${tileShape}\n`;
+    }
+
+    if (tileLayout != DEFAULT_TILE_LAYOUT) {
+      result += `tile_layout = ${tileLayout}\n`;
+    }
+
+    if (this.asset.hasCollisions) {
+      const collisionLayer = tileset.property("godot:collision_layer") || 1;
+      result += `physics_layer_0/collision_layer = ${collisionLayer}\n`;
+    }
+
+    const collisionMask = tileset.property("godot:collision_mask") || 1;
+    if (collisionMask != 1) {
+      result += `physics_layer_0/collision_mask = ${collisionMask}\n`;
+    }
+
+    if (tileset.tileWidth != DEFAULT_TILE_SIZE || tileset.tileHeight != DEFAULT_TILE_SIZE) {
+      result += `tile_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
+    }
+
+    result += `sources/0 = SubResource("${subResource.id}")\n`;
+
+    return result;
+  }
+
+  buildTileCollision(tile, tileName) {
+    let result = "";
+
+    const linearVelocity = tile.property("godot:linear_velocity") || 0;
+    if (linearVelocity != 0) {
+      result += `${tileName}/physics_layer_0/linear_velocity = Vector2(${linearVelocity.x}, ${linearVelocity.y})\n`;
+    }
+    
+    const angularVelocity = tile.property("godot:angular_velocity") || 0;
+    if (angularVelocity != 0) {
+      result += `${tileName}/physics_layer_0/angular_velocity = ${angularVelocity}\n`;
+    }
+
+    const flippedState = tile.FlippedHorizontally;
+    tiled.log(`H: ${tile.FlippedHorizontally}, V: ${tile.FlippedVertically}, AD: ${tile.FlippedAntiDiagonally}`);
+    const objectGroup = tile.objectGroup;
+
+    if (objectGroup) {
+      let polygonID = 0;
+
+      const center = {
+        x: tile.width / 2,
+        y: tile.height / 2,
+      };
+
+      for (const tiledObject of objectGroup.objects) {
+        const shape = tiledObject.shape;
+
+        if (shape != MapObject.Rectangle && shape != MapObject.Polygon) {
+          tiled.warn("Godot exporter only supports collisions that are rectangles or polygons.");
+          continue;
+        }
+
+        this.asset.hasCollisions = true;
+        let polygonPointList = "";
+
+        switch (shape) {
+          case MapObject.Rectangle:
+            const rect = {
+              topLeft: {
+                x: tiledObject.x - center.x,
+                y: tiledObject.y - center.y,
+              },
+              botomRight: {
+                x: tiledObject.x + tiledObject.width - center.x,
+                y: tiledObject.y + tiledObject.height - center.y,
+              },
+            };
+            
+            // flipState(rect.topLeft, flippedState);
+            // flipState(rect.botomRight, flippedState);
+
+            polygonPointList = `${rect.topLeft.x}, ${rect.topLeft.y}, ${rect.botomRight.x}, ${rect.topLeft.y}, ${rect.botomRight.x}, ${rect.botomRight.y}, ${rect.topLeft.x}, ${rect.botomRight.y}`;
+            break;
+          case MapObject.Polygon:
+            let first = true;
+
+            for (const polygonPoint of tiledObject.polygon) {
+              if (!first) {
+                polygonPointList += ", ";
+              }
+              const point = {
+                x: tiledObject.x + polygonPoint.x - center.x,
+                y: tiledObject.y + polygonPoint.y - center.y,
+              }
+              
+              // flipState(point, flippedState);
+              polygonPointList += `${point.x}, ${point.y}`;
+
+              first = false;
+            }
+            break;
+          default:
+            break;
+        }
+
+        result += `${tileName}/physics_layer_0/polygon_${polygonID}/points = PackedVector2Array(${polygonPointList})\n`;
+        polygonID++;
+      }
+    }
+
+    return result;
+  }
+
+  flipState(point, flippedState) {
+    if (flippedState & Transposed) {
+      [point.x, point.y] = [point.y, point.x];
+    }
+    if (flippedState & FlippedH) {
+      point.x *= -1;
+    }
+    if (flippedState & FlippedV) {
+      point.y *= -1;
+    }
   }
 }
 
