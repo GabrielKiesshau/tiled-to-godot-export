@@ -1,4 +1,4 @@
-import { getResPath } from './utils.mjs';
+import { getResPath, hasColor } from './utils.mjs';
 
 const DEFAULT_MARGIN = 0;
 const DEFAULT_TILE_SPACING = 0;
@@ -104,7 +104,31 @@ class GodotTilesetExporter {
 
     // Tile data
     for (const tile of tileset.tiles) {
-      // Ignore transparent tiles (without collision or custom properties)
+      let blank = true;
+      const properties = tile.resolvedProperties();
+
+      if (tile.className !== "" || Object.keys(properties).length > 0) {
+        blank = false;
+      }
+      else {
+        const rect = tile.imageRect;
+
+        pixelLoop:
+        for (let y = rect.y; y < rect.y + rect.height; y++) {
+          for (let x = rect.x; x < rect.x + rect.width; x++) {
+            const pixelARGB = tile.image.pixelColor(x, y);
+            const isPixelColored = hasColor(String(pixelARGB));
+
+            if (isPixelColored) {
+              blank = false;
+              break pixelLoop;
+            }
+          }
+        }
+      }
+
+      if (blank)
+        continue;
       // Ignore animated tiles frames that are not the first
       
       const columnCount = tileset.columnCount;

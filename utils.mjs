@@ -290,3 +290,25 @@ export function validateVector2(value, defaultValue = { x: 0, y: 0 })
   }
   return undefined;
 }
+
+export function hasColor(argb) {
+  // Ensure the input is in the correct format
+  if (!/^#[0-9A-Fa-f]{6,8}$/.test(argb)) {
+    throw new Error('Invalid format. Please use a string like "#00000000" or "#000000".');
+  }
+
+  // Handle the case where the input is in ARGB format
+  if (argb.length === 9) {
+    const alpha = argb.slice(1, 3).toUpperCase();
+
+    if (alpha === '00') {
+      return false;
+    }
+
+    // If alpha is non-zero, the color is not fully transparent, return true
+    return parseInt(alpha, 16) !== 0;
+  }
+
+  // If the input is in RGB format, just return true
+  return true;
+}
