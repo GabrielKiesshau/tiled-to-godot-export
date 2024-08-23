@@ -1,4 +1,4 @@
-import { getResPath, hasColor } from './utils.mjs';
+import { getResPath, hasColor, propertiesToMap } from './utils.mjs';
 
 const DEFAULT_MARGIN = 0;
 const DEFAULT_TILE_SPACING = 0;
@@ -42,12 +42,13 @@ class GodotTilesetExporter {
   constructor(tileset, fileName) {
     this.asset = {
       id: "",
-      atlasID: -1,
+      atlasID: 0,
       tileset: tileset,
       usedTiles: [],
       hasCollisions: false,
-    },
+    };
     this.fileName = fileName;
+    this.customDataLayerList = new Map();
   };
 
   write() {
@@ -64,10 +65,6 @@ class GodotTilesetExporter {
 
   buildTileset() {
     const tileset = this.asset.tileset;
-    const atlasID = "0";
-    const subResource = {
-      id: `TileSetAtlasSource_${atlasID}`,
-    };
     const texture = {
       id: "1",
       filePath: getResPath(tileset.property("projectRoot"), tileset.property("relativePath"), tileset.image),
@@ -81,7 +78,7 @@ class GodotTilesetExporter {
     result += `[ext_resource type="Texture2D" path="res://${texture.filePath}" id="${texture.id}"]\n\n`;
 
     // TileSetAtlasSource nodes
-    result += `[sub_resource type="TileSetAtlasSource" id="${subResource.id}"]\n`;
+    result += `[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_${this.asset.atlasID}"]\n`;
     result += `resource_name = "${tileset.name}"\n`;
     result += `texture = ExtResource("${texture.id}")\n`;
 
@@ -154,6 +151,16 @@ class GodotTilesetExporter {
       }
 
       result += this.buildTileCollision(tile, tileName);
+      
+      const propertyMap = propertiesToMap(properties);
+      if (propertyMap.size != 0) {
+        for (const [key, value] of propertyMap) {
+          if (!this.customDataLayerList.has(key)) {
+            this.customDataLayerList.set(key, {})
+          }
+          result += `${tileName}/custom_data_${key} = ${value}\n`;
+        }
+      }
     }
 
     result += `\n`;
@@ -198,7 +205,12 @@ class GodotTilesetExporter {
       result += `tile_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
     }
 
-    result += `sources/0 = SubResource("${subResource.id}")\n`;
+    for (const [name, layer] of this.customDataLayerList) {
+      result += `custom_data_layer_${layer.index}/name = "${name}"\n`;
+      result += `custom_data_layer_${layer.index}/type = "${layer.type}"\n`;
+    }
+
+    result += `sources/${this.asset.atlasID} = SubResource("TileSetAtlasSource_${this.asset.atlasID}")\n`;
 
     return result;
   }
@@ -216,8 +228,8 @@ class GodotTilesetExporter {
       result += `${tileName}/physics_layer_0/angular_velocity = ${angularVelocity}\n`;
     }
 
-    const flippedState = tile.FlippedHorizontally;
-    tiled.log(`H: ${tile.FlippedHorizontally}, V: ${tile.FlippedVertically}, AD: ${tile.FlippedAntiDiagonally}`);
+    // const flippedState = tile.FlippedHorizontally;
+    // tiled.log(`H: ${tile.FlippedHorizontally}, V: ${tile.FlippedVertically}, AD: ${tile.FlippedAntiDiagonally}`);
     const objectGroup = tile.objectGroup;
 
     if (objectGroup) {

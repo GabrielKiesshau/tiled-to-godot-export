@@ -312,3 +312,55 @@ export function hasColor(argb) {
   // If the input is in RGB format, just return true
   return true;
 }
+
+export function propertiesToMap(properties) {
+  const map = new Map();
+  const entries = Object.entries(properties);
+
+  for (const [key, value] of entries) {
+    map.set(key, value);
+  }
+
+  return map;
+}
+
+export function getUID(path) {
+  const file = new TextFile(path, TextFile.ReadOnly);
+  const firstLine = file.readLine();
+  file.close();
+
+  const uidMatch = firstLine.match(/uid="([^"]+)"/);
+  const uid = uidMatch ? uidMatch[1] : null;
+
+  return uid;
+}
+
+export function resolvePath(path) {
+  const projectRoot = tiled.project.property("godot:projectRoot");
+  const tiledProjectFile = tiled.projectFilePath;
+  
+  // Get the directory of the tiled project file
+  const projectDirectory = tiledProjectFile.substring(0, tiledProjectFile.lastIndexOf("/"));
+
+  // Resolve projectRoot relative to the project directory
+  const fullProjectRoot = projectDirectory + "/" + projectRoot;
+  const resolvedProjectRoot = fullProjectRoot.split('/').reduce(
+    (acc, part) => {
+      if (part === '..') {
+        acc.pop(); // Go up one directory level
+      } else if (part !== '.' && part !== '') {
+        acc.push(part); // Add the current part to the path
+      }
+      return acc;
+    },
+    [],
+  ).join('/');
+
+  // Combine the resolved project root with the asset path
+  const fullPath = resolvedProjectRoot + "/" + path;
+
+  // Convert to Windows-style path
+  const windowsFullPath = fullPath.replace(/\//g, '\\');
+
+  return windowsFullPath;
+}

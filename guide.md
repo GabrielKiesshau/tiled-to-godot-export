@@ -5,7 +5,20 @@
 2. b
 3. c
 
+**Adding warps:**
+Prerequisites:
+- Two rooms;
+- One of them must have an area with the class **Warp**;
+- The destination room data resource;
+- The destination scene reference resource;
+
+1. Place down areas and assign them the class **Warp**. Doing so should display the custom properties of a Warp, godot:collision_mask, godot:resource:target_room, godot:script and godot:var:is_fade_enabled.
+2. Keep the godot:collision_mask and the godot:script as they are. But the godot:resource:target_room must point to the file that contains the reference of the room you want as destination.
+3. So
+
 **Exporting the Map:**
+Prerequisites:
+- All tilesets used in the map must have been exported previously;
 
 1. In Tiled, go to **File > Export As** (or press **Ctrl + Shift + E**).
 2. Choose the location where you want to save your converted map, and make sure the selected format is **Godot 4 Tilemap format (*.tscn)**.

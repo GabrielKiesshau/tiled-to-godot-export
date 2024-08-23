@@ -5,7 +5,7 @@
   "main": "export_to_godot_tilemap.mjs",
   "repository": {
     "type": "git",
-    "url": "git@github.com:mapeditor/tiled-to-godot-export.git"
+    "url": "git+ssh://git@github.com/mapeditor/tiled-to-godot-export.git"
   },
   "author": "Mihail Ilinov <mihail@ilinov.eu>",
   "license": "GPL-2.0-or-later",
@@ -14,6 +14,9 @@
   },
   "homepage": "https://github.com/mapeditor/tiled-to-godot-export",
   "devDependencies": {
-    "@mapeditor/tiled-api": "^1.8.2"
+    "@mapeditor/tiled-api": "^1.11.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
