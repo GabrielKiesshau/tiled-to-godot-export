@@ -5,4 +5,17 @@ import { Node as GDNode } from './node.mjs';
  * @class CanvasItem
  * @extends GDNode
  */
-export class CanvasItem extends GDNode { }
+export class CanvasItem extends GDNode {
+  /**
+   * @param {Object} [props]
+   * @param {GDNode} [props.node]
+   */
+  constructor({
+    node = {
+      name: "CanvasItem",
+    },
+  } = {}) {
+    super(node);
+    this.type = "CanvasItem";
+  }
+}
