@@ -32,7 +32,11 @@ export class TileMapLayer extends Node2D {
     useKinematicBodies = false,
     xDrawOrderReversed = false,
     ySortOrigin = 0,
+    node2D = {
+      
+    },
   } = {}) {
+    super(node2D);
     this.collisionEnabled = collisionEnabled;
     this.collisionVisibilityMode = collisionVisibilityMode;
     this.enabled = enabled;
@@ -44,5 +48,6 @@ export class TileMapLayer extends Node2D {
     this.useKinematicBodies = useKinematicBodies;
     this.xDrawOrderReversed = xDrawOrderReversed;
     this.ySortOrigin = ySortOrigin;
+    this.type = "TileMapLayer";
   }
 }

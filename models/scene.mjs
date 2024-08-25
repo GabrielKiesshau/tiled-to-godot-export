@@ -1,5 +1,3 @@
-import { getFileName } from '../utils.mjs';
-
 import { ExternalResource } from './external_resource.mjs';
 import { Node as GDNode } from './node.mjs';
 import { SubResource } from './subresource.mjs';
@@ -19,17 +17,20 @@ export class Scene {
    * @param {SubResource[]} [props.subResourceList=[]]
    * @param {GDNode[]} [props.nodeList=[]]
    * @param {string[]} [props.nodeListString=[]]
+   * @param {GDNode} [props.rootNode]
    */
   constructor({
     externalResourceList = [],
     subResourceList = [],
     nodeList = [],
     nodeListString = [],
+    rootNode = null,
   } = {}) {
     this.externalResourceList = externalResourceList;
     this.subResourceList = subResourceList;
     this.nodeList = nodeList;
     this.nodeListString = nodeListString;
+    this.rootNode = rootNode;
   }
 
   /**
@@ -37,24 +38,20 @@ export class Scene {
    *
    * @returns {string} - Serialized scene in Godot string format.
    */
-  serializeToGodot(map, fileName) {
+  serializeToGodot(map) {
     const loadSteps = 1 + this.externalResourceList.length + this.subResourceList.length;
     const type = map.property("godot:type") || "Node2D";
-    const name = map.property("godot:name") || getFileName(fileName);
 
     const externalResourceListString = this.serializeExternalResourceList();
     const subResourceListString = this.serializeSubResourceList();
-    const nodeListString = this.serializeNodeList();
-
-    for (const node of this.nodeList) {
-      tiled.log(`Node: ${node}`);
-    }
+    // const nodeListString = this.serializeNodeList();
+    const nodeListString = this.serializeNodeListV2();
 
     let sceneString = `[gd_scene load_steps=${loadSteps} format=4]\n`
     sceneString += `${externalResourceListString}`;
     sceneString += `${subResourceListString}`;
     sceneString += `\n`;
-    sceneString += `[node name="${name}" type="${type}"]\n`;
+    sceneString += `[node name="${this.rootNode.name}" type="${type}" parent="."]\n`;
     sceneString += `${nodeListString}`;
 
     return sceneString;
@@ -104,6 +101,27 @@ export class Scene {
    * @returns {string} - Serialized node list.
    */
   serializeNodeList() {
+    if (this.nodeListString.length == 0) {
+      return "";
+    }
+
     return this.nodeListString.join("");
+  }
+
+  /**
+   * Serializes the node list to fit Godot structure.
+   *
+   * @returns {string} - Serialized node list.
+   */
+  serializeNodeListV2() {
+    if (this.nodeList.length == 0) {
+      return "";
+    }
+
+    let nodeListString = "\n";
+
+    nodeListString += this.nodeList.map(node => node.serializeToGodot()).join('\n');
+
+    return nodeListString;
   }
 }

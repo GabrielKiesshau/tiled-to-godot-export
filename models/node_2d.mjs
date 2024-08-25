@@ -11,16 +11,39 @@ import { Vector2 } from './vector2.mjs';
  * @property {number} skew - The skew of the node.
  */
 export class Node2D extends CanvasItem {
+  /**
+   * @param {Object} [props]
+   * @param {Vector2} [props.position]
+   * @param {number} [props.rotation]
+   * @param {Vector2} [props.scale]
+   * @param {number} [props.skew]
+   * @param {CanvasItem} [props.canvasItem]
+   */
   constructor({
     position = new Vector2(0, 0),
     rotation = 0,
     scale = new Vector2(1, 1),
     skew = 0,
+    canvasItem = {
+      node: {
+        name: "Node2D",
+      },
+    },
   } = {}) {
-    super();
+    super(canvasItem);
     this.position = position;
     this.rotation = rotation;
     this.scale = scale;
     this.skew = skew;
+    this.type = "Node2D";
+  }
+
+  getProperties() {
+    return {
+      position: this.position,
+      rotation: this.rotation,
+      scale: this.scale,
+      skew: this.skew,
+    };
   }
 }

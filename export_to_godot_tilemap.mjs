@@ -1,13 +1,19 @@
 import { resolvePath, getUID, getFileName, getResPath, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getAreaCenter, getRotation, validateNumber, validateBool, validateVector2, roundToDecimals } from './utils.mjs';
+import { Area2D } from './models/area_2d.mjs';
+import { CollisionPolygon2D } from './models/collision_polygon_2d.mjs';
+import { CollisionShape2D } from './models/collision_shape_2d.mjs';
 import { ExternalResource } from './models/external_resource.mjs';
 import { ExternalResourceType } from './enums/external_resource_type.mjs';
 import { MapObjectShape } from './enums/map_object_shape.mjs';
 import { Node as GDNode } from './models/node.mjs';
+import { Node2D } from './models/node_2d.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { Scene } from './models/scene.mjs';
+import { Sprite2D } from './models/sprite_2d.mjs';
 import { SubResource } from './models/subresource.mjs';
 import { SubResourceType } from './enums/subresource_type.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
+import { Vector2 } from './models/vector2.mjs';
 
 // /**
 //   * @class LayerData
@@ -38,9 +44,17 @@ class GodotTilemapExporter {
   constructor(map, fileName) {
     this.map = map;
     this.fileName = fileName;
-    this.scene = new Scene();
     this.externalResourceID = 0;
     this.subResourceID = 0;
+
+    const name = this.map.property("godot:name") || getFileName(this.fileName);
+    const rootNode = new GDNode({
+      name,
+    });
+
+    this.scene = new Scene({
+      rootNode,
+    });
 
     /**
      * Tiled doesn't have tileset ID so we create a map
@@ -94,15 +108,8 @@ class GodotTilemapExporter {
     const isIsometric = this.map.orientation === TileMap.Isometric;
     const mode = isIsometric ? 1 : undefined;
     
-    const name = this.map.property("godot:name") || getFileName(this.fileName);
-    const rootNode = new GDNode({
-      name,
-      owner: null,
-    });
-    
     for (const layer of this.map.layers) {
-      // Maybe create a root node to work as parent
-      this.handleLayer(layer, mode, ".", rootNode);
+      this.handleLayer(layer, mode, this.scene.rootNode);
     }
   }
 
@@ -110,33 +117,31 @@ class GodotTilemapExporter {
    * Handle exporting a single layer.
    * @param {Layer} layer - The target layer.
    * @param {number} mode - The layer mode.
-   * @param {string} parentPath - The parent path.
-   * @param {Node} parentNode - The parent node.
+   * @param {GDNode} owner - The owner node.
    */
-  handleLayer(layer, mode, parentPath, node) {
+  handleLayer(layer, mode, owner) {
     const groups = splitCommaSeparatedString(layer.property("godot:groups"));
-    tiled.log(`Node ${layer.name}: ${node.name}`);
+
     if (layer.isTileLayer) {
-      this.handleTileLayer(layer, mode, parentPath, groups, node);
+      // this.handleTileLayer(layer, mode, groups, owner);
       return;
     }
     if (layer.isObjectLayer) {
-      this.handleObjectGroup(layer, parentPath, groups, node);
+      // this.handleObjectGroup(layer, groups, owner);
       return;
     }
     if (layer.isGroupLayer) {
-      this.handleGroupLayer(layer, parentPath, groups, node);
+      this.handleGroupLayer(layer, mode, groups, owner);
     }
   }
 
   /**
    * Handle exporting a tile layer.
    * @param {TileLayer} tileLayer - The target layer.
-   * @param {string} parentPath - The parent path.
    * @param {string[]} groups - The groups this layer is part of.
-   * @param {Node} owner - The owner node.
+   * @param {GDNode} owner - The owner node.
    */
-  handleTileLayer(tileLayer, parentLayerPath, groups, owner) {
+  handleTileLayer(tileLayer, groups, owner) {
     const layerDataList = this.getLayerDataList(tileLayer);
 
     for (const layerData of layerDataList) {
@@ -144,13 +149,13 @@ class GodotTilemapExporter {
 
       this.mapLayerToTileset(layerData);
 
-      const tilemapLayerNode = this.getTileMapLayerTemplate(layerData, tileLayer, parentLayerPath, groups);
-
-      this.scene.nodeListString.push(tilemapLayerNode);
+      //! const tilemapLayerNode = this.getTileMapLayerTemplate(layerData, tileLayer, parentLayerPath, groups);
+      //! this.scene.nodeListString.push(tilemapLayerNode);
 
       const node = new GDNode({
         name: tileLayer.name,
         owner,
+        groups,
       });
       this.scene.nodeList.push(node);
     }
@@ -159,77 +164,55 @@ class GodotTilemapExporter {
   /**
    * Handle exporting an object group.
    * @param {ObjectGroup} objectGroup - The target layer.
-   * @param {string} parentPath - The parent path.
    * @param {string[]} groups - The groups this layer is part of.
-   * @param {Node} owner - The owner node.
+   * @param {GDNode} owner - The owner node.
    */
-  handleObjectGroup(objectGroup, parentLayerPath, layerGroups, owner) {
-    const node = convertNodeToString({
+  handleObjectGroup(objectGroup, groups, owner) {
+    const node = new GDNode({
       name: objectGroup.name,
-      type: "Node2D",
-      parent: parentLayerPath,
-      groups: layerGroups,
+      owner,
+      groups,
     });
-    this.scene.nodeListString.push(node);
+    this.scene.nodeList.push(node);
 
     for (const mapObject of objectGroup.objects) {
       const mapObjectGroups = splitCommaSeparatedString(mapObject.property("godot:groups"));
       
       if (mapObject.tile) {
-        this.generateTileNode(objectGroup, parentLayerPath, mapObject, mapObjectGroups);
+        this.generateTileNode(objectGroup, parentLayerPath, mapObject, mapObjectGroups, node);
         continue;
       }
 
-      this.generateNode(objectGroup, parentLayerPath, mapObject, mapObjectGroups);
-
-      const foo = new GDNode({
-        name: mapObject.name,
-        owner,
-      });
-      this.scene.nodeList.push(foo);
+      this.generateNode(objectGroup, parentLayerPath, mapObject, mapObjectGroups, node);
     }
   }
 
   /**
    * Handle exporting a group layer.
    * @param {GroupLayer} groupLayer - The target layer.
-   * @param {string} parentPath - The parent path.
    * @param {string[]} groups - The groups this layer is part of.
-   * @param {Node} owner - The owner node.
+   * @param {GDNode} owner - The owner node.
    */
-  handleGroupLayer(groupLayer, mode, parentLayerPath, groups, owner) {
-    const nodeType = groupLayer.property("godot:type") || "Node2D";
-    const nodeString = convertNodeToString(
-      {
-        name: groupLayer.name,
-        type: nodeType,
-        parent: parentLayerPath,
-        groups: groups,
-      },
-      this.merge_properties(groupLayer.properties(), {}),
-      this.meta_properties(groupLayer.properties()),
-    );
-    this.scene.nodeListString.push(nodeString);
-
+  handleGroupLayer(groupLayer, mode, groups, owner) {
     const node = new GDNode({
       name: groupLayer.name,
       owner,
+      groups,
     });
     this.scene.nodeList.push(node);
 
     for (const layer of groupLayer.layers) {
-      const layerPath = parentLayerPath === "." ? groupLayer.name : `${parentLayerPath}/${groupLayer.name}`;
-      this.handleLayer(layer, mode, layerPath, node);
+      this.handleLayer(layer, mode, node);
     }
   }
 
   /**
    * Generates a Tile node.
    * @param {ObjectGroup} objectGroup - The group containing the tile.
-   * @param {string} parentLayerPath - Path of the parent layer.
    * @param {MapObject} mapObject - An object that can be part of an ObjectGroup.
+   * @param {GDNode} owner - The owner node.
    */
-  generateTileNode(objectGroup, parentLayerPath, mapObject, groups) {
+  generateTileNode(objectGroup, mapObject, groups, owner) {
     const tilesetsIndexKey = `${mapObject.tile.tileset.name}_Image`;
     let textureResourceID = 0;
 
@@ -254,58 +237,64 @@ class GodotTilemapExporter {
       textureResourceID = this.tilesetIndexMap.get(tilesetsIndexKey);
     }
 
-    const tileOffset = this.getTileOffset(mapObject.tile.tileset, mapObject.tile.id);
+    //! const tileOffset = this.getTileOffset(mapObject.tile.tileset, mapObject.tile.id);
 
-    // Converts Tiled pivot (top left corner) to Godot pivot (center);
-    const mapObjectPosition = {
-      x: mapObject.x + (mapObject.tile.width / 2),
-      y: mapObject.y - (mapObject.tile.height / 2),
-    };
+    //! // Converts Tiled pivot (top left corner) to Godot pivot (center);
+    //! const mapObjectPosition = {
+    //!   x: mapObject.x + (mapObject.tile.width / 2),
+    //!   y: mapObject.y - (mapObject.tile.height / 2),
+    //! };
 
-    const node = convertNodeToString(
-      {
-        name: mapObject.name || "Sprite2D",
-        type: "Sprite2D",
-        parent: `${parentLayerPath}/${objectGroup.name}`,
-        groups: groups,
-      },
-      this.merge_properties(
-        mapObject.properties(),
-        {
-          position: `Vector2(${mapObjectPosition.x}, ${mapObjectPosition.y})`,
-          texture: `ExtResource("${textureResourceID}")`,
-          region_enabled: true,
-          region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
-        },
-      ),
-      this.meta_properties(objectGroup.properties()),
-    );
-    this.scene.nodeListString.push(node);
+    //! const nodeString = convertNodeToString(
+    //!   {
+    //!     name: mapObject.name || "Sprite2D",
+    //!     type: "Sprite2D",
+    //!     groups: groups,
+    //!   },
+    //!   this.merge_properties(
+    //!     mapObject.properties(),
+    //!     {
+    //!       position: `Vector2(${mapObjectPosition.x}, ${mapObjectPosition.y})`,
+    //!       texture: `ExtResource("${textureResourceID}")`,
+    //!       region_enabled: true,
+    //!       region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
+    //!     },
+    //!   ),
+    //!   this.meta_properties(objectGroup.properties()),
+    //! );
+    //! this.scene.nodeListString.push(nodeString);
+
+    const node = new Sprite2D({
+      name: mapObject.name || "Sprite2D",
+      owner,
+      groups,
+    });
+    this.scene.nodeList.push(node);
   }
 
   /**
    * Generates a node.
    * @param {ObjectGroup} objectGroup - The group containing the object.
-   * @param {string} parentLayerPath - Path of the parent layer.
    * @param {MapObject} mapObject - An object that can be part of an ObjectGroup.
    * @param {Array<string>} groups - The groups this Node belongs to.
+   * @param {GDNode} owner - The owner node.
    */
-  generateNode(objectGroup, parentLayerPath, mapObject, groups) {
+  generateNode(objectGroup, mapObject, groups, owner) {
     switch (mapObject.shape) {
       case MapObjectShape.Rectangle:
-        this.generateRectangle(objectGroup, parentLayerPath, mapObject, groups);
+        this.generateRectangle(objectGroup, mapObject, groups, owner);
         break;
       case MapObjectShape.Polygon:
-        this.generatePolygon(objectGroup, parentLayerPath, mapObject, groups, PolygonBuildMode.Polygon);
+        this.generatePolygon(objectGroup, mapObject, groups, PolygonBuildMode.Polygon, owner);
         break;
       case MapObjectShape.Polyline:
-        this.generatePolygon(objectGroup, parentLayerPath, mapObject, groups, PolygonBuildMode.Polyline);
+        this.generatePolygon(objectGroup, mapObject, groups, PolygonBuildMode.Polyline, owner);
         break;
       case MapObjectShape.Ellipse:
-        this.generateEllipse(objectGroup, parentLayerPath, mapObject, groups);
+        this.generateEllipse(objectGroup, mapObject, groups, owner);
         break;
       case MapObjectShape.Point:
-        this.generatePoint(objectGroup, parentLayerPath, mapObject, groups);
+        this.generatePoint(objectGroup, mapObject, groups, owner);
         break;
     }
   }
@@ -313,39 +302,45 @@ class GodotTilemapExporter {
   /**
    * Generates a Area2D node with a rectangle shape.
    * @param {ObjectGroup} objectGroup - The group containing the object.
-   * @param {string} parentLayerPath - Path of the parent layer.
    * @param {MapObject} mapObject - The object representing the Area2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
+   * @param {GDNode} owner - The owner node.
    */
-  generateRectangle(objectGroup, parentLayerPath, mapObject, groups) {
+  generateRectangle(objectGroup, mapObject, groups, owner) {
     const name = mapObject.name || "Area2D";
-    const position = { x: mapObject.x, y: mapObject.y };
+    //! const position = { x: mapObject.x, y: mapObject.y };
     const size = {
       width: mapObject.width,
       height: mapObject.height,
     };
     
-    const center = getAreaCenter(position, size, mapObject.rotation);
+    //! const center = getAreaCenter(position, size, mapObject.rotation);
 
-    const area2DNode = convertNodeToString(
-      {
-        name: name,
-        type: "Area2D",
-        parent: `${parentLayerPath}/${objectGroup.name}`,
-        groups: groups,
-      },
-      this.merge_properties(
-        mapObject.properties(),
-        {
-          position: `Vector2(${center.x}, ${center.y})`,
-          rotation: getRotation(mapObject.rotation),
-          collision_layer: mapObject.property("godot:collision_layer"),
-          collision_mask: mapObject.property("godot:collision_mask"),
-        },
-      ),
-      this.meta_properties(mapObject.properties()),
-    );
-    this.scene.nodeListString.push(area2DNode);
+    //! const area2DNodeString = convertNodeToString(
+    //!   {
+    //!     name: name,
+    //!     type: "Area2D",
+    //!     groups: groups,
+    //!   },
+    //!   this.merge_properties(
+    //!     mapObject.properties(),
+    //!     {
+    //!       position: `Vector2(${center.x}, ${center.y})`,
+    //!       rotation: getRotation(mapObject.rotation),
+    //!       collision_layer: mapObject.property("godot:collision_layer"),
+    //!       collision_mask: mapObject.property("godot:collision_mask"),
+    //!     },
+    //!   ),
+    //!   this.meta_properties(mapObject.properties()),
+    //! );
+    //! this.scene.nodeListString.push(area2DNodeString);
+
+    const node = new Area2D({
+      name,
+      owner,
+      groups,
+    });
+    this.scene.nodeList.push(node);
 
     const subResource = this.registerSubResource(
       SubResourceType.RectangleShape2D,
@@ -354,118 +349,142 @@ class GodotTilemapExporter {
 
     this.scene.subResourceList.push(subResource);
     
-    const area2DName = mapObject.name || "Area2D";
-    const collisionShapeNode = convertNodeToString(
-      {
-        name: "CollisionShape2D",
-        type: "CollisionShape2D",
-        parent: `${parentLayerPath}/${objectGroup.name}/${area2DName}`,
-      },
-      this.merge_properties(
-        {},
-        { shape: `SubResource("${subResource.id}")` },
-      ),
-      {},
-    );
-    this.scene.nodeListString.push(collisionShapeNode);
+    //! const area2DName = mapObject.name || "Area2D";
+    //! const collisionShapeNode = convertNodeToString(
+    //!   {
+    //!     name: "CollisionShape2D",
+    //!     type: "CollisionShape2D",
+    //!     parent: `${parentLayerPath}/${objectGroup.name}/${area2DName}`,
+    //!   },
+    //!   this.merge_properties(
+    //!     {},
+    //!     { shape: `SubResource("${subResource.id}")` },
+    //!   ),
+    //!   {},
+    //! );
+    //! this.scene.nodeListString.push(collisionShapeNode);
+
+    const collisionShape2DNode = new CollisionShape2D({
+      name: "CollisionShape2D",
+      owner: node,
+    });
+    this.scene.nodeList.push(collisionShape2DNode);
   }
   
   /**
    * Generates a Area2D node with a polygon shape.
    * @param {ObjectGroup} objectGroup - The group containing the object.
-   * @param {string} parentLayerPath - Path of the parent layer.
    * @param {MapObject} mapObject - The object representing the Area2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
    * @param {PolygonBuildMode} buildMode - Whether the mode of the polygon should be solid or just use lines for collision.
+   * @param {GDNode} owner - The owner node.
    */
-  generatePolygon(objectGroup, parentLayerPath, mapObject, groups, buildMode) {
+  generatePolygon(objectGroup, mapObject, groups, buildMode, owner) {
     const name = mapObject.name || "Area2D";
-    const position = { x: mapObject.x, y: mapObject.y };
-    const size = {
-      width: mapObject.width,
-      height: mapObject.height,
-    };
-    
-    const center = getAreaCenter(position, size, mapObject.rotation);
+    //! const position = { x: mapObject.x, y: mapObject.y };
+    //! const size = {
+    //!   width: mapObject.width,
+    //!   height: mapObject.height,
+    //! };
 
-    const area2DNode = convertNodeToString(
-      {
-        name: name,
-        type: "Area2D",
-        parent: `${parentLayerPath}/${objectGroup.name}`,
-        groups: groups,
-      }, 
-      this.merge_properties(
-        mapObject.properties(),
-        {
-          position: `Vector2(${center.x}, ${center.y})`,
-          rotation: getRotation(mapObject.rotation),
-          collision_layer: mapObject.property("godot:collision_layer"),
-          collision_mask: mapObject.property("godot:collision_mask"),
-        },
-      ),
-      this.meta_properties(mapObject.properties()),
-    );
-    this.scene.nodeListString.push(area2DNode);
+    //! const center = getAreaCenter(position, size, mapObject.rotation);
 
-    let polygonPoints = mapObject.polygon.map(point => `${point.x}, ${point.y}`).join(', ');
-    
-    const area2DName = mapObject.name || "Area2D";
-    const collisionShapeNode = convertNodeToString(
-      {
-        name: "CollisionPolygon2D",
-        type: "CollisionPolygon2D",
-        parent: `${parentLayerPath}/${objectGroup.name}/${area2DName}`,
-      }, 
-      this.merge_properties(
-        {},
-        {
-          build_mode: validateNumber(buildMode),
-          polygon: `PackedVector2Array(${polygonPoints})`,
-        },
-      ),
-      {},
-    );
-    this.scene.nodeListString.push(collisionShapeNode);
+    //! const area2DNodeString = convertNodeToString(
+    //!   {
+    //!     name: name,
+    //!     type: "Area2D",
+    //!     groups: groups,
+    //!   }, 
+    //!   this.merge_properties(
+    //!     mapObject.properties(),
+    //!     {
+    //!       position: `Vector2(${center.x}, ${center.y})`,
+    //!       rotation: getRotation(mapObject.rotation),
+    //!       collision_layer: mapObject.property("godot:collision_layer"),
+    //!       collision_mask: mapObject.property("godot:collision_mask"),
+    //!     },
+    //!   ),
+    //!   this.meta_properties(mapObject.properties()),
+    //! );
+    //! this.scene.nodeListString.push(area2DNodeString);
+
+    const node = new Area2D({
+      name,
+      owner,
+      groups,
+    });
+    this.scene.nodeList.push(node);
+
+    //! let polygonPoints = mapObject.polygon.map(point => `${point.x}, ${point.y}`).join(', ');
+
+    //! const area2DName = mapObject.name || "Area2D";
+    //! const collisionShapeNode = convertNodeToString(
+    //!   {
+    //!     name: "CollisionPolygon2D",
+    //!     type: "CollisionPolygon2D",
+    //!     parent: `${parentLayerPath}/${objectGroup.name}/${area2DName}`,
+    //!   }, 
+    //!   this.merge_properties(
+    //!     {},
+    //!     {
+    //!       build_mode: validateNumber(buildMode),
+    //!       polygon: `PackedVector2Array(${polygonPoints})`,
+    //!     },
+    //!   ),
+    //!   {},
+    //! );
+    //! this.scene.nodeListString.push(collisionShapeNode);
+
+    const collisionPolygon2DNode = new CollisionPolygon2D({
+      name: "CollisionPolygon2D",
+      owner: node,
+    });
+    this.scene.nodeList.push(collisionPolygon2DNode);
   }
 
   /**
    * Generates a Area2D node with a polyline shape.
    * @param {ObjectGroup} objectGroup - The group containing the object.
-   * @param {string} parentLayerPath - Path of the parent layer.
    * @param {MapObject} mapObject - The object representing the Area2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
+   * @param {GDNode} owner - The owner node.
    */
-  generateEllipse(objectGroup, parentLayerPath, mapObject, groups) {
+  generateEllipse(objectGroup, mapObject, groups, owner) {
     const name = mapObject.name || "Area2D";
-    const position = { x: mapObject.x, y: mapObject.y };
-    const size = {
-      width: mapObject.width,
-      height: mapObject.height,
-    };
+    //! const position = { x: mapObject.x, y: mapObject.y };
+    //! const size = {
+    //!   width: mapObject.width,
+    //!   height: mapObject.height,
+    //! };
     const radius = mapObject.width / 2;
     
-    const center = getAreaCenter(position, size, mapObject.rotation);
+    //! const center = getAreaCenter(position, size, mapObject.rotation);
 
-    const area2DNode = convertNodeToString(
-      {
-        name: name,
-        type: "Area2D",
-        parent: `${parentLayerPath}/${objectGroup.name}`,
-        groups: groups,
-      }, 
-      this.merge_properties(
-        mapObject.properties(),
-        {
-          position: `Vector2(${center.x}, ${center.y})`,
-          rotation: getRotation(mapObject.rotation),
-          collision_layer: mapObject.property("godot:collision_layer"),
-          collision_mask: mapObject.property("godot:collision_mask"),
-        },
-      ),
-      this.meta_properties(mapObject.properties()),
-    );
-    this.scene.nodeListString.push(area2DNode);
+    //! const area2DNodeString = convertNodeToString(
+    //!   {
+    //!     name: name,
+    //!     type: "Area2D",
+    //!     groups: groups,
+    //!   }, 
+    //!   this.merge_properties(
+    //!     mapObject.properties(),
+    //!     {
+    //!       position: `Vector2(${center.x}, ${center.y})`,
+    //!       rotation: getRotation(mapObject.rotation),
+    //!       collision_layer: mapObject.property("godot:collision_layer"),
+    //!       collision_mask: mapObject.property("godot:collision_mask"),
+    //!     },
+    //!   ),
+    //!   this.meta_properties(mapObject.properties()),
+    //! );
+    //! this.scene.nodeListString.push(area2DNodeString);
+
+    const node = new Area2D({
+      name,
+      owner,
+      groups,
+    });
+    this.scene.nodeList.push(node);
 
     const subResource = this.registerSubResource(
       SubResourceType.CircleShape2D,
@@ -474,51 +493,69 @@ class GodotTilemapExporter {
 
     this.scene.subResourceList.push(subResource);
     
-    const area2DName = mapObject.name || "Area2D";
-    const collisionShapeNode = convertNodeToString(
-      {
-        name: "CollisionShape2D",
-        type: "CollisionShape2D",
-        parent: `${parentLayerPath}/${objectGroup.name}/${area2DName}`,
-      }, 
-      this.merge_properties(
-        {},
-        { shape: `SubResource("${subResource.id}")` },
-      ),
-      {},
-    );
-    this.scene.nodeListString.push(collisionShapeNode);
+    //! const area2DName = mapObject.name || "Area2D";
+    //! const collisionShapeNode = convertNodeToString(
+    //!   {
+    //!     name: "CollisionShape2D",
+    //!     type: "CollisionShape2D",
+    //!     parent: `${parentLayerPath}/${objectGroup.name}/${area2DName}`,
+    //!   }, 
+    //!   this.merge_properties(
+    //!     {},
+    //!     { shape: `SubResource("${subResource.id}")` },
+    //!   ),
+    //!   {},
+    //! );
+    //! this.scene.nodeListString.push(collisionShapeNode);
+
+    const collisionShape2DNode = new CollisionShape2D({
+      name: "CollisionShape2D",
+      owner: node,
+    });
+    this.scene.nodeList.push(collisionShape2DNode);
   }
 
   /**
    * Generates a Point.
    * @param {ObjectGroup} objectGroup - The group containing the object.
-   * @param {string} parentLayerPath - Path of the parent layer.
    * @param {MapObject} mapObject - The object representing the Node2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
+   * @param {GDNode} owner - The owner node.
    */
-  generatePoint(objectGroup, parentLayerPath, mapObject, groups) {
-    const name = mapObject.name || "Node2D";
-    const type = mapObject.property("godot:type") || "Node2D";
+  generatePoint(objectGroup, mapObject, groups, owner) {
+    const name = mapObject.name || "Point";
+    //! const type = mapObject.property("godot:type") || "Node2D";
     const position = { x: roundToDecimals(mapObject.x), y: roundToDecimals(mapObject.y) };
 
-    const node = convertNodeToString(
-      {
-        name: name,
-        type: type,
-        parent: `${parentLayerPath}/${objectGroup.name}`,
-        groups: groups,
-      },
-      this.merge_properties(
-        mapObject.properties(),
-        {
-          position: `Vector2(${position.x}, ${position.y})`,
-          rotation: getRotation(mapObject.rotation),
+    //! const nodeString = convertNodeToString(
+    //!   {
+    //!     name: name,
+    //!     type: type,
+    //!     groups: groups,
+    //!   },
+    //!   this.merge_properties(
+    //!     mapObject.properties(),
+    //!     {
+    //!       position: `Vector2(${position.x}, ${position.y})`,
+    //!       rotation: getRotation(mapObject.rotation),
+    //!     },
+    //!   ),
+    //!   this.meta_properties(mapObject.properties()),
+    //! );
+    //! this.scene.nodeListString.push(nodeString);
+
+    const node = new Node2D({
+      owner,
+      groups,
+      position: new Vector2(position.x, position.y),
+      rotation: getRotation(mapObject.rotation),
+      canvasItem: {
+        node: {
+          name: "Foo"
         },
-      ),
-      this.meta_properties(mapObject.properties()),
-    );
-    this.scene.nodeListString.push(node);
+      },
+    });
+    this.scene.nodeList.push(node);
   }
 
   /**
@@ -738,7 +775,7 @@ class GodotTilemapExporter {
   saveToFile() {
     const file = new TextFile(this.fileName, TextFile.WriteOnly);
 
-    const serializedScene = this.scene.serializeToGodot(this.map, this.fileName);
+    const serializedScene = this.scene.serializeToGodot(this.map);
 
     file.write(serializedScene);
     file.commit();
@@ -819,8 +856,8 @@ class GodotTilemapExporter {
       {
         name: layerData.name,
         type: "TileMapLayer",
-        parent: parent,
-        groups: groups,
+        // parent: parent,
+        // groups: groups,
       }, 
       this.merge_properties(
         layer.properties(),
