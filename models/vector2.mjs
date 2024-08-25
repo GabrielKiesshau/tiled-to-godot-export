@@ -9,7 +9,6 @@ export class Vector2 {
     x = 0,
     y = 0,
   } = {}) {
-    super();
     this.x = x;
     this.y = y;
   }
@@ -26,7 +25,6 @@ export class Vector2i {
     x = 0,
     y = 0,
   } = {}) {
-    super();
     this.x = x;
     this.y = y;
   }
