@@ -20,7 +20,7 @@ export class Node {
     owner = null,
     groups = [],
   } = {}) {
-    this.name = name;
+    this.name = name || "Node";
     this.owner = owner;
     this.groups = groups;
     this.type = "Node";
