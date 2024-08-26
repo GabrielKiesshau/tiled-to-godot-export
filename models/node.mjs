@@ -1,5 +1,4 @@
 import { stringifyKeyValue } from '../utils.mjs';
-import { Vector2 } from './vector2.mjs';
 
 /**
  * Represents a generic node in a scene graph.
@@ -41,7 +40,6 @@ export class Node {
    * @returns {string} - Serialized subresource in Godot string format.
    */
   serializeToGodot() {
-    tiled.log(`Serializing ${this.name}`);
     const parent = this.getOwnershipChain();
     const groups = this.formatStringList(this.groups);
 
@@ -50,25 +48,9 @@ export class Node {
     let nodeString = `[node name="${this.name}" type="${this.type}" parent="${parent}"${groupsProperty}]`;
 
     for (let [key, value] of Object.entries(this.getProperties())) {
-      if (value === undefined) continue;
+      if (value === undefined || value === null) continue;
 
-      const defaultValue = this.defaultValues[key];
-
-      tiled.log(`Is ${key}: ${value} the same as ${defaultValue}?`);
-
-      let isEqual = value === defaultValue;
-      if (value instanceof Vector2 && defaultValue instanceof Vector2) {
-        isEqual = value.equals(defaultValue);
-      }
-
-      if (isEqual) {
-        tiled.log(`Yes, skip`);
-        continue;
-      }
-
-      tiled.log(`No, add it`);
-
-      const keyValue = stringifyKeyValue(key, value.toString(), false, false, true);
+      const keyValue = stringifyKeyValue(key, value, false, false, true);
       nodeString += `\n${keyValue}`;
     }
   

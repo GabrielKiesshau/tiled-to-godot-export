@@ -1,3 +1,4 @@
+import { checkDefault } from '../utils.mjs';
 import { CanvasItem } from './canvas_item.mjs';
 import { Vector2 } from './vector2.mjs';
 
@@ -36,21 +37,14 @@ export class Node2D extends CanvasItem {
     this.scale = scale;
     this.skew = skew;
     this.type = "Node2D";
-
-    this.defaultValues = {
-      position: new Vector2(0, 0),
-      rotation: 0,
-      scale: new Vector2(0, 0),
-      skew: 0,
-    };
   }
 
   getProperties() {
     return {
-      position: this.position,
-      rotation: this.rotation,
-      scale: this.scale,
-      skew: this.skew,
+      position: checkDefault(this.position, new Vector2(0, 0)),
+      rotation: checkDefault(this.rotation, 0),
+      scale: checkDefault(this.scale, new Vector2(1, 1)),
+      skew: checkDefault(this.skew, 0),
     };
   }
 }

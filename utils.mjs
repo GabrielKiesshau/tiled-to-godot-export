@@ -184,15 +184,15 @@ export function getFileName(path) {
 /**
  * Calculates the center coordinate of a rectangle after rotation.
  * @param {Vector2} position - The coordinate of the top-left corner of the rectangle.
- * @param {object} size - The size of the rectangle.
+ * @param {Vector2} size - The size of the rectangle.
  * @param {number} rotationDegrees - The rotation of the rectangle in degrees.
  * @returns {Vector2} - An object containing the x and y coordinates of the center.
  */
 export function getAreaCenter(position, size, rotationDegrees) {
   // Calculate the original center of the rectangle
   const center = new Vector2({
-    x: position.x + size.width / 2,
-    y: position.y + size.height / 2,
+    x: position.x + size.x / 2,
+    y: position.y + size.y / 2,
   });
 
   // Rotation in radians
@@ -370,4 +370,14 @@ export function resolvePath(path) {
   const windowsFullPath = fullPath.replace(/\//g, '\\');
 
   return windowsFullPath;
+}
+
+export function checkDefault(value, defaultValue) {
+  // Check if both are objects (like instances of Vector2)
+  if (value && typeof value === 'object' && defaultValue && typeof defaultValue === 'object') {
+    return value.equals(defaultValue) ? null : value;
+  }
+
+  // For primitive types (numbers, strings, etc.)
+  return value === defaultValue ? null : value;
 }

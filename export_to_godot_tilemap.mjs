@@ -1,5 +1,6 @@
 import { resolvePath, getUID, getFileName, getResPath, convertNodeToString, splitCommaSeparatedString, getTilesetColumns, getAreaCenter, getRotation, validateNumber, validateBool, validateVector2, roundToDecimals } from './utils.mjs';
 import { Area2D } from './models/area_2d.mjs';
+import { CircleShape2D } from './models/circle_shape_2d.mjs';
 import { CollisionPolygon2D } from './models/collision_polygon_2d.mjs';
 import { CollisionShape2D } from './models/collision_shape_2d.mjs';
 import { ExternalResource } from './models/external_resource.mjs';
@@ -10,8 +11,8 @@ import { Node2D } from './models/node_2d.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { Scene } from './models/scene.mjs';
 import { Sprite2D } from './models/sprite_2d.mjs';
-import { SubResource } from './models/subresource.mjs';
-import { SubResourceType } from './enums/subresource_type.mjs';
+import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
+import { Resource } from './models/resource.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
 import { Vector2 } from './models/vector2.mjs';
 
@@ -301,10 +302,10 @@ class GodotTilemapExporter {
       x: mapObject.x,
       y: mapObject.y,
     });
-    const size = {
-      width: mapObject.width,
-      height: mapObject.height,
-    };
+    const size = new Vector2({
+      x: mapObject.width,
+      y: mapObject.height,
+    });
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
@@ -327,15 +328,14 @@ class GodotTilemapExporter {
     });
     this.scene.nodeList.push(area2DNode);
 
-    const subResource = this.registerSubResource(
-      SubResourceType.RectangleShape2D,
-      { size: `Vector2(${size.width}, ${size.height})` },
-    );
+    const rectangleShape = new RectangleShape2D({
+      size: size,
+    });
 
-    this.scene.subResourceList.push(subResource);
+    this.scene.subResourceList.push(rectangleShape);
 
     const collisionShape2DNode = new CollisionShape2D({
-      shape: `SubResource("${subResource.id}")`,
+      shape: rectangleShape,
       node2D: {
         canvasItem: {
           node: {
@@ -360,10 +360,10 @@ class GodotTilemapExporter {
       x: mapObject.x,
       y: mapObject.y,
     });
-    const size = {
-      width: mapObject.width,
-      height: mapObject.height,
-    };
+    const size = new Vector2({
+      x: mapObject.width,
+      y: mapObject.height,
+    });
 
     const center = getAreaCenter(position, size, mapObject.rotation);
 
@@ -414,10 +414,10 @@ class GodotTilemapExporter {
       x: mapObject.x,
       y: mapObject.y,
     });
-    const size = {
-      width: mapObject.width,
-      height: mapObject.height,
-    };
+    const size = new Vector2({
+      x: mapObject.width,
+      y: mapObject.height,
+    });
     const radius = mapObject.width / 2;
     
     const center = getAreaCenter(position, size, mapObject.rotation);
@@ -441,16 +441,16 @@ class GodotTilemapExporter {
     });
     this.scene.nodeList.push(area2DNode);
 
-    const subResource = this.registerSubResource(
-      SubResourceType.CircleShape2D,
-      { radius: radius.toFixed(2).replace(/\.?0+$/, "") },
-    );
+    const circleShape = new CircleShape2D({
+      radius: radius.toFixed(2).replace(/\.?0+$/, ""),
+    });
 
-    this.scene.subResourceList.push(subResource);
+    this.scene.subResourceList.push(circleShape);
 
     const collisionShape2DNode = new CollisionShape2D({
-      shape: `SubResource("${subResource.id}")`,
+      shape: circleShape,
       node2D: {
+        position: center,
         canvasItem: {
           node: {
             owner: area2DNode,
@@ -748,31 +748,24 @@ class GodotTilemapExporter {
     return externalResource;
   }
 
-  /**
-   * Registers a new subresource.
-   *
-   * @param {string} type - The type of subresource.
-   * @param {object} contentProperties - Key-value map of properties.
-   * @returns {SubResource} - The created subresource.
-   */
-  registerSubResource(type, properties) {
-    if (typeof type !== 'string') {
-      throw new TypeError('type must be a string');
-    }
-    if (typeof properties !== 'object' || properties === null) {
-      throw new TypeError('properties must be a non-null object');
-    }
+  //! /**
+  //!  * Registers a new resource.
+  //!  *
+  //!  * @param {string} type - The type of subresource.
+  //!  * @param {object} contentProperties - Key-value map of properties.
+  //!  * @returns {Resource} - The created resource.
+  //!  */
+  //! registerResource(type, properties) {
+  //!   const subResource = new Resource({
+  //!     type,
+  //!     id: this.subResourceID,
+  //!     properties,
+  //!   });
 
-    const subResource = new SubResource({
-      type,
-      id: this.subResourceID,
-      properties,
-    });
+  //!   this.subResourceID += 1;
 
-    this.subResourceID += 1;
-
-    return subResource;
-  }
+  //!   return subResource;
+  //! }
 
   /**
    * Template for a TileMapLayer node

@@ -1,12 +1,12 @@
 import { ExternalResource } from './external_resource.mjs';
 import { Node as GDNode } from './node.mjs';
-import { SubResource } from './subresource.mjs';
+import { Resource } from './resource.mjs';
 
 /**
  * Represents a Godot Scene.
  * @class Scene
  * @property {ExternalResource[]} externalResourceList - List of external resources.
- * @property {SubResource[]} subResourceList - List of subresources.
+ * @property {Resource[]} subResourceList - List of subresources.
  * @property {GDNode[]} nodeList - List of nodes. 
  * @property {string[]} nodeListString - List of nodes in string form. 
  */
@@ -14,7 +14,7 @@ export class Scene {
   /**
    * @param {Object} [props]
    * @param {ExternalResource[]} [props.externalResourceList=[]]
-   * @param {SubResource[]} [props.subResourceList=[]]
+   * @param {Resource[]} [props.subResourceList=[]]
    * @param {GDNode[]} [props.nodeList=[]]
    * @param {string[]} [props.nodeListString=[]]
    * @param {GDNode} [props.rootNode]
