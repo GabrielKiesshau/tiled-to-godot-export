@@ -1,5 +1,6 @@
-// import { checkDefault } from '../utils.mjs';
+import { checkDefault } from '../utils.mjs';
 import { Shape2D } from './shape_2d.mjs';
+import { Vector2 } from './vector2.mjs';
 
 /**
  * Represents a RectangleShape2D.
@@ -13,7 +14,7 @@ export class RectangleShape2D extends Shape2D {
    * @param {Shape2D} [props.shape2D]
    */
   constructor({
-    size = new Vector2(20, 20),
+    size = new Vector2({x: 20, y: 20}),
     shape2D = { },
   } = {}) {
     super(shape2D);
@@ -23,9 +24,7 @@ export class RectangleShape2D extends Shape2D {
 
   getProperties() {
     return {
-      size: this.size,
-      //TODO check if Godot keeps the value even when default
-      // size: checkDefault(this.size, new Vector2(20, 20)),
+      size: checkDefault(this.size, new Vector2({x: 20, y: 20})),
     };
   }
 }

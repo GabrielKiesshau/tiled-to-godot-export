@@ -1,4 +1,4 @@
-// import { checkDefault } from '../utils.mjs';
+import { checkDefault } from '../utils.mjs';
 import { Shape2D } from './shape_2d.mjs';
 
 /**
@@ -13,7 +13,7 @@ export class CircleShape2D extends Shape2D {
    * @param {Shape2D} [props.shape2D]
    */
   constructor({
-    radius = 10.0,
+    radius = 10,
     shape2D = { },
   } = {}) {
     super(shape2D);
@@ -23,9 +23,7 @@ export class CircleShape2D extends Shape2D {
 
   getProperties() {
     return {
-      radius: 10.0,
-      //TODO check if Godot keeps the value even when default
-      // radius: checkDefault(this.radius, 10.0),
+      radius: checkDefault(this.radius, 10),
     };
   }
 }

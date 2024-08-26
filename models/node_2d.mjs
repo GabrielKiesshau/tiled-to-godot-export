@@ -21,9 +21,9 @@ export class Node2D extends CanvasItem {
    * @param {CanvasItem} [props.canvasItem]
    */
   constructor({
-    position = new Vector2(0, 0),
+    position = new Vector2({x: 0, y: 0}),
     rotation = 0,
-    scale = new Vector2(1, 1),
+    scale = new Vector2({x: 1, y: 1}),
     skew = 0,
     canvasItem = {
       node: {
@@ -41,9 +41,9 @@ export class Node2D extends CanvasItem {
 
   getProperties() {
     return {
-      position: checkDefault(this.position, new Vector2(0, 0)),
+      position: checkDefault(this.position, new Vector2({x: 0, y: 0})),
       rotation: checkDefault(this.rotation, 0),
-      scale: checkDefault(this.scale, new Vector2(1, 1)),
+      scale: checkDefault(this.scale, new Vector2({x: 1, y: 1})),
       skew: checkDefault(this.skew, 0),
     };
   }

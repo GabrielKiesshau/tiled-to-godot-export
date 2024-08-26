@@ -13,6 +13,11 @@ export class Vector2 {
     this.y = y;
   }
 
+  /**
+   * 
+   * @param {Vector2} other - 
+   * @returns {bool} - 
+   */
   equals(other) {
     return other instanceof Vector2 && this.x === other.x && this.y === other.y;
   }

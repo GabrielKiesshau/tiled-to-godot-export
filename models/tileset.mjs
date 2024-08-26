@@ -17,7 +17,7 @@ export class Tileset {
     tileLayout = TileLayout.Stacked,
     tileOffsetAxis = TileOffsetAxis.Horizontal,
     tileShape = TileShape.Square,
-    tileSize = new Vector2i(16, 16),
+    tileSize = new Vector2i({x: 16, y: 16}),
     uvClipping = false,
   } = {}) {
     this.tileLayout = tileLayout;

@@ -372,12 +372,16 @@ export function resolvePath(path) {
   return windowsFullPath;
 }
 
+/**
+ * 
+ * @param {Vector2} value - 
+ * @param {Vector2} defaultValue - 
+ * @returns {any} - 
+ */
 export function checkDefault(value, defaultValue) {
-  // Check if both are objects (like instances of Vector2)
   if (value && typeof value === 'object' && defaultValue && typeof defaultValue === 'object') {
     return value.equals(defaultValue) ? null : value;
   }
 
-  // For primitive types (numbers, strings, etc.)
-  return value === defaultValue ? null : value;
+  return value == defaultValue ? null : value;
 }
