@@ -1,6 +1,6 @@
-import { PolygonBuildMode } from '../enums/polygon_build_mode.mjs';
 import { checkDefault } from '../utils.mjs';
 import { PackedVector2Array } from './packed_vector2_array.mjs';
+import { PolygonBuildMode } from '../enums/polygon_build_mode.mjs';
 import { Node2D } from './node_2d.mjs';
 
 /**
