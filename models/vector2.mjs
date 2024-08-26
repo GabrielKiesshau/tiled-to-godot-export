@@ -12,6 +12,10 @@ export class Vector2 {
     this.x = x;
     this.y = y;
   }
+
+  toString() {
+    return `Vector2(${this.x}, ${this.y})`;
+  }
 }
 
 /**
@@ -27,5 +31,9 @@ export class Vector2i {
   } = {}) {
     this.x = x;
     this.y = y;
+  }
+
+  toString() {
+    return `Vector2i(${this.x}, ${this.y})`;
   }
 }

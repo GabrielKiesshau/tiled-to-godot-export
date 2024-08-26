@@ -5,4 +5,23 @@ import { CollisionObject2D } from './collision_object_2d.mjs';
  * @class Area2D
  * @extends CollisionObject2D
  */
-export class Area2D extends CollisionObject2D { }
+export class Area2D extends CollisionObject2D {
+  /**
+   * @param {Object} [props]
+   * @param {CollisionObject2D} [props.collisionObject2D]
+   */
+  constructor({
+    collisionObject2D = {
+      node2D: {
+        canvasItem: {
+          node: {
+            name: "Area2D",
+          },
+        },
+      },
+    },
+  } = {}) {
+    super(collisionObject2D);
+    this.type = "Area2D";
+  }
+}

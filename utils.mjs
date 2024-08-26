@@ -1,3 +1,5 @@
+import { Vector2 } from './models/vector2.mjs';
+
 /**
  * Returns a full res path to a file.
  * 
@@ -181,17 +183,17 @@ export function getFileName(path) {
 
 /**
  * Calculates the center coordinate of a rectangle after rotation.
- * @param {object} position - The coordinate of the top-left corner of the rectangle.
+ * @param {Vector2} position - The coordinate of the top-left corner of the rectangle.
  * @param {object} size - The size of the rectangle.
  * @param {number} rotationDegrees - The rotation of the rectangle in degrees.
- * @returns {Object} - An object containing the x and y coordinates of the center.
+ * @returns {Vector2} - An object containing the x and y coordinates of the center.
  */
 export function getAreaCenter(position, size, rotationDegrees) {
   // Calculate the original center of the rectangle
-  const center = {
-    x: position.x + size.width / 2,
-    y: position.y + size.height / 2,
-  };
+  const center = new Vector2(
+    position.x + size.width / 2,
+    position.y + size.height / 2,
+  );
 
   // Rotation in radians
   const rotationRadians = rotationDegrees * (Math.PI / 180);
@@ -200,7 +202,9 @@ export function getAreaCenter(position, size, rotationDegrees) {
   const rotatedCenterX = position.x + (center.x - position.x) * Math.cos(rotationRadians) - (center.y - position.y) * Math.sin(rotationRadians);
   const rotatedCenterY = position.y + (center.x - position.x) * Math.sin(rotationRadians) + (center.y - position.y) * Math.cos(rotationRadians);
 
-  return { x: roundToDecimals(rotatedCenterX), y: roundToDecimals(rotatedCenterY) };
+  const areaCenter = new Vector2(roundToDecimals(rotatedCenterX), roundToDecimals(rotatedCenterY));
+
+  return areaCenter;
 }
 
 /**

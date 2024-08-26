@@ -1,4 +1,5 @@
 import { stringifyKeyValue } from '../utils.mjs';
+import { Vector2 } from './vector2.mjs';
 
 /**
  * Represents a generic node in a scene graph.
@@ -47,9 +48,10 @@ export class Node {
 
     let nodeString = `[node name="${this.name}" type="${this.type}" parent="${parent}"${groupsProperty}]`;
   
-    for (const [key, value] of Object.entries(this.getProperties())) {
+    for (let [key, value] of Object.entries(this.getProperties())) {
       if (value !== undefined) {
-        const keyValue = stringifyKeyValue(key, value, false, false, true);
+        //TODO Ignore default values
+        const keyValue = stringifyKeyValue(key, value.toString(), false, false, true);
         nodeString += `\n${keyValue}`;
       }
     }
