@@ -36,6 +36,13 @@ export class Node2D extends CanvasItem {
     this.scale = scale;
     this.skew = skew;
     this.type = "Node2D";
+
+    this.defaultValues = {
+      position: new Vector2(0, 0),
+      rotation: 0,
+      scale: new Vector2(0, 0),
+      skew: 0,
+    };
   }
 
   getProperties() {

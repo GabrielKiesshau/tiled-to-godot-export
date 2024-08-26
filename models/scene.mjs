@@ -44,8 +44,7 @@ export class Scene {
 
     const externalResourceListString = this.serializeExternalResourceList();
     const subResourceListString = this.serializeSubResourceList();
-    // const nodeListString = this.serializeNodeList();
-    const nodeListString = this.serializeNodeListV2();
+    const nodeListString = this.serializeNodeList();
 
     let sceneString = `[gd_scene load_steps=${loadSteps} format=4]\n`
     sceneString += `${externalResourceListString}`;
@@ -88,9 +87,7 @@ export class Scene {
 
     let subResourceListString = "\n";
 
-    for (const subResource of this.subResourceList) {
-      subResourceListString += subResource.serializeToGodot();
-    }
+    subResourceListString += this.subResourceList.map(subResource => subResource.serializeToGodot()).join('\n');
 
     return subResourceListString;
   }
@@ -101,19 +98,6 @@ export class Scene {
    * @returns {string} - Serialized node list.
    */
   serializeNodeList() {
-    if (this.nodeListString.length == 0) {
-      return "";
-    }
-
-    return this.nodeListString.join("");
-  }
-
-  /**
-   * Serializes the node list to fit Godot structure.
-   *
-   * @returns {string} - Serialized node list.
-   */
-  serializeNodeListV2() {
     if (this.nodeList.length == 0) {
       return "";
     }

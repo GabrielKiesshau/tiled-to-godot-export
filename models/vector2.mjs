@@ -13,6 +13,10 @@ export class Vector2 {
     this.y = y;
   }
 
+  equals(other) {
+    return other instanceof Vector2 && this.x === other.x && this.y === other.y;
+  }
+
   toString() {
     return `Vector2(${this.x}, ${this.y})`;
   }
@@ -31,6 +35,10 @@ export class Vector2i {
   } = {}) {
     this.x = x;
     this.y = y;
+  }
+
+  equals(other) {
+    return other instanceof Vector2i && this.x === other.x && this.y === other.y;
   }
 
   toString() {

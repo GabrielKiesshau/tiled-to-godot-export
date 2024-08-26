@@ -190,10 +190,10 @@ export function getFileName(path) {
  */
 export function getAreaCenter(position, size, rotationDegrees) {
   // Calculate the original center of the rectangle
-  const center = new Vector2(
-    position.x + size.width / 2,
-    position.y + size.height / 2,
-  );
+  const center = new Vector2({
+    x: position.x + size.width / 2,
+    y: position.y + size.height / 2,
+  });
 
   // Rotation in radians
   const rotationRadians = rotationDegrees * (Math.PI / 180);
@@ -202,7 +202,10 @@ export function getAreaCenter(position, size, rotationDegrees) {
   const rotatedCenterX = position.x + (center.x - position.x) * Math.cos(rotationRadians) - (center.y - position.y) * Math.sin(rotationRadians);
   const rotatedCenterY = position.y + (center.x - position.x) * Math.sin(rotationRadians) + (center.y - position.y) * Math.cos(rotationRadians);
 
-  const areaCenter = new Vector2(roundToDecimals(rotatedCenterX), roundToDecimals(rotatedCenterY));
+  const areaCenter = new Vector2({
+    x: roundToDecimals(rotatedCenterX),
+    y: roundToDecimals(rotatedCenterY),
+  });
 
   return areaCenter;
 }

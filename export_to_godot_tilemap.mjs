@@ -239,18 +239,18 @@ class GodotTilemapExporter {
     const tileOffset = this.getTileOffset(mapObject.tile.tileset, mapObject.tile.id);
 
     // Converts Tiled pivot (top left corner) to Godot pivot (center);
-    const mapObjectPosition = new Vector2(
-      mapObject.x + (mapObject.tile.width / 2),
-      mapObject.y - (mapObject.tile.height / 2),
-    );
+    const mapObjectPosition = new Vector2({
+      x: mapObject.x + (mapObject.tile.width / 2),
+      y: mapObject.y - (mapObject.tile.height / 2),
+    });
 
     const node = new Sprite2D({
-      position: mapObjectPosition,
       texture: `ExtResource("${textureResourceID}")`,
       region_enabled: true,
       region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
       collisionObject2D: {
         node2D: {
+          position: mapObjectPosition,
           canvasItem: {
             node: {
               name: mapObject.name,
@@ -297,7 +297,10 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   generateRectangle(mapObject, groups, owner) {
-    const position = new Vector2(mapObject.x, mapObject.y);
+    const position = new Vector2({
+      x: mapObject.x,
+      y: mapObject.y,
+    });
     const size = {
       width: mapObject.width,
       height: mapObject.height,
@@ -306,12 +309,12 @@ class GodotTilemapExporter {
     const center = getAreaCenter(position, size, mapObject.rotation);
 
     const area2DNode = new Area2D({
-      position: center,
-      rotation: getRotation(mapObject.rotation),
       collision_layer: mapObject.property("godot:collision_layer"),
       collision_mask: mapObject.property("godot:collision_mask"),
       collisionObject2D: {
         node2D: {
+          position: center,
+          rotation: getRotation(mapObject.rotation),
           canvasItem: {
             node: {
               name: mapObject.name,
@@ -353,7 +356,10 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   generatePolygon(mapObject, groups, buildMode, owner) {
-    const position = new Vector2(mapObject.x, mapObject.y);
+    const position = new Vector2({
+      x: mapObject.x,
+      y: mapObject.y,
+    });
     const size = {
       width: mapObject.width,
       height: mapObject.height,
@@ -362,12 +368,12 @@ class GodotTilemapExporter {
     const center = getAreaCenter(position, size, mapObject.rotation);
 
     const area2DNode = new Area2D({
-      position: center,
-      rotation: getRotation(mapObject.rotation),
       collision_layer: mapObject.property("godot:collision_layer"),
       collision_mask: mapObject.property("godot:collision_mask"),
       collisionObject2D: {
         node2D: {
+          position: center,
+          rotation: getRotation(mapObject.rotation),
           canvasItem: {
             node: {
               name: mapObject.name,
@@ -404,7 +410,10 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   generateEllipse(mapObject, groups, owner) {
-    const position = new Vector2(mapObject.x, mapObject.y);
+    const position = new Vector2({
+      x: mapObject.x,
+      y: mapObject.y,
+    });
     const size = {
       width: mapObject.width,
       height: mapObject.height,
@@ -414,12 +423,12 @@ class GodotTilemapExporter {
     const center = getAreaCenter(position, size, mapObject.rotation);
 
     const area2DNode = new Area2D({
-      position: center,
-      rotation: getRotation(mapObject.rotation),
       collision_layer: mapObject.property("godot:collision_layer"),
       collision_mask: mapObject.property("godot:collision_mask"),
       collisionObject2D: {
         node2D: {
+          position: center,
+          rotation: getRotation(mapObject.rotation),
           canvasItem: {
             node: {
               name: mapObject.name,
@@ -461,7 +470,10 @@ class GodotTilemapExporter {
    */
   generatePoint(mapObject, groups, owner) {
     const name = mapObject.name || "Point";
-    const position = new Vector2(roundToDecimals(mapObject.x), roundToDecimals(mapObject.y));
+    const position = new Vector2({
+      x: roundToDecimals(mapObject.x),
+      y: roundToDecimals(mapObject.y),
+    });
 
     const node = new Node2D({
       position: position,
