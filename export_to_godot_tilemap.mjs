@@ -12,7 +12,6 @@ import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { Scene } from './models/scene.mjs';
 import { Sprite2D } from './models/sprite_2d.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
-import { Resource } from './models/resource.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
 import { Vector2 } from './models/vector2.mjs';
 
@@ -46,7 +45,6 @@ class GodotTilemapExporter {
     this.map = map;
     this.fileName = fileName;
     this.externalResourceID = 0;
-    this.subResourceID = 0;
 
     const name = this.map.property("godot:name") || getFileName(this.fileName);
     const rootNode = new GDNode({
@@ -124,7 +122,7 @@ class GodotTilemapExporter {
     const groups = splitCommaSeparatedString(layer.property("godot:groups"));
 
     if (layer.isTileLayer) {
-      // this.handleTileLayer(layer, mode, groups, owner);
+      this.handleTileLayer(layer, mode, groups, owner);
       return;
     }
     if (layer.isObjectLayer) {
@@ -747,25 +745,6 @@ class GodotTilemapExporter {
 
     return externalResource;
   }
-
-  //! /**
-  //!  * Registers a new resource.
-  //!  *
-  //!  * @param {string} type - The type of subresource.
-  //!  * @param {object} contentProperties - Key-value map of properties.
-  //!  * @returns {Resource} - The created resource.
-  //!  */
-  //! registerResource(type, properties) {
-  //!   const subResource = new Resource({
-  //!     type,
-  //!     id: this.subResourceID,
-  //!     properties,
-  //!   });
-
-  //!   this.subResourceID += 1;
-
-  //!   return subResource;
-  //! }
 
   /**
    * Template for a TileMapLayer node

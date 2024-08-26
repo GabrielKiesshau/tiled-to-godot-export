@@ -31,6 +31,9 @@ export class Scene {
     this.nodeList = nodeList;
     this.nodeListString = nodeListString;
     this.rootNode = rootNode;
+
+    this.externalResourceID = 0;
+    Resource.currentID = 0;
   }
 
   /**

@@ -3,14 +3,10 @@ import { stringifyKeyValue } from '../utils.mjs';
 /**
  * Represents a resource.
  * @class Resource
- * @property {number} id - 
- * @property {object} properties - 
  */
 export class Resource {
-  constructor({
-    id = 0,
-  } = {}) {
-    this.id = id;
+  constructor({ } = {}) {
+    this.id = Resource.currentID++;
     this.type = null;
   }
 
