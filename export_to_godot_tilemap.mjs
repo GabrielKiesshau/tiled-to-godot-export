@@ -8,6 +8,7 @@ import { ExternalResourceType } from './enums/external_resource_type.mjs';
 import { MapObjectShape } from './enums/map_object_shape.mjs';
 import { Node as GDNode } from './models/node.mjs';
 import { Node2D } from './models/node_2d.mjs';
+import { PackedVector2Array } from './models/packed_vector2_array.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { Scene } from './models/scene.mjs';
 import { Sprite2D } from './models/sprite_2d.mjs';
@@ -384,11 +385,15 @@ class GodotTilemapExporter {
     });
     this.scene.nodeList.push(area2DNode);
 
-    let polygonPoints = mapObject.polygon.map(point => `${point.x}, ${point.y}`).join(', ');
+    const polygonPointsArray = mapObject.polygon.map(point => new Vector2({ x: point.x, y: point.y }));
+
+    const polygon = new PackedVector2Array({
+      array: polygonPointsArray,
+    });
 
     const collisionPolygon2DNode = new CollisionPolygon2D({
-      build_mode: validateNumber(buildMode),
-      polygon: `PackedVector2Array(${polygonPoints})`,
+      build_mode: buildMode,
+      polygon: polygon,
       node2D: {
         canvasItem: {
           node: {
