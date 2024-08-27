@@ -15,6 +15,7 @@ import { Sprite2D } from './models/sprite_2d.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
 import { Vector2 } from './models/vector2.mjs';
+import { PackedByteArray } from './models/packed_byte_array.mjs';
 
 // /**
 //   * @class LayerData
@@ -109,7 +110,7 @@ class GodotTilemapExporter {
     const mode = isIsometric ? 1 : undefined;
     
     for (const layer of this.map.layers) {
-      this.handleLayer(layer, mode, this.scene.rootNode);
+      this.handleLayer(layer, mode, null);
     }
   }
 
@@ -138,10 +139,11 @@ class GodotTilemapExporter {
   /**
    * Handle exporting a tile layer.
    * @param {TileLayer} tileLayer - The target layer.
+   * @param {number} mode - The layer mode.
    * @param {string[]} groups - The groups this layer is part of.
    * @param {GDNode} owner - The owner node.
    */
-  handleTileLayer(tileLayer, groups, owner) {
+  handleTileLayer(tileLayer, mode, groups, owner) {
     const layerDataList = this.getLayerDataList(tileLayer);
 
     for (const layerData of layerDataList) {
@@ -151,11 +153,19 @@ class GodotTilemapExporter {
 
       //! const tilemapLayerNode = this.getTileMapLayerTemplate(layerData, tileLayer, parentLayerPath, groups);
       //! this.scene.nodeListString.push(tilemapLayerNode);
-
-      const node = new GDNode({
-        name: tileLayer.name,
-        owner,
-        groups,
+      const node = new TileMapLayer({
+        tileMapData: new PackedByteArray({
+          array: layerData.packedByteArray,
+        }),
+        node2D: {
+          canvasItem: {
+            node: {
+              name: tileLayer.name,
+              owner,
+              groups,
+            },
+          },
+        },
       });
       this.scene.nodeList.push(node);
     }
@@ -392,7 +402,7 @@ class GodotTilemapExporter {
     });
 
     const collisionPolygon2DNode = new CollisionPolygon2D({
-      build_mode: buildMode,
+      buildMode: buildMode,
       polygon: polygon,
       node2D: {
         canvasItem: {
@@ -607,20 +617,18 @@ class GodotTilemapExporter {
    * Creates all the tiles coordinates for a layer.
    * Each element in the retuned array corresponds to the tile coordinates for each of
    * the tilesets used in the layer.
-   * @param {TileLayer} layer the target layer
-   * @returns {LayerData[]} the data about the tilesets used in the target layer
+   * @param {TileLayer} layer - The target layer
+   * @returns {LayerData[]} - The data about the tilesets used in the target layer
    */
   getLayerDataList(layer) {
-    if (layer.name != "Tile Layer 9")
-      return [];
-    let layerBounds = layer.region().boundingRect;
+    const layerBounds = layer.region().boundingRect;
 
     const layerDataList = [];
-    
+
     for (let y = layerBounds.top; y <= layerBounds.bottom; ++y) {
       for (let x = layerBounds.left; x <= layerBounds.right; ++x) {
         let cell = layer.cellAt(x, y);
-        
+
         if (cell.empty) continue;
 
         const tile = layer.tileAt(x, y);
@@ -639,6 +647,7 @@ class GodotTilemapExporter {
             tilesetID: null,
             tilesetColumns: getTilesetColumns(tile.tileset),
             packedByteArrayString: `${var1}, ${var2}, `,
+            packedByteArray: [var1, var2],
             empty: true,
             parent: layerDataList.length === 0 ? "." : layer.name,
           };
@@ -656,6 +665,18 @@ class GodotTilemapExporter {
                                            `${sourceID}, ${0}, ` +
                                            `${tileAtlasX}, ${0}, ${tileAtlasY}, ${0}, ` +
                                            `${alternativeTileID}, ${tileFlipFlag}, `;
+        layerData.packedByteArray.push(x);
+        layerData.packedByteArray.push(0);
+        layerData.packedByteArray.push(y);
+        layerData.packedByteArray.push(0);
+        layerData.packedByteArray.push(sourceID);
+        layerData.packedByteArray.push(0);
+        layerData.packedByteArray.push(tileAtlasX);
+        layerData.packedByteArray.push(0);
+        layerData.packedByteArray.push(tileAtlasY);
+        layerData.packedByteArray.push(0);
+        layerData.packedByteArray.push(alternativeTileID);
+        layerData.packedByteArray.push(tileFlipFlag);
       }
     }
 
