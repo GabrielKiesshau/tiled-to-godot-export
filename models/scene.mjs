@@ -49,11 +49,11 @@ export class Scene {
     const subResourceListString = this.serializeSubResourceList();
     const nodeListString = this.serializeNodeList();
 
-    let sceneString = `[gd_scene load_steps=${loadSteps} format=4]\n`
+    let sceneString = `[gd_scene load_steps=${loadSteps} format=3]\n`
     sceneString += `${externalResourceListString}`;
     sceneString += `${subResourceListString}`;
     sceneString += `\n`;
-    sceneString += `[node name="${this.rootNode.name}" type="${type}" parent="."]\n`;
+    sceneString += `[node name="${this.rootNode.name}" type="${type}"]\n`;
     sceneString += `${nodeListString}`;
 
     return sceneString;
