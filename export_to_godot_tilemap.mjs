@@ -17,19 +17,6 @@ import { TileMapLayer } from './models/tile_map_layer.mjs';
 import { Vector2 } from './models/vector2.mjs';
 import { PackedByteArray } from './models/packed_byte_array.mjs';
 
-// /**
-//   * @class LayerData
-//   * @property {string} name
-//   * @property {Tileset} tileset
-//   * @property {number?} tilesetID
-//   * @property {number} tilesetColumns
-//   * @property {Layer} layer
-//   * @property {boolean} isEmpty
-//   * @property {string} packedByteArrayString
-//   * @property {string} parent
-//   */
-// class LayerData { }
-
 /**
  * @class GodotTilemapExporter
  * @property {TileMap} map - 
@@ -151,8 +138,6 @@ class GodotTilemapExporter {
 
       this.mapLayerToTileset(layerData);
 
-      //! const tilemapLayerNode = this.getTileMapLayerTemplate(layerData, tileLayer, parentLayerPath, groups);
-      //! this.scene.nodeListString.push(tilemapLayerNode);
       const node = new TileMapLayer({
         tileMapData: new PackedByteArray({
           array: layerData.packedByteArray,
@@ -638,16 +623,12 @@ class GodotTilemapExporter {
         const isTilesetRegistered = layerData !== undefined;
 
         if (!isTilesetRegistered) {
-          const var1 = 0;
-          const var2 = 0;
-
           layerData = {
             name: layer.name || `Layer ${layer.id}`,
             tileset: tile.tileset,
             tilesetID: null,
             tilesetColumns: getTilesetColumns(tile.tileset),
-            packedByteArrayString: `${var1}, ${var2}, `,
-            packedByteArray: [var1, var2],
+            packedByteArray: [0, 0],
             empty: true,
             parent: layerDataList.length === 0 ? "." : layer.name,
           };
@@ -661,32 +642,12 @@ class GodotTilemapExporter {
         const alternativeTileID = 0;
         const tileFlipFlag = 0;
 
-        layerData.packedByteArrayString += `${x}, ${0}, ${y}, ${0}, ` +
-                                           `${sourceID}, ${0}, ` +
-                                           `${tileAtlasX}, ${0}, ${tileAtlasY}, ${0}, ` +
-                                           `${alternativeTileID}, ${tileFlipFlag}, `;
-        layerData.packedByteArray.push(x);
-        layerData.packedByteArray.push(0);
-        layerData.packedByteArray.push(y);
-        layerData.packedByteArray.push(0);
-        layerData.packedByteArray.push(sourceID);
-        layerData.packedByteArray.push(0);
-        layerData.packedByteArray.push(tileAtlasX);
-        layerData.packedByteArray.push(0);
-        layerData.packedByteArray.push(tileAtlasY);
-        layerData.packedByteArray.push(0);
-        layerData.packedByteArray.push(alternativeTileID);
-        layerData.packedByteArray.push(tileFlipFlag);
+        layerData.packedByteArray.push(x, 0, y, 0, sourceID, 0, tileAtlasX, 0, tileAtlasY, 0, alternativeTileID, tileFlipFlag);
       }
     }
-
-    // Remove trailing commas and blank
-    layerDataList.forEach(layerData => {
-      layerData.packedByteArrayString = layerData.packedByteArrayString.replace(/,\s*$/, "");
-    });
     
     for (const layerData of layerDataList) {
-      if (layerData.tileset === null || layerData.packedByteArrayString === "") {
+      if (layerData.tileset === null || layerData.packedByteArray.length == 2) {
         tiled.log(`Error: The layer ${layer.name} is empty and has been skipped!`);
         continue;
       }
@@ -770,34 +731,6 @@ class GodotTilemapExporter {
     this.externalResourceID += 1;
 
     return externalResource;
-  }
-
-  /**
-   * Template for a TileMapLayer node
-   * @param {LayerData} layerData
-   * @param {Layer} layer
-   * @param {string} parent
-   * @param {Array<string>} groups - The groups this Node belongs to.
-   * @returns {string}
-   */
-  getTileMapLayerTemplate(layerData, layer, parent = ".", groups) {
-    return convertNodeToString(
-      {
-        name: layerData.name,
-        type: "TileMapLayer",
-        // parent: parent,
-        // groups: groups,
-      }, 
-      this.merge_properties(
-        layer.properties(),
-        {
-          use_parent_material: true,
-          tile_map_data: `PackedByteArray(${layerData.packedByteArrayString})`,
-          tile_set: `ExtResource("${layerData.tilesetID}")`,
-        }
-      ),
-      this.meta_properties(layer.properties()),
-    );
   }
 
   mapLayerToTileset(layerData) {
