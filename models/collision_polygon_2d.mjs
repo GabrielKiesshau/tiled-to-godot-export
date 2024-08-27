@@ -16,7 +16,7 @@ export class CollisionPolygon2D extends Node2D {
    * @param {Node2D} [props.node2D]
    */
   constructor({
-    buildMode = "",
+    buildMode = PolygonBuildMode.Polygon,
     polygon = "",
     node2D = {
       canvasItem: {
@@ -34,7 +34,7 @@ export class CollisionPolygon2D extends Node2D {
 
   getProperties() {
     return {
-      buildMode: checkDefault(this.buildMode, PolygonBuildMode.Polygon),
+      build_mode: checkDefault(this.buildMode, PolygonBuildMode.Polygon),
       polygon: checkDefault(this.polygon, new PackedVector2Array()),
     };
   }
