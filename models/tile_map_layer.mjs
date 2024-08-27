@@ -1,3 +1,4 @@
+import { checkDefault } from '../utils.mjs';
 import { DebugVisibilityMode } from '../enums/debug_visibility_mode.mjs';
 import { Node2D } from './node_2d.mjs';
 import { PackedByteArray } from './packed_byte_array.mjs';
@@ -33,7 +34,9 @@ export class TileMapLayer extends Node2D {
     xDrawOrderReversed = false,
     ySortOrigin = 0,
     node2D = {
-      
+      canvasItem: {
+        name: "TileMapLayer",
+      },
     },
   } = {}) {
     super(node2D);
@@ -49,5 +52,21 @@ export class TileMapLayer extends Node2D {
     this.xDrawOrderReversed = xDrawOrderReversed;
     this.ySortOrigin = ySortOrigin;
     this.type = "TileMapLayer";
+  }
+
+  getProperties() {
+    return {
+      collision_enabled: checkDefault(this.collisionEnabled, true),
+      collision_visibility_mode: checkDefault(this.collisionVisibilityMode, DebugVisibilityMode.Default),
+      enabled: checkDefault(this.enabled, true),
+      navigation_enabled: checkDefault(this.navigationEnabled, true),
+      navigation_visibility_mode: checkDefault(this.navigationVisibilityMode, DebugVisibilityMode.Default),
+      rendering_quadrant_size: checkDefault(this.renderingQuadrantSize, 16),
+      tile_set: `ExtResource("0")`,
+      tile_map_data: checkDefault(this.tileMapData, new PackedByteArray()),
+      use_kinematic_bodies: checkDefault(this.useKinematicBodies, false),
+      x_draw_order_reversed: checkDefault(this.xDrawOrderReversed, false),
+      y_sort_origin: checkDefault(this.ySortOrigin, 0),
+    };
   }
 }
