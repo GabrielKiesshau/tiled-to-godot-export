@@ -117,52 +117,29 @@ class GodotTilemapExporter {
     // const mode = isIsometric ? 1 : undefined;
 
     const layerBounds = tileLayer.region().boundingRect;
-
     const tilemapDataMap = new Map();
 
+    // Iterate over each cell in the layer's bounding rectangle
     for (let y = layerBounds.top; y <= layerBounds.bottom; ++y) {
       for (let x = layerBounds.left; x <= layerBounds.right; ++x) {
         const cell = tileLayer.cellAt(x, y);
-
         if (cell.empty) continue;
 
         const tile = tileLayer.tileAt(x, y);
+        const tilesetName = tile.tileset.name;
 
-        let tilemapData = tilemapDataMap.get(tile.tileset.name);
+        // Initialize tilemapData if not already done
+        let tilemapData = tilemapDataMap.get(tilesetName) || [0, 0];
+        tilemapDataMap.set(tilesetName, tilemapData);
 
-        if (tilemapData == undefined) {
-          tilemapDataMap.set(tile.tileset.name, [0, 0]);
-          tilemapData = tilemapDataMap.get(tile.tileset.name);
-        }
-
-        const sourceID = 0;
-        const tileAtlasX = tile.imageRect.x / tile.tileset.tileWidth;
-        const tileAtlasY = tile.imageRect.y / tile.tileset.tileHeight;
-        const alternativeTileID = 0;
-        const tileFlipFlag = 0;
-
-        tilemapData.push(x, 0, y, 0, sourceID, 0, tileAtlasX, 0, tileAtlasY, 0, alternativeTileID, tileFlipFlag);
-        tilemapDataMap.set(tile.tileset.name, tilemapData);
+        // Push tile data to the tilemapData array
+        this.addTileData(tilemapData, tile, x, y);
       }
     }
 
+    // Create TileMapLayer nodes for each tileset and add them to the scene
     for (const [tilesetName, tilemapData] of tilemapDataMap) {
-      const node = new TileMapLayer({
-        tileset: this.getTilesetByName(tilesetName),
-        tileMapData: new PackedByteArray({
-          array: tilemapData,
-        }),
-        node2D: {
-          canvasItem: {
-            node: {
-              name: tileLayer.name,
-              owner,
-              groups,
-            },
-          },
-        },
-      });
-      this.scene.nodeList.push(node);
+      this.createTileMapLayerNode(tileLayer.name, tilesetName, tilemapData, groups, owner);
     }
   }
 
@@ -501,6 +478,54 @@ class GodotTilemapExporter {
   }
 
   /**
+   * Add tile data to the tilemapData array.
+   * @param {Array<number>} tilemapData - The array to add data to.
+   * @param {Tile} tile - The tile to extract data from.
+   * @param {number} x - The x-coordinate of the tile.
+   * @param {number} y - The y-coordinate of the tile.
+   */
+  addTileData(tilemapData, tile, x, y) {
+    const sourceID = 0;
+    const tileAtlasX = tile.imageRect.x / tile.tileset.tileWidth;
+    const tileAtlasY = tile.imageRect.y / tile.tileset.tileHeight;
+    const alternativeTileID = 0;
+    const tileFlipFlag = 0;
+
+    tilemapData.push(
+      x, 0, y, 0, sourceID, 0, 
+      tileAtlasX, 0, tileAtlasY, 0, 
+      alternativeTileID, tileFlipFlag
+    );
+  }
+
+  /**
+   * Create a TileMapLayer node and add it to the scene.
+   * @param {string} layerName - The name of the tile layer.
+   * @param {string} tilesetName - The name of the tileset.
+   * @param {Array<number>} tilemapData - The tilemap data.
+   * @param {string[]} groups - The groups this layer is part of.
+   * @param {GDNode} owner - The owner node.
+   */
+  createTileMapLayerNode(layerName, tilesetName, tilemapData, groups, owner) {
+    const node = new TileMapLayer({
+      tileset: this.getTilesetByName(tilesetName),
+      tileMapData: new PackedByteArray({
+        array: tilemapData,
+      }),
+      node2D: {
+        canvasItem: {
+          node: {
+            name: layerName,
+            owner,
+            groups,
+          },
+        },
+      },
+    });
+    this.scene.nodeList.push(node);
+  }
+
+  /**
    * Prepare properties for a Godot node.
    * @param {TiledObjectProperties} object_props - Properties from the layer.
    * @param {TiledObjectProperties} set_props - The base properties for the node.
@@ -585,11 +610,8 @@ class GodotTilemapExporter {
    * @returns {GDTileset|undefined} - The tileset if found, undefined otherwise.
    */
   getTilesetByName(tilesetName) {
-    tiled.log(`TilesetName: ${tilesetName}`);
     for (const resource of this.scene.externalResourceList) {
-      tiled.log(`ResourceName: ${resource.name}`);
       if (resource instanceof GDTileset && resource.name === tilesetName) {
-        tiled.log(`ID: ${resource.id}`);
         return resource;
       }
     }
