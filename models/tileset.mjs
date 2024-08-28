@@ -1,6 +1,7 @@
 import { TileLayout } from '../enums/tile_layout.mjs';
 import { TileOffsetAxis } from '../enums/tile_offset_axis.mjs';
 import { TileShape } from '../enums/tile_shape.mjs';
+import { ExternalResource } from './external_resource.mjs';
 import { Vector2i } from './vector2.mjs';
 
 /**
@@ -12,18 +13,24 @@ import { Vector2i } from './vector2.mjs';
  * @property {Vector2i} tileSize - 
  * @property {boolean} uvClipping - 
 */
-export class Tileset {
+export class Tileset extends ExternalResource {
   constructor({
     tileLayout = TileLayout.Stacked,
     tileOffsetAxis = TileOffsetAxis.Horizontal,
     tileShape = TileShape.Square,
     tileSize = new Vector2i({x: 16, y: 16}),
     uvClipping = false,
+    externalResource = {
+      name: "TileSet",
+      path: "",
+    },
   } = {}) {
+    super(externalResource);
     this.tileLayout = tileLayout;
     this.tileOffsetAxis = tileOffsetAxis;
     this.tileShape = tileShape;
     this.tileSize = tileSize;
     this.uvClipping = uvClipping;
+    this.type = "TileSet";
   }
 }

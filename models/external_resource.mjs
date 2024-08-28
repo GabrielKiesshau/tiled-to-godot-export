@@ -1,34 +1,42 @@
-import { ExternalResourceType } from '../enums/external_resource_type.mjs';
+import { resolvePath, getUID } from '../utils.mjs';
 
 /**
  * Represents an external resource in a scene.
  * @class ExternalResource
- * @property {ExternalResourceType} type - 
- * @property {string} path - 
+ * 
  * @property {number} id - 
- * @property {string} uid - 
+ * @property {string} name - 
+ * @property {string} type - 
+ * @property {string} path - 
  */
 export class ExternalResource {
   constructor({
-    type = ExternalResourceType.Resource,
+    name = "ExternalResource",
     path = "",
-    id = 0,
-    uid = "",
   } = {}) {
-    this.type = type;
+    this.id = ExternalResource.currentID++;
+    this.name = name;
+    this.type = "";
     this.path = path;
-    this.id = id;
-    this.uid = uid;
   }
 
   /**
    * Serializes the object to fit Godot structure.
-   *
    * @returns {string} - Serialized external resource in Godot string format.
    */
   serializeToGodot() {
-    const uid = this.uid ? `uid="${this.uid}" ` : "";
+    const absolutePath = this.getAbsolutePath();
 
-    return `[ext_resource type="${this.type}" ${uid}path="res://${this.path}" id="${this.id}"]\n`;
+    // Determine UID if the file exists:
+    const uid = File.exists(absolutePath) ? getUID(absolutePath) : '';
+    const uidProperty = uid ? ` uid="${uid}"` : '';
+
+    return `[ext_resource type="${this.type}"${uidProperty} path="res://${this.path}" id="${this.id}"]\n`;
+  }
+
+  getAbsolutePath() {
+    // Ensure filePath is properly handled, removing leading slashes:
+    const sanitizedFilePath = this.path.replace(/^\/+/, '');
+    return resolvePath(sanitizedFilePath);
   }
 }
