@@ -64,6 +64,10 @@ export class Node {
       const keyValue = stringifyKeyValue(key, value, false, false, true);
       nodeString += `\n${keyValue}`;
     }
+
+    if (this.script) {
+      nodeString += `\nscript = ExtResource("${this.script.id}")`;
+    }
   
     return `${nodeString}\n`;
   }

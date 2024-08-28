@@ -295,6 +295,13 @@ class GodotTilemapExporter {
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
+    const scriptProperty = mapObject.property("godot:script");
+    let script = null;
+
+    if (scriptProperty) {
+      script = this.registerScript(scriptProperty);
+    }
+
     const area2DNode = new Area2D({
       collisionObject2D: {
         collisionLayer: mapObject.property("godot:collision_layer"),
@@ -307,6 +314,7 @@ class GodotTilemapExporter {
               name: mapObject.name,
               owner,
               groups,
+              script: script,
             },
           },
         },
@@ -530,6 +538,31 @@ class GodotTilemapExporter {
       },
     });
     this.scene.nodeList.push(node);
+  }
+
+  /**
+   * Register a script in the external resource list and returns it.
+   * If the script is already registered, returns it instead.
+   * 
+   * @param {string} path - The filepath of the script.
+   * @returns {Script} - The registered script.
+   */
+  registerScript(path) {
+    for (const resource of this.scene.externalResourceList) {
+      if (resource instanceof Script && resource.path == path) {
+        return resource;
+      }
+    }
+
+    const scriptResource = new Script({
+      externalResource: {
+        path,
+      },
+    });
+
+    this.scene.externalResourceList.push(scriptResource);
+
+    return scriptResource;
   }
 
   /**
