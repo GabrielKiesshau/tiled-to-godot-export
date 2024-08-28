@@ -34,6 +34,7 @@ export class Scene {
 
     this.externalResourceID = 0;
     Resource.currentID = 0;
+    ExternalResource.currentID = 0;
   }
 
   /**
