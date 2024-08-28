@@ -1,5 +1,5 @@
 /**
- * @enum {ExternalResourceType}
+ * @enum {MapObjectShape}
  */
 export const MapObjectShape = Object.freeze({
   Rectangle: 0,
