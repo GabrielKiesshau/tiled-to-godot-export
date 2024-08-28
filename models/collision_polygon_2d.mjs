@@ -33,9 +33,11 @@ export class CollisionPolygon2D extends Node2D {
   }
 
   getProperties() {
-    return {
-      build_mode: checkDefault(this.buildMode, PolygonBuildMode.Polygon),
-      polygon: checkDefault(this.polygon, new PackedVector2Array()),
-    };
+    var parentProperties = super.getProperties();
+
+    parentProperties.build_mode = checkDefault(this.buildMode, PolygonBuildMode.Polygon);
+    parentProperties.polygon = checkDefault(this.polygon, new PackedVector2Array());
+
+    return parentProperties;
   }
 }

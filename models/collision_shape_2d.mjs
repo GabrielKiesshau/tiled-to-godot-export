@@ -28,8 +28,10 @@ export class CollisionShape2D extends Node2D {
   }
 
   getProperties() {
-    return {
-      shape: `SubResource("${this.shape.id}")`,
-    };
+    var parentProperties = super.getProperties();
+
+    parentProperties.shape = `SubResource("${this.shape.id}")`;
+
+    return parentProperties;
   }
 }

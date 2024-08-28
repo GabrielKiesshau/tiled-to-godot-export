@@ -294,9 +294,9 @@ class GodotTilemapExporter {
     const center = getAreaCenter(position, size, mapObject.rotation);
 
     const area2DNode = new Area2D({
-      collision_layer: mapObject.property("godot:collision_layer"),
-      collision_mask: mapObject.property("godot:collision_mask"),
       collisionObject2D: {
+        collisionLayer: mapObject.property("godot:collision_layer"),
+        collisionMask: mapObject.property("godot:collision_mask"),
         node2D: {
           position: center,
           rotation: getRotation(mapObject.rotation),
@@ -318,13 +318,15 @@ class GodotTilemapExporter {
 
     this.scene.subResourceList.push(rectangleShape);
 
+    const shapeGroupList = splitCommaSeparatedString(mapObject.property("godot:shape_groups"));
+
     const collisionShape2DNode = new CollisionShape2D({
       shape: rectangleShape,
       node2D: {
         canvasItem: {
           node: {
             owner: area2DNode,
-            //! groups,
+            groups: shapeGroupList,
           },
         },
       },
@@ -352,9 +354,9 @@ class GodotTilemapExporter {
     const center = getAreaCenter(position, size, mapObject.rotation);
 
     const area2DNode = new Area2D({
-      collision_layer: mapObject.property("godot:collision_layer"),
-      collision_mask: mapObject.property("godot:collision_mask"),
       collisionObject2D: {
+        collisionLayer: mapObject.property("godot:collision_layer"),
+        collisionMask: mapObject.property("godot:collision_mask"),
         node2D: {
           position: center,
           rotation: getRotation(mapObject.rotation),
@@ -376,6 +378,8 @@ class GodotTilemapExporter {
       array: polygonPointsArray,
     });
 
+    const shapeGroupList = splitCommaSeparatedString(mapObject.property("godot:shape_groups"));
+
     const collisionPolygon2DNode = new CollisionPolygon2D({
       buildMode: buildMode,
       polygon: polygon,
@@ -383,7 +387,7 @@ class GodotTilemapExporter {
         canvasItem: {
           node: {
             owner: area2DNode,
-            //! groups,
+            groups: shapeGroupList,
           },
         },
       },
@@ -411,9 +415,9 @@ class GodotTilemapExporter {
     const center = getAreaCenter(position, size, mapObject.rotation);
 
     const area2DNode = new Area2D({
-      collision_layer: mapObject.property("godot:collision_layer"),
-      collision_mask: mapObject.property("godot:collision_mask"),
       collisionObject2D: {
+        collisionLayer: mapObject.property("godot:collision_layer"),
+        collisionMask: mapObject.property("godot:collision_mask"),
         node2D: {
           position: center,
           rotation: getRotation(mapObject.rotation),
@@ -435,14 +439,15 @@ class GodotTilemapExporter {
 
     this.scene.subResourceList.push(circleShape);
 
+    const shapeGroupList = splitCommaSeparatedString(mapObject.property("godot:shape_groups"));
+
     const collisionShape2DNode = new CollisionShape2D({
       shape: circleShape,
       node2D: {
-        position: center,
         canvasItem: {
           node: {
             owner: area2DNode,
-            //! groups,
+            groups: shapeGroupList,
           },
         },
       },

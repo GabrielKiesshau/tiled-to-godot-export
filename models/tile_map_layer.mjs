@@ -54,18 +54,20 @@ export class TileMapLayer extends Node2D {
   }
 
   getProperties() {
-    return {
-      collision_enabled: checkDefault(this.collisionEnabled, true),
-      collision_visibility_mode: checkDefault(this.collisionVisibilityMode, DebugVisibilityMode.Default),
-      enabled: checkDefault(this.enabled, true),
-      navigation_enabled: checkDefault(this.navigationEnabled, true),
-      navigation_visibility_mode: checkDefault(this.navigationVisibilityMode, DebugVisibilityMode.Default),
-      rendering_quadrant_size: checkDefault(this.renderingQuadrantSize, 16),
-      tile_set: `ExtResource("${this.tileset.id}")`,
-      tile_map_data: checkDefault(this.tileMapData, new PackedByteArray()),
-      use_kinematic_bodies: checkDefault(this.useKinematicBodies, false),
-      x_draw_order_reversed: checkDefault(this.xDrawOrderReversed, false),
-      y_sort_origin: checkDefault(this.ySortOrigin, 0),
-    };
+    var parentProperties = super.getProperties();
+
+    parentProperties.collision_enabled = checkDefault(this.collisionEnabled, true);
+    parentProperties.collision_visibility_mode = checkDefault(this.collisionVisibilityMode, DebugVisibilityMode.Default);
+    parentProperties.enabled = checkDefault(this.enabled, true);
+    parentProperties.navigation_enabled = checkDefault(this.navigationEnabled, true);
+    parentProperties.navigation_visibility_mode = checkDefault(this.navigationVisibilityMode, DebugVisibilityMode.Default);
+    parentProperties.rendering_quadrant_size = checkDefault(this.renderingQuadrantSize, 16);
+    parentProperties.tile_set = `ExtResource("${this.tileset.id}")`;
+    parentProperties.tile_map_data = checkDefault(this.tileMapData, new PackedByteArray());
+    parentProperties.use_kinematic_bodies = checkDefault(this.useKinematicBodies, false);
+    parentProperties.x_draw_order_reversed = checkDefault(this.xDrawOrderReversed, false);
+    parentProperties.y_sort_origin = checkDefault(this.ySortOrigin, 0);
+
+    return parentProperties;
   }
 }
