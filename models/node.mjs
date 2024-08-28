@@ -30,8 +30,13 @@ export class Node {
     return { };
   }
 
-  formatStringList(strings) {
-    return `[${strings.map(str => `"${str}"`).join(', ')}]`;
+  /**
+   * Formats a list of string into a string with its values separated by commas.
+   *
+   * @returns {stringList} - List of strings to format.
+   */
+  formatStringList(stringList) {
+    return `[${stringList.map(str => `"${str}"`).join(', ')}]`;
   }
 
   /**
