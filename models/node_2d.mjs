@@ -40,11 +40,13 @@ export class Node2D extends CanvasItem {
   }
 
   getProperties() {
-    return {
-      position: checkDefault(this.position, new Vector2({x: 0, y: 0})),
-      rotation: checkDefault(this.rotation, 0),
-      scale: checkDefault(this.scale, new Vector2({x: 1, y: 1})),
-      skew: checkDefault(this.skew, 0),
-    };
+    var parentProperties = super.getProperties();
+
+    parentProperties.position = checkDefault(this.position, new Vector2({x: 0, y: 0}));
+    parentProperties.rotation = checkDefault(this.rotation, 0);
+    parentProperties.scale = checkDefault(this.scale, new Vector2({x: 1, y: 1}));
+    parentProperties.skew = checkDefault(this.skew, 0);
+
+    return parentProperties;
   }
 }

@@ -4,9 +4,10 @@ import { stringifyKeyValue } from '../utils.mjs';
  * Represents a generic node in a scene graph.
  * @class Node
  * @property {string} name - The name of the node.
- * @property {Node} owner - The owner of this node.
- * @property {string} type - The owner of this node.
- * @property {string[]} groups - The owner of this node.
+ * @property {Node} owner - The parent of this node.
+ * @property {string} type - The type of this node.
+ * @property {string[]} groups - The groups this node is part of.
+ * @property {Script} script - The script of this node.
  */
 export class Node {
   /**
@@ -14,20 +15,25 @@ export class Node {
    * @param {string} [props.name]
    * @param {Node} [props.owner]
    * @param {string[]} [props.groups]
+   * @param {Script} [props.script]
    */
   constructor({
     name = "Node",
     owner = null,
     groups = [],
+    script = null,
   } = {}) {
     this.name = name || "Node";
     this.owner = owner;
     this.groups = groups;
     this.type = "Node";
+    this.script = script;
   }
 
   getProperties() {
-    return { };
+    return {
+      script: this.script ? `ExtResource("${this.script.id}")` : null,
+    };
   }
 
   /**
