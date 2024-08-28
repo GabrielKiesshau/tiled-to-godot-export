@@ -39,6 +39,7 @@ export class Scene {
   /**
    * Serializes the object to fit Godot structure.
    *
+   * @param {TileMap} map - The tiled map to export.
    * @returns {string} - Serialized scene in Godot string format.
    */
   serializeToGodot(map) {
