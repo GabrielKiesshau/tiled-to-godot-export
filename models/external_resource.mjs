@@ -1,4 +1,4 @@
-import { resolvePath, getUID } from '../utils.mjs';
+import { getUID, resolvePath } from '../utils.mjs';
 
 /**
  * Represents an external resource in a scene.

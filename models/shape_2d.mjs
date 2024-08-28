@@ -8,7 +8,7 @@ import { Resource } from './resource.mjs';
 export class Shape2D extends Resource {
   /**
    * @param {Object} [props]
-   * @param {Node2D} [props.node2D]
+   * @param {Resource} [props.resource]
    */
   constructor({ } = {}) {
     super({});
