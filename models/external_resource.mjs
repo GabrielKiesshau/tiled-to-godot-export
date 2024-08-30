@@ -16,7 +16,7 @@ export class ExternalResource {
   } = {}) {
     this.id = ExternalResource.currentID++;
     this.name = name;
-    this.type = "";
+    this.type = "Resource";
     this.path = path;
   }
 
