@@ -5,6 +5,7 @@ import { Node as GDNode } from './node.mjs';
 /**
  * Represents a Godot Scene.
  * @class PackedScene
+ * @extends GDObject
  * @property {GDNode[]} nodeList - List of nodes.
  */
 export class PackedScene extends GDObject {
