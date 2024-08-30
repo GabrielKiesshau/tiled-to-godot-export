@@ -17,4 +17,36 @@ export class Resource extends GDObject {
     this.type = "Resource";
     this.path = path;
   }
+
+  /**
+   * Serializes this object to fit Godot structure as an external resource.
+   * @returns {string} - Serialized external resource in Godot string format.
+   */
+  serializeAsExternalResource() {
+    const absolutePath = this.getAbsolutePath();
+
+    // Determine UID if the file exists:
+    const uid = File.exists(absolutePath) ? getUID(absolutePath) : '';
+    const uidProperty = uid ? ` uid="${uid}"` : '';
+
+    return `[ext_resource type="${this.type}"${uidProperty} path="res://${this.path}" id="${this.id}"]\n`;
+  }
+
+  /**
+   * Serializes this object to fit Godot structure as a subresource.
+   *
+   * @returns {string} - Serialized resource in Godot string format.
+   */
+  serializeAsSubResource() {
+    let subResourceString = `[sub_resource type="${this.type}" id="${this.id}"]`;
+
+    for (let [key, value] of Object.entries(this.getProperties())) {
+      if (value === undefined || value === null) continue;
+
+      const keyValue = stringifyKeyValue(key, value, false, false, true);
+      subResourceString += `\n${keyValue}`;
+    }
+  
+    return `${subResourceString}\n`;
+  }
 }
