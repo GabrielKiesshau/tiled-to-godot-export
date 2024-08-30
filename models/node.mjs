@@ -67,6 +67,13 @@ export class Node {
 
     if (this.script) {
       nodeString += `\nscript = ExtResource("${this.script.id}")`;
+      
+      for (let [key, value] of Object.entries(this.script.getProperties())) {
+        if (value === undefined || value === null) continue;
+  
+        const keyValue = stringifyKeyValue(key, value, false, false, true);
+        nodeString += `\n${keyValue}`;
+      }
     }
   
     return `${nodeString}\n`;
