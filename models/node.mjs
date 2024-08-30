@@ -1,15 +1,17 @@
 import { stringifyKeyValue } from '../utils.mjs';
+import { GDObject } from './gd_object.mjs';
 
 /**
  * Represents a generic node in a scene graph.
  * @class Node
+ * @extends GDObject
  * @property {string} name - The name of the node.
  * @property {Node} owner - The parent of this node.
  * @property {string} type - The type of this node.
  * @property {string[]} groups - The groups this node is part of.
  * @property {Script} script - The script of this node.
  */
-export class Node {
+export class Node extends GDObject {
   /**
    * @param {Object} [props]
    * @param {string} [props.name]
@@ -46,11 +48,11 @@ export class Node {
   }
 
   /**
-   * Serializes the object to fit Godot structure.
+   * Serializes the object to fit Godot structure as a node.
    *
    * @returns {string} - Serialized subresource in Godot string format.
    */
-  serializeToGodot() {
+  serializeAsNode() {
     const parent = this.getOwnershipChain();
     const groups = this.formatStringList(this.groups);
 

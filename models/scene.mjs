@@ -24,7 +24,7 @@ export class PackedScene extends GDObject {
   }
 
   /**
-   * Serializes the object to fit Godot structure.
+   * Serializes the object as a Godot file.
    *
    * @param {TileMap} map - The tiled map to export.
    * @returns {string} - Serialized scene in Godot string format.
@@ -59,7 +59,7 @@ export class PackedScene extends GDObject {
 
     let nodeListString = "\n";
 
-    nodeListString += this.nodeList.map(node => node.serializeToGodot()).join('\n');
+    nodeListString += this.nodeList.map(node => node.serializeAsNode()).join('\n');
 
     return nodeListString;
   }

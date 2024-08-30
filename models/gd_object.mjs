@@ -51,7 +51,7 @@ export class GDObject {
   }
 
   /**
-   * Serializes the object to fit Godot structure.
+   * Serializes the object as a Godot file.
    *
    * @returns {string} - Serialized subresource in Godot string format.
    */
