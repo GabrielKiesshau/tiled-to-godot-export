@@ -5,6 +5,7 @@ import { Resource } from './resource.mjs';
  * @class GDObject
  * 
  * @property {number} id - 
+ * @property {Script} script - The script of this object.
  * @property {Resource[]} externalResourceList - List of external resources.
  * @property {Resource[]} subResourceList - List of subresources.
  * @property {number} currentExternalResourceID - ID of the current external resource.
@@ -13,15 +14,14 @@ import { Resource } from './resource.mjs';
 export class GDObject {
   /**
    * @param {Object} [props]
-   * @param {number} [props.id]
-   * @param {Resource[]} [props.externalResourceList]
-   * @param {Resource[]} [props.subResourceList]
-   * @param {number} [props.currentExternalResourceID]
-   * @param {number} [props.currentSubResourceID]
+   * @param {Script} [props.script]
    */
-  constructor({ } = { }) {
+  constructor({
+    script = null,
+  } = { }) {
     this.id = 0;
     this.type = "Object";
+    this.script = script;
     this.externalResourceList = [];
     this.subResourceList = [];
     this.currentExternalResourceID = 0;
