@@ -73,35 +73,35 @@ class GodotTilesetExporter {
       filePath: getResPath(tileset.property("projectRoot"), tileset.property("relativePath"), tileset.image),
     };
 
-    let result = "";
+    let tilesetString = "";
 
-    result += `[gd_resource type="TileSet" load_steps=3 format=3]\n\n`;
+    tilesetString += `[gd_resource type="TileSet" load_steps=3 format=3]\n\n`;
 
     // Texture2D nodes
-    result += `[ext_resource type="Texture2D" path="res://${texture.filePath}" id="${texture.id}"]\n\n`;
+    tilesetString += `[ext_resource type="Texture2D" path="res://${texture.filePath}" id="${texture.id}"]\n\n`;
 
     // TileSetAtlasSource nodes
-    result += `[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_${this.asset.atlasID}"]\n`;
+    tilesetString += `[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_${this.asset.atlasID}"]\n`;
     if (tileset.name) {
-      result += `resource_name = "${tileset.name}"\n`;
+      tilesetString += `resource_name = "${tileset.name}"\n`;
     }
-    result += `texture = ExtResource("${texture.id}")\n`;
+    tilesetString += `texture = ExtResource("${texture.id}")\n`;
 
     if (tileset.margin != DEFAULT_MARGIN) {
-      result += `margins = Vector2i(${tileset.margin}, ${tileset.margin})\n`;
+      tilesetString += `margins = Vector2i(${tileset.margin}, ${tileset.margin})\n`;
     }
 
     if (tileset.tileSpacing != DEFAULT_TILE_SPACING) {
-      result += `separation = Vector2i(${tileset.tileSpacing}, ${tileset.tileSpacing})\n`;
+      tilesetString += `separation = Vector2i(${tileset.tileSpacing}, ${tileset.tileSpacing})\n`;
     }
 
     if (tileset.tileWidth != DEFAULT_TILE_SIZE || tileset.tileHeight != DEFAULT_TILE_SIZE) {
-      result += `texture_region_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
+      tilesetString += `texture_region_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
     }
 
     const useTexturePadding = tileset.property(`${prefix}use_texture_padding`) || DEFAULT_USE_TEXTURE_PADDING;
     if (useTexturePadding != DEFAULT_USE_TEXTURE_PADDING) {
-      result += `use_texture_padding = ${useTexturePadding}\n`;
+      tilesetString += `use_texture_padding = ${useTexturePadding}\n`;
     }
 
     // Tile data
@@ -141,21 +141,21 @@ class GodotTilesetExporter {
 
       const tileName = `${x}:${y}/${alt}`;
 
-      result += `${tileName} = ${alt}\n`;
+      tilesetString += `${tileName} = ${alt}\n`;
 
       if (alt & tile.FlippedHorizontally) {
-        result += `${tileName}/flip_h = true\n`;
+        tilesetString += `${tileName}/flip_h = true\n`;
       }
 
       if (alt & tile.FlippedVertically) {
-        result += `${tileName}/flip_v = true\n`;
+        tilesetString += `${tileName}/flip_v = true\n`;
       }
 
       if (alt & tile.RotatedHexagonal120) {
-        result += `${tileName}/transpose = true\n`;
+        tilesetString += `${tileName}/transpose = true\n`;
       }
 
-      result += this.buildTileCollision(tile, tileName);
+      tilesetString += this.buildTileCollision(tile, tileName);
       
       const propertyMap = propertiesToMap(properties);
       if (propertyMap.size != 0) {
@@ -163,15 +163,15 @@ class GodotTilesetExporter {
           if (!this.customDataLayerList.has(key)) {
             this.customDataLayerList.set(key, {})
           }
-          result += `${tileName}/custom_data_${key} = ${value}\n`;
+          tilesetString += `${tileName}/custom_data_${key} = ${value}\n`;
         }
       }
     }
 
-    result += `\n`;
+    tilesetString += `\n`;
 
     // Tileset node
-    result += `[resource]\n`;
+    tilesetString += `[resource]\n`;
 
     let tileShape = TileShape.TILE_SHAPE_SQUARE;
     let tileLayout = TileLayout.TILE_LAYOUT_STACKED;
@@ -189,48 +189,48 @@ class GodotTilesetExporter {
     }
     
     if (tileShape != DEFAULT_TILE_SHAPE) {
-      result += `tile_shape = ${tileShape}\n`;
+      tilesetString += `tile_shape = ${tileShape}\n`;
     }
 
     if (tileLayout != DEFAULT_TILE_LAYOUT) {
-      result += `tile_layout = ${tileLayout}\n`;
+      tilesetString += `tile_layout = ${tileLayout}\n`;
     }
 
     if (this.asset.hasCollisions) {
       const collisionLayer = tileset.property(`${prefix}collision_layer`) || 1;
-      result += `physics_layer_0/collision_layer = ${collisionLayer}\n`;
+      tilesetString += `physics_layer_0/collision_layer = ${collisionLayer}\n`;
     }
 
     const collisionMask = tileset.property(`${prefix}collision_mask`) || 1;
     if (collisionMask != 1) {
-      result += `physics_layer_0/collision_mask = ${collisionMask}\n`;
+      tilesetString += `physics_layer_0/collision_mask = ${collisionMask}\n`;
     }
 
     if (tileset.tileWidth != DEFAULT_TILE_SIZE || tileset.tileHeight != DEFAULT_TILE_SIZE) {
-      result += `tile_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
+      tilesetString += `tile_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
     }
 
     for (const [name, layer] of this.customDataLayerList) {
-      result += `custom_data_layer_${layer.index}/name = "${name}"\n`;
-      result += `custom_data_layer_${layer.index}/type = "${layer.type}"\n`;
+      tilesetString += `custom_data_layer_${layer.index}/name = "${name}"\n`;
+      tilesetString += `custom_data_layer_${layer.index}/type = "${layer.type}"\n`;
     }
 
-    result += `sources/${this.asset.atlasID} = SubResource("TileSetAtlasSource_${this.asset.atlasID}")\n`;
+    tilesetString += `sources/${this.asset.atlasID} = SubResource("TileSetAtlasSource_${this.asset.atlasID}")\n`;
 
-    return result;
+    return tilesetString;
   }
 
   buildTileCollision(tile, tileName) {
-    let result = "";
+    let tileCollisionString = "";
 
     const linearVelocity = tile.property(`${prefix}linear_velocity`) || 0;
     if (linearVelocity != 0) {
-      result += `${tileName}/physics_layer_0/linear_velocity = Vector2(${linearVelocity.x}, ${linearVelocity.y})\n`;
+      tileCollisionString += `${tileName}/physics_layer_0/linear_velocity = Vector2(${linearVelocity.x}, ${linearVelocity.y})\n`;
     }
     
     const angularVelocity = tile.property(`${prefix}angular_velocity`) || 0;
     if (angularVelocity != 0) {
-      result += `${tileName}/physics_layer_0/angular_velocity = ${angularVelocity}\n`;
+      tileCollisionString += `${tileName}/physics_layer_0/angular_velocity = ${angularVelocity}\n`;
     }
 
     // const flippedState = tile.FlippedHorizontally;
@@ -296,12 +296,12 @@ class GodotTilesetExporter {
             break;
         }
 
-        result += `${tileName}/physics_layer_0/polygon_${polygonID}/points = PackedVector2Array(${polygonPointList})\n`;
+        tileCollisionString += `${tileName}/physics_layer_0/polygon_${polygonID}/points = PackedVector2Array(${polygonPointList})\n`;
         polygonID++;
       }
     }
 
-    return result;
+    return tileCollisionString;
   }
 
   flipState(point, flippedState) {
