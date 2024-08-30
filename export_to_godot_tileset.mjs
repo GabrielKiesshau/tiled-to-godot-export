@@ -1,5 +1,7 @@
 import { prefix } from './constants.mjs';
 import { getResPath, hasColor, propertiesToMap } from './utils.mjs';
+import { ExternalResource } from './models/external_resource.mjs';
+import { Texture2D } from './models/texture_2d.mjs';
 
 const DEFAULT_MARGIN = 0;
 const DEFAULT_TILE_SPACING = 0;
@@ -32,13 +34,17 @@ const Flip = {
   FlippedVertically: 1 << 14,
 };
 
-/*global tiled, TextFile */
+/**
+ * @class GodotTilesetExporter
+ * @property {Tileset} tileset - The tileset to export.
+ * @property {string} fileName - Path of the file the tileset should be exported to.
+ */
 class GodotTilesetExporter {
-  // noinspection DuplicatedCode
   /**
    * Constructs a new instance of the tileset exporter
-   * @param {Tileset} tileset the tileset to export
-   * @param {string} fileName path of the file the tileset should be exported to
+   * @param {Object} [props]
+   * @param {Tileset} [props.tileset] - The tileset to export.
+   * @param {string} [props.fileName] - Path of the file the tileset should be exported to.
    */
   constructor(tileset, fileName) {
     this.asset = {
@@ -67,21 +73,24 @@ class GodotTilesetExporter {
   }
 
   serializeToGodot() {
+    ExternalResource.currentID = 0;
+
     const tileset = this.asset.tileset;
-    const texture = {
-      id: "1",
-      filePath: getResPath(tileset.property("projectRoot"), tileset.property("relativePath"), tileset.image),
-    };
+    const texture = new Texture2D({
+      externalResource: {
+        path: getResPath(tileset.property("projectRoot"), tileset.property("relativePath"), tileset.image),
+      },
+    });
 
-    let tilesetString = "";
+    const type = "TileSet";
+    const loadSteps = 3;
 
-    tilesetString += `[gd_resource type="TileSet" load_steps=3 format=3]\n\n`;
-
-    // Texture2D nodes
-    tilesetString += `[ext_resource type="Texture2D" path="res://${texture.filePath}" id="${texture.id}"]\n\n`;
+    let tilesetString = `[gd_resource type="${type}" load_steps=${loadSteps} format=3]`;
+    tilesetString += `\n`;
+    tilesetString += `\n${texture.serializeToGodot()}`;
 
     // TileSetAtlasSource nodes
-    tilesetString += `[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_${this.asset.atlasID}"]\n`;
+    tilesetString += `\n[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_${this.asset.atlasID}"]\n`;
     if (tileset.name) {
       tilesetString += `resource_name = "${tileset.name}"\n`;
     }
