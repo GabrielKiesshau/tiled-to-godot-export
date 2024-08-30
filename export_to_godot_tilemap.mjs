@@ -21,16 +21,15 @@ import { Vector2 } from './models/vector2.mjs';
 
 /**
  * @class GodotTilemapExporter
- * @property {TileMap} map - 
- * @property {string} fileName 
- * @property {Vector2} scale - The scale of the node in 2D space.
- * @property {number} skew - The skew of the node.
+ * @property {TileMap} map - The tilemap to export.
+ * @property {string} fileName - Path of the file the tilemap should be exported to.
  */
 class GodotTilemapExporter {
   /**
-   * Constructs a new instance of the tilemap exporter
-   * @param {TileMap} map the tilemap to export
-   * @param {string} fileName path of the file the tilemap should be exported to
+   * Constructs a new instance of the tilemap exporter.
+   * @param {Object} [props]
+   * @param {TileMap} [props.map] - The tilemap to export.
+   * @param {string} [props.fileName] - Path of the file the tilemap should be exported to.
    */
   constructor(map, fileName) {
     this.map = map;
