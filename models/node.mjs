@@ -1,17 +1,15 @@
 import { stringifyKeyValue } from '../utils.mjs';
-import { GDObject } from './gd_object.mjs';
 
 /**
  * Represents a generic node in a scene graph.
  * @class Node
- * @extends GDObject
  * @property {string} name - The name of the node.
  * @property {Node} owner - The parent of this node.
  * @property {string} type - The type of this node.
  * @property {string[]} groups - The groups this node is part of.
  * @property {Script} script - The script of this node.
  */
-export class Node extends GDObject {
+export class Node {
   /**
    * @param {Object} [props]
    * @param {string} [props.name]
