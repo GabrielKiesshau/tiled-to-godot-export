@@ -53,18 +53,20 @@ class GodotTilesetExporter {
   };
 
   write() {
-    this.writeToFile();
+    this.saveToFile();
     tiled.log(`Tileset exported successfully to ${this.fileName}`);
   }
 
-  writeToFile() {
+  saveToFile() {
     const file = new TextFile(this.fileName, TextFile.WriteOnly);
-    let tilesetTemplate = this.buildTileset();
-    file.write(tilesetTemplate);
+
+    const serializedTileSet = this.serializeToGodot();
+
+    file.write(serializedTileSet);
     file.commit();
   }
 
-  buildTileset() {
+  serializeToGodot() {
     const tileset = this.asset.tileset;
     const texture = {
       id: "1",
@@ -80,7 +82,9 @@ class GodotTilesetExporter {
 
     // TileSetAtlasSource nodes
     result += `[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_${this.asset.atlasID}"]\n`;
-    result += `resource_name = "${tileset.name}"\n`;
+    if (tileset.name) {
+      result += `resource_name = "${tileset.name}"\n`;
+    }
     result += `texture = ExtResource("${texture.id}")\n`;
 
     if (tileset.margin != DEFAULT_MARGIN) {
