@@ -1,6 +1,5 @@
 import { prefix } from './constants.mjs';
 import { getResPath, hasColor, propertiesToMap } from './utils.mjs';
-import { Resource } from './models/resource.mjs';
 import { Texture2D } from './models/texture_2d.mjs';
 
 const DEFAULT_MARGIN = 0;
