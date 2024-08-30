@@ -8,8 +8,7 @@ import { Resource } from './resource.mjs';
  * @class Scene
  * @property {ExternalResource[]} externalResourceList - List of external resources.
  * @property {Resource[]} subResourceList - List of subresources.
- * @property {GDNode[]} nodeList - List of nodes. 
- * @property {string[]} nodeListString - List of nodes in string form. 
+ * @property {GDNode[]} nodeList - List of nodes.
  */
 export class Scene {
   /**
@@ -17,23 +16,17 @@ export class Scene {
    * @param {ExternalResource[]} [props.externalResourceList=[]]
    * @param {Resource[]} [props.subResourceList=[]]
    * @param {GDNode[]} [props.nodeList=[]]
-   * @param {string[]} [props.nodeListString=[]]
    * @param {GDNode} [props.rootNode]
    */
   constructor({
-    externalResourceList = [],
-    subResourceList = [],
-    nodeList = [],
-    nodeListString = [],
     rootNode = null,
   } = {}) {
-    this.externalResourceList = externalResourceList;
-    this.subResourceList = subResourceList;
-    this.nodeList = nodeList;
-    this.nodeListString = nodeListString;
     this.rootNode = rootNode;
 
-    this.externalResourceID = 0;
+    this.externalResourceList = [];
+    this.subResourceList = [];
+    this.nodeList = [];
+
     Resource.currentID = 0;
     ExternalResource.currentID = 0;
   }
