@@ -1,3 +1,4 @@
+import { prefix } from './constants.mjs';
 import { getResPath, hasColor, propertiesToMap } from './utils.mjs';
 
 const DEFAULT_MARGIN = 0;
@@ -94,7 +95,7 @@ class GodotTilesetExporter {
       result += `texture_region_size = Vector2i(${tileset.tileWidth}, ${tileset.tileHeight})\n`;
     }
 
-    const useTexturePadding = tileset.property("godot:use_texture_padding") || DEFAULT_USE_TEXTURE_PADDING;
+    const useTexturePadding = tileset.property(`${prefix}use_texture_padding`) || DEFAULT_USE_TEXTURE_PADDING;
     if (useTexturePadding != DEFAULT_USE_TEXTURE_PADDING) {
       result += `use_texture_padding = ${useTexturePadding}\n`;
     }
@@ -192,11 +193,11 @@ class GodotTilesetExporter {
     }
 
     if (this.asset.hasCollisions) {
-      const collisionLayer = tileset.property("godot:collision_layer") || 1;
+      const collisionLayer = tileset.property(`${prefix}collision_layer`) || 1;
       result += `physics_layer_0/collision_layer = ${collisionLayer}\n`;
     }
 
-    const collisionMask = tileset.property("godot:collision_mask") || 1;
+    const collisionMask = tileset.property(`${prefix}collision_mask`) || 1;
     if (collisionMask != 1) {
       result += `physics_layer_0/collision_mask = ${collisionMask}\n`;
     }
@@ -218,12 +219,12 @@ class GodotTilesetExporter {
   buildTileCollision(tile, tileName) {
     let result = "";
 
-    const linearVelocity = tile.property("godot:linear_velocity") || 0;
+    const linearVelocity = tile.property(`${prefix}linear_velocity`) || 0;
     if (linearVelocity != 0) {
       result += `${tileName}/physics_layer_0/linear_velocity = Vector2(${linearVelocity.x}, ${linearVelocity.y})\n`;
     }
     
-    const angularVelocity = tile.property("godot:angular_velocity") || 0;
+    const angularVelocity = tile.property(`${prefix}angular_velocity`) || 0;
     if (angularVelocity != 0) {
       result += `${tileName}/physics_layer_0/angular_velocity = ${angularVelocity}\n`;
     }

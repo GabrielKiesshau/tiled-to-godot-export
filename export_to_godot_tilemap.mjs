@@ -1,8 +1,10 @@
 import { getFileName, getResPath, splitCommaSeparatedString, getTilesetColumns, getAreaCenter, getRotation, roundToDecimals } from './utils.mjs';
+import { prefix } from './constants.mjs';
 import { Area2D } from './models/area_2d.mjs';
 import { CircleShape2D } from './models/circle_shape_2d.mjs';
 import { CollisionPolygon2D } from './models/collision_polygon_2d.mjs';
 import { CollisionShape2D } from './models/collision_shape_2d.mjs';
+import { ExternalResource } from './models/external_resource.mjs';
 import { MapObjectShape } from './enums/map_object_shape.mjs';
 import { Node as GDNode } from './models/node.mjs';
 import { Node2D } from './models/node_2d.mjs';
@@ -34,7 +36,7 @@ class GodotTilemapExporter {
     this.map = map;
     this.fileName = fileName;
 
-    const name = this.map.property("godot:name") || getFileName(this.fileName);
+    const name = this.map.property(`${prefix}name`) || getFileName(this.fileName);
     const rootNode = new GDNode({
       name,
     });
@@ -59,8 +61,8 @@ class GodotTilemapExporter {
    */
   determineTilesets() {
     for (const tileset of this.map.usedTilesets()) {
-      //! let path = getResPath(tileset.property("godot:projectRoot"), tileset.property("godot:relativePath"), tileset.asset.fileName.replace('.tsx', '.tres'));
-      const path = tileset.property("godot:resPath");
+      //! let path = getResPath(tileset.property(`${prefix}projectRoot`), tileset.property(`${prefix}relativePath`), tileset.asset.fileName.replace('.tsx', '.tres'));
+      const path = tileset.property(`${prefix}resPath`);
 
       for (const externalResource of this.scene.externalResourceList) {
         if (externalResource.path == path) return;
@@ -92,7 +94,7 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleLayer(layer, owner) {
-    const groups = splitCommaSeparatedString(layer.property("godot:groups"));
+    const groups = splitCommaSeparatedString(layer.property(`${prefix}groups`));
 
     if (layer.isTileLayer) {
       this.handleTileLayer(layer, groups, owner);
@@ -159,7 +161,7 @@ class GodotTilemapExporter {
     this.scene.nodeList.push(node);
 
     for (const mapObject of objectGroup.objects) {
-      const mapObjectGroups = splitCommaSeparatedString(mapObject.property("godot:groups"));
+      const mapObjectGroups = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
       
       if (mapObject.tile) {
         this.generateTileNode(mapObject, mapObjectGroups, node);
@@ -204,8 +206,8 @@ class GodotTilemapExporter {
     //   this.tilesetIndexMap.set(tilesetsIndexKey, this.externalResourceID);
 
     //   const tilesetPath = getResPath(
-    //     this.map.property("godot:projectRoot"),
-    //     this.map.property("godot:relativePath"),
+    //     this.map.property(`${prefix}projectRoot`),
+    //     this.map.property(`${prefix}relativePath`),
     //     mapObject.tile.tileset.imageFileName,
     //   );
 
@@ -276,7 +278,6 @@ class GodotTilemapExporter {
     }
   }
 
-  //TODO reduce duplicate code on node generation
   /**
    * Generates a Area2D node with a rectangle shape.
    * @param {MapObject} mapObject - The object representing the Area2D.
@@ -295,17 +296,18 @@ class GodotTilemapExporter {
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
-    const scriptProperty = mapObject.property("godot:script");
+    const scriptPath = mapObject.property(`${prefix}script`);
     let script = null;
 
-    if (scriptProperty) {
-      script = this.registerScript(scriptProperty);
+    if (scriptPath) {
+      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
+      script = this.registerScript(scriptPath, scriptPropertyMap);
     }
 
     const area2DNode = new Area2D({
       collisionObject2D: {
-        collisionLayer: mapObject.property("godot:collision_layer"),
-        collisionMask: mapObject.property("godot:collision_mask"),
+        collisionLayer: mapObject.property(`${prefix}collision_layer`),
+        collisionMask: mapObject.property(`${prefix}collision_mask`),
         node2D: {
           position: center,
           rotation: getRotation(mapObject.rotation),
@@ -314,7 +316,7 @@ class GodotTilemapExporter {
               name: mapObject.name,
               owner,
               groups,
-              script: script,
+              script,
             },
           },
         },
@@ -328,7 +330,7 @@ class GodotTilemapExporter {
 
     this.scene.subResourceList.push(rectangleShape);
 
-    const shapeGroupList = splitCommaSeparatedString(mapObject.property("godot:shape_groups"));
+    const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
     const collisionShape2DNode = new CollisionShape2D({
       shape: rectangleShape,
@@ -363,10 +365,18 @@ class GodotTilemapExporter {
 
     const center = getAreaCenter(position, size, mapObject.rotation);
 
+    const scriptPath = mapObject.property(`${prefix}script`);
+    let script = null;
+
+    if (scriptPath) {
+      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
+      script = this.registerScript(scriptPath, scriptPropertyMap);
+    }
+
     const area2DNode = new Area2D({
       collisionObject2D: {
-        collisionLayer: mapObject.property("godot:collision_layer"),
-        collisionMask: mapObject.property("godot:collision_mask"),
+        collisionLayer: mapObject.property(`${prefix}collision_layer`),
+        collisionMask: mapObject.property(`${prefix}collision_mask`),
         node2D: {
           position: center,
           rotation: getRotation(mapObject.rotation),
@@ -375,6 +385,7 @@ class GodotTilemapExporter {
               name: mapObject.name,
               owner,
               groups,
+              script,
             },
           },
         },
@@ -388,7 +399,7 @@ class GodotTilemapExporter {
       array: polygonPointsArray,
     });
 
-    const shapeGroupList = splitCommaSeparatedString(mapObject.property("godot:shape_groups"));
+    const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
     const collisionPolygon2DNode = new CollisionPolygon2D({
       buildMode: buildMode,
@@ -424,10 +435,18 @@ class GodotTilemapExporter {
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
+    const scriptPath = mapObject.property(`${prefix}script`);
+    let script = null;
+
+    if (scriptPath) {
+      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
+      script = this.registerScript(scriptPath, scriptPropertyMap);
+    }
+
     const area2DNode = new Area2D({
       collisionObject2D: {
-        collisionLayer: mapObject.property("godot:collision_layer"),
-        collisionMask: mapObject.property("godot:collision_mask"),
+        collisionLayer: mapObject.property(`${prefix}collision_layer`),
+        collisionMask: mapObject.property(`${prefix}collision_mask`),
         node2D: {
           position: center,
           rotation: getRotation(mapObject.rotation),
@@ -436,6 +455,7 @@ class GodotTilemapExporter {
               name: mapObject.name,
               owner,
               groups,
+              script,
             },
           },
         },
@@ -449,7 +469,7 @@ class GodotTilemapExporter {
 
     this.scene.subResourceList.push(circleShape);
 
-    const shapeGroupList = splitCommaSeparatedString(mapObject.property("godot:shape_groups"));
+    const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
     const collisionShape2DNode = new CollisionShape2D({
       shape: circleShape,
@@ -478,6 +498,14 @@ class GodotTilemapExporter {
       y: roundToDecimals(mapObject.y),
     });
 
+    const scriptPath = mapObject.property(`${prefix}script`);
+    let script = null;
+
+    if (scriptPath) {
+      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
+      script = this.registerScript(scriptPath, scriptPropertyMap);
+    }
+
     const node = new Node2D({
       position: position,
       rotation: getRotation(mapObject.rotation),
@@ -486,6 +514,7 @@ class GodotTilemapExporter {
           name,
           owner,
           groups,
+          script,
         },
       },
     });
@@ -522,6 +551,14 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   createTileMapLayerNode(layerName, tilesetName, tilemapData, groups, owner) {
+    const scriptPath = mapObject.property(`${prefix}script`);
+    let script = null;
+
+    if (scriptPath) {
+      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
+      script = this.registerScript(scriptPath, scriptPropertyMap);
+    }
+
     const node = new TileMapLayer({
       tileset: this.getTilesetByName(tilesetName),
       tileMapData: new PackedByteArray({
@@ -533,6 +570,7 @@ class GodotTilemapExporter {
             name: layerName,
             owner,
             groups,
+            script,
           },
         },
       },
@@ -541,13 +579,55 @@ class GodotTilemapExporter {
   }
 
   /**
+   * Resolve script properties and map them into a usable format.
+   * 
+   * @param {TiledObject} tiledObject - The object to extract the properties from.
+   * @returns {Map} - A map with each property and its values.
+   */
+  resolveScriptProperties(tiledObject) {
+    const objectProperties = tiledObject.resolvedProperties();
+
+    // Filter and map properties that start with "💠" into a usable format
+    const properties = Object.entries(objectProperties)
+      .filter(([key]) => key.startsWith('💠'))
+      .reduce((map, [key, value]) => {
+        const cleanKey = key.slice(1); // Remove "💠" prefix
+        let formattedValue;
+
+        switch(value.typeName) {
+          case 'Vector2':
+            formattedValue = `Vector2(${value.value.x}, ${value.value.y})`;
+            break;
+          case 'Vector2i':
+            formattedValue = `Vector2i(${value.value.x}, ${value.value.y})`;
+            break;
+          case 'Resource':
+            const resource = this.registerResource(value.value.path);
+            formattedValue = `ExtResource("${resource.id}")`;
+            break;
+          case 'Direction':
+            formattedValue = value.value;
+            break;
+          default:
+            formattedValue = value;
+        }
+
+        map.set(cleanKey, formattedValue);
+        return map;
+      }, new Map());
+
+    return properties;
+  }
+
+  /**
    * Register a script in the external resource list and returns it.
    * If the script is already registered, returns it instead.
    * 
    * @param {string} path - The filepath of the script.
+   * @param {Map} properties - The properties of the script.
    * @returns {Script} - The registered script.
    */
-  registerScript(path) {
+  registerScript(path, properties) {
     for (const resource of this.scene.externalResourceList) {
       if (resource instanceof Script && resource.path == path) {
         return resource;
@@ -555,6 +635,7 @@ class GodotTilemapExporter {
     }
 
     const scriptResource = new Script({
+      properties,
       externalResource: {
         path,
       },
@@ -566,83 +647,27 @@ class GodotTilemapExporter {
   }
 
   /**
-   * Prepare properties for a Godot node.
-   * @param {TiledObjectProperties} object_props - Properties from the layer.
-   * @param {TiledObjectProperties} set_props - The base properties for the node.
-   * @returns {TiledObjectProperties} - The merged property set for the node.
+   * Register a resource in the external resource list and returns it.
+   * If the resource is already registered, returns it instead.
+   * 
+   * @param {string} path - The filepath of the script.
+   * @returns {ExternalResource} - The registered resource.
    */
-  //! merge_properties(object_props, set_props) {
-  //!   //* Create a map for processing properties efficiently
-  //!   const propertyMap = new Map();
-  //!   //* Process each entry once
-  //!   for (const [key, value] of Object.entries(object_props)) {
-  //!     if (value === "") {
-  //!       continue;
-  //!     }
-  //!     //* Determine the type of property based on the key prefix
-  //!     switch (true) {
-  //!       case key.startsWith("godot:node:"):
-  //!         propertyMap.set(key, { type: 'node', value: value });
-  //!         continue;
-  //!       case key.startsWith("godot:script"):
-  //!         propertyMap.set("godot:script", { type: 'script', value: value });
-  //!         continue;
-  //!       case key.startsWith("godot:resource:"):
-  //!         propertyMap.set(key, { type: 'resource', value: value });
-  //!         continue;
-  //!       case key.startsWith("godot:var:"):
-  //!         propertyMap.set(key, { type: 'var', value: value });
-  //!         continue;
-  //!       default:
-  //!         // Ignore unsupported or unknown keys
-  //!         break;
-  //!     }
-  //!   }
-  //!   //* Handle node properties
-  //!   propertyMap.forEach((entry, key) => {
-  //!     if (entry.type === 'node') {
-  //!       set_props[key.substring("godot:node:".length)] = entry.value;
-  //!     }
-  //!   });
-  //!   //* Handle tilemap properties
-  //!   if (set_props['layers'] !== undefined) {
-  //!     for (const [key, value] of Object.entries(set_props['layers'][0])) {
-  //!       set_props[`layer_0/${key}`] = value;
-  //!     }
-  //!   }
-  //!   //* Handle script properties
-  //!   const scriptEntry = propertyMap.get("godot:script");
-  //!   if (scriptEntry) {
-  //!     const externalResource = this.registerExternalResource(ExternalResourceType.Script, scriptEntry.value);
-  //!     if (externalResource == null) {
-  //!       return;
-  //!     }
-  //!     set_props["script"] = `ExtResource("${externalResource.id}")`;
-  //!     this.scene.externalResourceList.push(externalResource);
-  //!   }
-  //!   //* Handle other script variables
-  //!   propertyMap.forEach((entry, key) => {
-  //!     if (entry.type === 'var') {
-  //!       set_props[key.substring("godot:var:".length)] = entry.value;
-  //!     }
-  //!   });
-  //!   //* Handle resource properties
-  //!   propertyMap.forEach((entry, key) => {
-  //!     if (entry.type === 'resource') {
-  //!       if (entry.value == undefined || entry.value == "") {
-  //!         tiled.log("ops");
-  //!       }
-  //!       const externalResource = this.registerExternalResource(ExternalResourceType.Resource, entry.value);
-  //!       if (externalResource == null) {
-  //!         return;
-  //!       }
-  //!       set_props[key.substring("godot:resource:".length)] = `ExtResource("${externalResource.id}")`;
-  //!       this.scene.externalResourceList.push(externalResource);
-  //!     }
-  //!   });
-  //!   set_props['layers'] = undefined;
-  //!   return set_props;
-  //! }
+  registerResource(path) {
+    for (const resource of this.scene.externalResourceList) {
+      if (resource instanceof ExternalResource && resource.path == path) {
+        return resource;
+      }
+    }
+
+    const resource = new ExternalResource({
+      path,
+    });
+
+    this.scene.externalResourceList.push(resource);
+
+    return resource;
+  }
 
   /**
    * Find a tileset by its name.

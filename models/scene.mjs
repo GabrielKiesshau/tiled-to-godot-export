@@ -1,3 +1,4 @@
+import { prefix } from '../constants.mjs';
 import { ExternalResource } from './external_resource.mjs';
 import { Node as GDNode } from './node.mjs';
 import { Resource } from './resource.mjs';
@@ -45,7 +46,7 @@ export class Scene {
    */
   serializeToGodot(map) {
     const loadSteps = 1 + this.externalResourceList.length + this.subResourceList.length;
-    const type = map.property("godot:type") || "Node2D";
+    const type = map.property(`${prefix}type`) || "Node2D";
 
     const externalResourceListString = this.serializeExternalResourceList();
     const subResourceListString = this.serializeSubResourceList();

@@ -1,3 +1,4 @@
+import { prefix } from './constants.mjs';
 import { Vector2 } from './models/vector2.mjs';
 
 /**
@@ -343,7 +344,7 @@ export function getUID(path) {
 }
 
 export function resolvePath(path) {
-  const projectRoot = tiled.project.property("godot:projectRoot");
+  const projectRoot = tiled.project.property(`${prefix}projectRoot`);
   const tiledProjectFile = tiled.projectFilePath;
   
   // Get the directory of the tiled project file
