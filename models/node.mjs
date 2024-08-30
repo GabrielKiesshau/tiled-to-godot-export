@@ -25,7 +25,7 @@ export class Node extends GDObject {
     groups = [],
     script = null,
   } = {}) {
-    this.name = name || "Node";
+    this.name = name;
     this.owner = owner;
     this.groups = groups;
     this.type = "Node";
