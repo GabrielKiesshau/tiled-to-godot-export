@@ -141,7 +141,7 @@ class GodotTilemapExporter {
 
     //* Create TileMapLayer nodes for each tileset and add them to the scene
     for (const [tilesetName, tilemapData] of tilemapDataMap) {
-      this.createTileMapLayerNode(tileLayer.name, tilesetName, tilemapData, groups, owner);
+      this.createTileMapLayerNode(tileLayer, tilesetName, tilemapData, groups, owner);
     }
   }
 
@@ -543,21 +543,20 @@ class GodotTilemapExporter {
 
   /**
    * Create a TileMapLayer node and add it to the scene.
-   * @param {string} layerName - The name of the tile layer.
+   * @param {TileLayer} tileLayer - The tile layer.
    * @param {string} tilesetName - The name of the tileset.
    * @param {Array<number>} tilemapData - The tilemap data.
    * @param {string[]} groups - The groups this layer is part of.
    * @param {GDNode} owner - The owner node.
    */
-  createTileMapLayerNode(layerName, tilesetName, tilemapData, groups, owner) {
-    // TODO
-    // const scriptPath = mapObject.property(`${prefix}script`);
-    // let script = null;
+  createTileMapLayerNode(tileLayer, tilesetName, tilemapData, groups, owner) {
+    const scriptPath = tileLayer.property(`${prefix}script`);
+    let script = null;
 
-    // if (scriptPath) {
-    //   const scriptPropertyMap = this.resolveScriptProperties(mapObject);
-    //   script = this.registerScript(scriptPath, scriptPropertyMap);
-    // }
+    if (scriptPath) {
+      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
+      script = this.registerScript(scriptPath, scriptPropertyMap);
+    }
 
     const node = new TileMapLayer({
       tileset: this.getTilesetByName(tilesetName),
@@ -567,10 +566,10 @@ class GodotTilemapExporter {
       node2D: {
         canvasItem: {
           node: {
-            name: layerName,
+            name: tileLayer.name,
             owner,
             groups,
-            // script,
+            script,
           },
         },
       },
