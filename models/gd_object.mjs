@@ -1,4 +1,3 @@
-import { getUID, resolvePath, stringifyKeyValue } from '../utils.mjs';
 import { Resource } from './resource.mjs';
 
 /**
@@ -92,12 +91,6 @@ export class GDObject {
     subResourceListString += this.subResourceList.map(resource => resource.serializeAsSubResource()).join('\n');
 
     return subResourceListString;
-  }
-
-  getAbsolutePath() {
-    // Ensure filePath is properly handled, removing leading slashes:
-    const sanitizedFilePath = this.path.replace(/^\/+/, '');
-    return resolvePath(sanitizedFilePath);
   }
 
   getProperties() {

@@ -1,3 +1,4 @@
+import { getUID, resolvePath, stringifyKeyValue } from '../utils.mjs';
 import { GDObject } from './gd_object.mjs';
 
 /**
@@ -48,5 +49,11 @@ export class Resource extends GDObject {
     }
   
     return `${subResourceString}\n`;
+  }
+
+  getAbsolutePath() {
+    // Ensure filePath is properly handled, removing leading slashes:
+    const sanitizedFilePath = this.path.replace(/^\/+/, '');
+    return resolvePath(sanitizedFilePath);
   }
 }
