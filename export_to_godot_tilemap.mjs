@@ -11,7 +11,7 @@ import { Node2D } from './models/node_2d.mjs';
 import { PackedByteArray } from './models/packed_byte_array.mjs';
 import { PackedVector2Array } from './models/packed_vector2_array.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
-import { Scene } from './models/scene.mjs';
+import { PackedScene } from './models/scene.mjs';
 import { Script } from './models/script.mjs';
 import { Sprite2D } from './models/sprite_2d.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
@@ -40,7 +40,7 @@ class GodotTilemapExporter {
       name,
     });
 
-    this.scene = new Scene({
+    this.scene = new PackedScene({
       rootNode,
     });
   };

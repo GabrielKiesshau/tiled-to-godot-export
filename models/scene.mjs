@@ -1,16 +1,17 @@
 import { prefix } from '../constants.mjs';
+import { GDObject } from './gd_object.mjs';
 import { ExternalResource } from './external_resource.mjs';
 import { Node as GDNode } from './node.mjs';
 import { Resource } from './resource.mjs';
 
 /**
  * Represents a Godot Scene.
- * @class Scene
+ * @class PackedScene
  * @property {ExternalResource[]} externalResourceList - List of external resources.
  * @property {Resource[]} subResourceList - List of subresources.
  * @property {GDNode[]} nodeList - List of nodes.
  */
-export class Scene {
+export class PackedScene extends GDObject {
   /**
    * @param {Object} [props]
    * @param {ExternalResource[]} [props.externalResourceList=[]]
