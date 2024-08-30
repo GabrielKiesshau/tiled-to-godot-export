@@ -1,36 +1,20 @@
-import { stringifyKeyValue } from '../utils.mjs';
+import { GDObject } from './gd_object.mjs';
 
 /**
  * Represents a resource.
  * @class Resource
  * 
- * @property {string} type - 
+ * @property {string} name - 
+ * @property {string} path - 
  */
-export class Resource {
-  constructor({ } = {}) {
-    this.id = Resource.currentID++;
-    this.type = "";
-  }
-
-  /**
-   * Serializes the object to fit Godot structure.
-   *
-   * @returns {string} - Serialized resource in Godot string format.
-   */
-  serializeToGodot() {
-    let subResourceString = `[sub_resource type="${this.type}" id="${this.id}"]`;
-
-    for (let [key, value] of Object.entries(this.getProperties())) {
-      if (value === undefined || value === null) continue;
-
-      const keyValue = stringifyKeyValue(key, value, false, false, true);
-      subResourceString += `\n${keyValue}`;
-    }
-  
-    return `${subResourceString}\n`;
-  }
-
-  getProperties() {
-    return { };
+export class Resource extends GDObject {
+  constructor({
+    name = "Resource",
+    path = "",
+  } = {}) {
+    super();
+    this.name = name;
+    this.type = "Resource";
+    this.path = path;
   }
 }

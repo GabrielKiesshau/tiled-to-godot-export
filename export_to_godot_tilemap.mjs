@@ -4,7 +4,7 @@ import { Area2D } from './models/area_2d.mjs';
 import { CircleShape2D } from './models/circle_shape_2d.mjs';
 import { CollisionPolygon2D } from './models/collision_polygon_2d.mjs';
 import { CollisionShape2D } from './models/collision_shape_2d.mjs';
-import { ExternalResource } from './models/external_resource.mjs';
+import { Resource } from './models/resource.mjs';
 import { MapObjectShape } from './enums/map_object_shape.mjs';
 import { Node as GDNode } from './models/node.mjs';
 import { Node2D } from './models/node_2d.mjs';
@@ -63,18 +63,18 @@ class GodotTilemapExporter {
       //! let path = getResPath(tileset.property(`${prefix}projectRoot`), tileset.property(`${prefix}relativePath`), tileset.asset.fileName.replace('.tsx', '.tres'));
       const path = tileset.property(`${prefix}resPath`);
 
-      for (const externalResource of this.scene.externalResourceList) {
-        if (externalResource.path == path) return;
+      for (const resource of this.scene.externalResourceList) {
+        if (resource.path == path) return;
       }
 
       const tilesetResource = new GDTileset({
-        externalResource: {
+        resource: {
           name: tileset.name,
           path,
         },
       });
 
-      this.scene.externalResourceList.push(tilesetResource);
+      this.scene.addExternalResource(tilesetResource);
     }
   }
 
@@ -218,7 +218,7 @@ class GodotTilemapExporter {
     //     return;
     //   }
 
-    //   this.scene.externalResourceList.push(texture);
+    //   this.scene.addExternalResource(texture);
     // } else {
     //   textureResourceID = this.tilesetIndexMap.get(tilesetsIndexKey);
     // }
@@ -327,7 +327,7 @@ class GodotTilemapExporter {
       size: size,
     });
 
-    this.scene.subResourceList.push(rectangleShape);
+    this.scene.addSubResource(rectangleShape);
 
     const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
@@ -466,7 +466,7 @@ class GodotTilemapExporter {
       radius: radius.toFixed(2).replace(/\.?0+$/, ""),
     });
 
-    this.scene.subResourceList.push(circleShape);
+    this.scene.addSubResource(circleShape);
 
     const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
@@ -550,13 +550,14 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   createTileMapLayerNode(layerName, tilesetName, tilemapData, groups, owner) {
-    const scriptPath = mapObject.property(`${prefix}script`);
-    let script = null;
+    // TODO
+    // const scriptPath = mapObject.property(`${prefix}script`);
+    // let script = null;
 
-    if (scriptPath) {
-      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
-      script = this.registerScript(scriptPath, scriptPropertyMap);
-    }
+    // if (scriptPath) {
+    //   const scriptPropertyMap = this.resolveScriptProperties(mapObject);
+    //   script = this.registerScript(scriptPath, scriptPropertyMap);
+    // }
 
     const node = new TileMapLayer({
       tileset: this.getTilesetByName(tilesetName),
@@ -569,7 +570,7 @@ class GodotTilemapExporter {
             name: layerName,
             owner,
             groups,
-            script,
+            // script,
           },
         },
       },
@@ -635,12 +636,12 @@ class GodotTilemapExporter {
 
     const scriptResource = new Script({
       properties,
-      externalResource: {
+      resource: {
         path,
       },
     });
 
-    this.scene.externalResourceList.push(scriptResource);
+    this.scene.addExternalResource(scriptResource);
 
     return scriptResource;
   }
@@ -650,20 +651,20 @@ class GodotTilemapExporter {
    * If the resource is already registered, returns it instead.
    * 
    * @param {string} path - The filepath of the script.
-   * @returns {ExternalResource} - The registered resource.
+   * @returns {Resource} - The registered resource.
    */
   registerResource(path) {
     for (const resource of this.scene.externalResourceList) {
-      if (resource instanceof ExternalResource && resource.path == path) {
+      if (resource instanceof Resource && resource.path == path) {
         return resource;
       }
     }
 
-    const resource = new ExternalResource({
+    const resource = new Resource({
       path,
     });
 
-    this.scene.externalResourceList.push(resource);
+    this.scene.addExternalResource(resource);
 
     return resource;
   }
@@ -713,12 +714,6 @@ class GodotTilemapExporter {
     file.commit();
   }
 }
-
-const FlippedState = Object.freeze({
-  FlippedH: 1 << 12,
-  FlippedV: 2 << 13,
-  Transposed: 4 << 14
-});
 
 const customTileMapFormat = {
   name: "Godot 4 Tilemap format",

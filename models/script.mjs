@@ -1,19 +1,19 @@
-import { ExternalResource } from './external_resource.mjs';
+import { Resource } from './resource.mjs';
 
 /**
  * Represents a Script.
  * @class Script
  * @extends Resource
  */
-export class Script extends ExternalResource {
+export class Script extends Resource {
   constructor({
     properties = new Map(),
-    externalResource = {
+    resource = {
       name: "Script",
       path: "",
     },
   } = {}) {
-    super(externalResource);
+    super(resource);
     this.properties = properties;
     this.type = "Script";
   }

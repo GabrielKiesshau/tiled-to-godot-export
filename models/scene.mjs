@@ -1,35 +1,25 @@
 import { prefix } from '../constants.mjs';
 import { GDObject } from './gd_object.mjs';
-import { ExternalResource } from './external_resource.mjs';
 import { Node as GDNode } from './node.mjs';
-import { Resource } from './resource.mjs';
 
 /**
  * Represents a Godot Scene.
  * @class PackedScene
- * @property {ExternalResource[]} externalResourceList - List of external resources.
- * @property {Resource[]} subResourceList - List of subresources.
  * @property {GDNode[]} nodeList - List of nodes.
  */
 export class PackedScene extends GDObject {
   /**
    * @param {Object} [props]
-   * @param {ExternalResource[]} [props.externalResourceList=[]]
-   * @param {Resource[]} [props.subResourceList=[]]
    * @param {GDNode[]} [props.nodeList=[]]
    * @param {GDNode} [props.rootNode]
    */
   constructor({
     rootNode = null,
   } = {}) {
+    super();
     this.rootNode = rootNode;
 
-    this.externalResourceList = [];
-    this.subResourceList = [];
     this.nodeList = [];
-
-    Resource.currentID = 0;
-    ExternalResource.currentID = 0;
   }
 
   /**
@@ -54,42 +44,6 @@ export class PackedScene extends GDObject {
     sceneString += `${nodeListString}`;
 
     return sceneString;
-  }
-
-  /**
-   * Serializes the external resource list to fit Godot structure.
-   *
-   * @returns {string} - Serialized external resource list.
-   */
-  serializeExternalResourceList() {
-    if (this.externalResourceList.length == 0) {
-      return "";
-    }
-
-    let externalResourceListString = "\n";
-
-    for (const externalResource of this.externalResourceList) {
-      externalResourceListString += externalResource.serializeToGodot();
-    }
-
-    return externalResourceListString;
-  }
-  
-  /**
-   * Serializes the subresource list to fit Godot structure.
-   *
-   * @returns {string} - Serialized subresource list.
-   */
-  serializeSubResourceList() {
-    if (this.subResourceList.length == 0) {
-      return "";
-    }
-
-    let subResourceListString = "\n";
-
-    subResourceListString += this.subResourceList.map(subResource => subResource.serializeToGodot()).join('\n');
-
-    return subResourceListString;
   }
 
   /**

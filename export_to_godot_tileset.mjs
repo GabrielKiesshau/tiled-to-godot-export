@@ -1,6 +1,6 @@
 import { prefix } from './constants.mjs';
 import { getResPath, hasColor, propertiesToMap } from './utils.mjs';
-import { ExternalResource } from './models/external_resource.mjs';
+import { Resource } from './models/resource.mjs';
 import { Texture2D } from './models/texture_2d.mjs';
 
 const DEFAULT_MARGIN = 0;
@@ -73,11 +73,9 @@ class GodotTilesetExporter {
   }
 
   serializeToGodot() {
-    ExternalResource.currentID = 0;
-
     const tileset = this.asset.tileset;
     const texture = new Texture2D({
-      externalResource: {
+      resource: {
         path: getResPath(tileset.property("projectRoot"), tileset.property("relativePath"), tileset.image),
       },
     });
@@ -87,7 +85,7 @@ class GodotTilesetExporter {
 
     let tilesetString = `[gd_resource type="${type}" load_steps=${loadSteps} format=3]`;
     tilesetString += `\n`;
-    tilesetString += `\n${texture.serializeToGodot()}`;
+    tilesetString += `\n${texture.serializeAsExternalResource()}`;
 
     // TileSetAtlasSource nodes
     tilesetString += `\n[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_${this.asset.atlasID}"]\n`;

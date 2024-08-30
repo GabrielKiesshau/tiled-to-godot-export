@@ -1,17 +1,17 @@
-import { ExternalResource } from './external_resource.mjs';
+import { Resource } from './resource.mjs';
 
 /**
 * Represents a texture to be used in a TileSet.
 * @class Texture2D
 */
-export class Texture2D extends ExternalResource {
+export class Texture2D extends Resource {
   constructor({
-    externalResource = {
+    resource = {
       name: "Texture2D",
       path: "",
     },
   } = {}) {
-    super(externalResource);
+    super(resource);
     this.type = "Texture2D";
   }
 }
