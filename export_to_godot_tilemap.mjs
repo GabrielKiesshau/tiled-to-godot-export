@@ -16,7 +16,7 @@ import { Script } from './models/script.mjs';
 import { Sprite2D } from './models/sprite_2d.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
-import { Tileset as GDTileset } from './models/tileset.mjs';
+import { GDTileset } from './models/tileset.mjs';
 import { Vector2 } from './models/vector2.mjs';
 
 /**
@@ -27,9 +27,8 @@ import { Vector2 } from './models/vector2.mjs';
 class GodotTilemapExporter {
   /**
    * Constructs a new instance of the tilemap exporter.
-   * @param {Object} [props]
-   * @param {TileMap} [props.map] - The tilemap to export.
-   * @param {string} [props.fileName] - Path of the file the tilemap should be exported to.
+   * @param {TileMap} [map] - The tilemap to export.
+   * @param {string} [fileName] - Path of the file the tilemap should be exported to.
    */
   constructor(map, fileName) {
     this.map = map;
@@ -60,8 +59,8 @@ class GodotTilemapExporter {
    */
   determineTilesets() {
     for (const tileset of this.map.usedTilesets()) {
-      //! let path = getResPath(tileset.property(`${prefix}projectRoot`), tileset.property(`${prefix}relativePath`), tileset.asset.fileName.replace('.tsx', '.tres'));
-      const path = tileset.property(`${prefix}resPath`);
+      //! let path = getResPath(tileset.property(`${prefix}project_root`), tileset.property(`${prefix}relative_path`), tileset.asset.fileName.replace('.tsx', '.tres'));
+      const path = tileset.property(`${prefix}res_path`);
 
       for (const resource of this.scene.externalResourceList) {
         if (resource.path == path) return;
@@ -205,8 +204,8 @@ class GodotTilemapExporter {
     //   this.tilesetIndexMap.set(tilesetsIndexKey, this.externalResourceID);
 
     //   const tilesetPath = getResPath(
-    //     this.map.property(`${prefix}projectRoot`),
-    //     this.map.property(`${prefix}relativePath`),
+    //     this.map.property(`${prefix}project_root`),
+    //     this.map.property(`${prefix}relative_path`),
     //     mapObject.tile.tileset.imageFileName,
     //   );
 
