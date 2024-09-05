@@ -13,8 +13,7 @@ import { Resource } from './resource.mjs';
  */
 export class GDObject {
   /**
-   * @param {Object} [props]
-   * @param {Script} [props.script]
+   * @param {Script} [script]
    */
   constructor({
     script = null,
