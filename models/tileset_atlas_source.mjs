@@ -1,7 +1,7 @@
 import { checkDefault } from '../utils.mjs';
 import { Resource } from './resource.mjs';
 import { TileData } from './tile_data.mjs';
-import { Vector2i } from './vector2.mjs';
+import { Vector2, Vector2i } from './vector2.mjs';
 
 /**
 * Represents a TileSetAtlasSource.
@@ -59,8 +59,8 @@ export class TileSetAtlasSource extends Resource {
       tileData.physicsDataList.forEach((physicsData, i) => {
         const physicsDataKey = `${tileKey}/physics_layer_${physicsData.id}`;
 
-        properties[`${physicsDataKey}/angular_velocity`] = physicsData.angularVelocity;
-        properties[`${physicsDataKey}/linear_velocity`] = physicsData.linearVelocity.toString();
+        properties[`${physicsDataKey}/angular_velocity`] = checkDefault(physicsData.angularVelocity, 0);
+        properties[`${physicsDataKey}/linear_velocity`] = checkDefault(physicsData.linearVelocity, new Vector2({ x: 0, y: 0 }));
 
         physicsData.polygonList.forEach((polygon, j) => {
           const polygonKey = `${physicsDataKey}/polygon_${j}`;
