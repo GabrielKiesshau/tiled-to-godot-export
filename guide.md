@@ -38,7 +38,7 @@ You can customize properties for the map, layers, and objects. Here are the avai
 - **`godot:name`**: Map name, defaults to the file name.
 
 #### Tileset Properties:
-- **`godot:resPath`**: The file path of the Godot tileset. Required.
+- **`godot:res_path`**: The file path of the Godot tileset. Required.
 
 #### Layer Properties:
 - **Name**: Name of the layer.
