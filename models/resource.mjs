@@ -1,4 +1,4 @@
-import { getUID, resolvePath, stringifyKeyValue } from '../utils.mjs';
+import { checkDefault, getUID, resolvePath, stringifyKeyValue } from '../utils.mjs';
 import { GDObject } from './gd_object.mjs';
 
 /**
@@ -10,13 +10,21 @@ import { GDObject } from './gd_object.mjs';
  */
 export class Resource extends GDObject {
   constructor({
-    name = "Resource",
+    name = "",
     path = "",
   } = {}) {
     super();
     this.name = name;
     this.type = "Resource";
     this.path = path;
+  }
+
+  getProperties() {
+    var properties = {};
+
+    properties.resource_name = checkDefault(`"${this.name}"`, `""`);
+
+    return properties;
   }
 
   /**
@@ -48,7 +56,7 @@ export class Resource extends GDObject {
       subResourceString += `\n${keyValue}`;
     }
   
-    return `${subResourceString}\n`;
+    return `${subResourceString}`;
   }
 
   getAbsolutePath() {
