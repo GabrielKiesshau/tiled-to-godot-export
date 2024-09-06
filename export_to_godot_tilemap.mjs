@@ -62,6 +62,10 @@ class GodotTilemapExporter {
       //! let path = getResPath(tileset.property(`${prefix}project_root`), tileset.property(`${prefix}relative_path`), tileset.asset.fileName.replace('.tsx', '.tres'));
       const path = tileset.property(`${prefix}res_path`);
 
+      if (path === undefined) {
+        tiled.log(`${prefix}res_path is not defined for tileset ${tileset.fileName}. The scene will be broken when imported in Godot.`);
+      }
+
       for (const resource of this.scene.externalResourceList) {
         if (resource.path == path) return;
       }
