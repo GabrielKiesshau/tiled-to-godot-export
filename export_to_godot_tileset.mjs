@@ -1,4 +1,4 @@
-import { getResPath, hasColor } from './utils.mjs';
+import { getResPath, isTileUnused } from './utils.mjs';
 import { prefix, physicsLayerTypeName, customDataLayerTypeName } from './constants.mjs';
 import { Texture2D } from './models/texture_2d.mjs';
 import { TileData } from './models/tile_data.mjs';
@@ -74,26 +74,7 @@ class GodotTilesetExporter {
       }));
 
     for (const tile of this.tileset.tiles) {
-      const properties = tile.resolvedProperties();
-
-      if (properties[`${prefix}ignore`]) continue;
-
-      let blank = tile.className === "" && Object.keys(properties).length === 0;
-
-      if (blank) {
-        const { x, y, width, height } = tile.imageRect;
-
-        for (let py = y; py < y + height && blank; py++) {
-          for (let px = x; px < x + width; px++) {
-            if (hasColor(String(tile.image.pixelColor(px, py)))) {
-              blank = false;
-              break;
-            }
-          }
-        }
-      }
-
-      if (blank) continue;
+      if (isTileUnused(tile)) continue;
 
       //TODO Ignore animated tiles frames that are not the first frame
 

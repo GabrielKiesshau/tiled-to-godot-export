@@ -386,3 +386,39 @@ export function checkDefault(value, defaultValue) {
 
   return value == defaultValue ? null : value;
 }
+
+/**
+ * Determines whether a tile is unused based on its properties and pixel data.
+ *
+ * A tile is considered unused if:
+ *  1. It has a specific ignore property set.
+ *  2. It has no class name and no custom properties.
+ *  3. Its image contains only blank pixels (no colors detected).
+ *
+ * @param {Tile} tile - The tile object to evaluate.
+ * @returns {boolean} - Returns true if the tile is considered unused, false otherwise.
+ */
+export function isTileUnused(tile) {
+  const properties = tile.resolvedProperties();
+
+  if (properties[`${prefix}ignore`]) return true;
+
+  const hasNoClass = tile.className === "";
+  const hasNoProperty = Object.keys(properties).length === 0;
+
+  if (hasNoClass && hasNoProperty) {
+    const { x, y, width, height } = tile.imageRect;
+
+    for (let py = y; py < y + height; py++) {
+      for (let px = x; px < x + width; px++) {
+        if (hasColor(String(tile.image.pixelColor(px, py)))) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  return false;
+}
