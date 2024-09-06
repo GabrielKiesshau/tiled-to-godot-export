@@ -136,86 +136,108 @@ class GodotTilesetExporter {
    */
   setupTilePhysicsDataList(tile, physicsLayerList) {
     const resolvedProperties = Object.entries(tile.resolvedProperties());
+
+    if (resolvedProperties.length === 0) {
+      const physicsData = this.createPhysicsDataForTile(tile, physicsLayerList);
+      return [physicsData];
+    }
+
     const physicsDataList = resolvedProperties
       .filter(([_, { typeName, value: physicsData }]) => {
-        const isPhysicsData = typeName === "PhysicsData";
+        const hasPhysicsData = typeName === "PhysicsData";
+
+        if (!hasPhysicsData) {
+          return true;
+        }
+
         const hasMatchingId = physicsData && physicsLayerList.some(
           (layer) => layer.id === physicsData.id
         );
 
-        return isPhysicsData && hasMatchingId;
+        return hasPhysicsData && hasMatchingId;
       })
-      .map(([_, { value: physicsData }]) => {
-        const objectGroup = tile.objectGroup;
-        let polygonList = [];
-        const layerID = physicsData.id.value;
-
-        if (objectGroup) {
-          const center = new Vector2({
-            x: tile.width / 2,
-            y: tile.height / 2,
-          });
-
-          for (const tiledObject of objectGroup.objects) {
-            const shape = tiledObject.shape;
-
-            if (shape != MapObject.Rectangle && shape != MapObject.Polygon) {
-              tiled.warn("Godot exporter only supports collisions that are rectangles or polygons.");
-              continue;
-            }
-
-            const polygonLayerID = tiledObject.resolvedProperty("physics_layer_id")?.value || 0;
-
-            if (polygonLayerID != layerID) continue;
-
-            let pointList = [];
-
-            switch (shape) {
-              case MapObject.Rectangle:
-                const rect = {
-                  topLeft: {
-                    x: tiledObject.x - center.x,
-                    y: tiledObject.y - center.y,
-                  },
-                  botomRight: {
-                    x: tiledObject.x + tiledObject.width - center.x,
-                    y: tiledObject.y + tiledObject.height - center.y,
-                  },
-                };
-
-                pointList.push(rect.topLeft.x, rect.topLeft.y, rect.botomRight.x, rect.topLeft.y, rect.botomRight.x, rect.botomRight.y, rect.topLeft.x, rect.botomRight.y);
-                break;
-              case MapObject.Polygon:
-                for (const polygonPoint of tiledObject.polygon) {
-                  const point = {
-                    x: tiledObject.x + polygonPoint.x - center.x,
-                    y: tiledObject.y + polygonPoint.y - center.y,
-                  }
-
-                  pointList.push(point.x, point.y);
-                }
-                break;
-              default:
-                break;
-            }
-
-            const polygon = new Polygon({ pointList });
-            polygonList.push(polygon);
-          }
-        }
-
-        return new PhysicsData({
-          angularVelocity: physicsData.angular_velocity,
-          linearVelocity: new Vector2({
-            x: physicsData.linear_velocity.value.x,
-            y: physicsData.linear_velocity.value.y,
-          }),
-          polygonList,
-          id: layerID,
-        });
-      });
+      .map(([_, { value: physicsData }]) => this.createPhysicsDataForTile(tile, physicsData));
     
     return physicsDataList;
+  }
+
+  /**
+   * 
+   * @param {Tile} tile - 
+   * @param {PhysicsLayer[]} physicsData - 
+   */
+  createPhysicsDataForTile(tile, physicsData = {}) {
+    const objectGroup = tile.objectGroup;
+    let polygonList = [];
+    const layerID = physicsData.id?.value || 0;
+
+    if (objectGroup) {
+      const center = new Vector2({
+        x: tile.width / 2,
+        y: tile.height / 2,
+      });
+
+      for (const tiledObject of objectGroup.objects) {
+        const shape = tiledObject.shape;
+
+        if (shape != MapObject.Rectangle && shape != MapObject.Polygon) {
+          tiled.warn("Godot exporter only supports collisions that are rectangles or polygons.");
+          continue;
+        }
+
+        const polygonLayerID = tiledObject.resolvedProperty("physics_layer_id")?.value || 0;
+
+        if (polygonLayerID != layerID) continue;
+
+        let pointList = [];
+
+        switch (shape) {
+          case MapObject.Rectangle:
+            const rect = {
+              topLeft: {
+                x: tiledObject.x - center.x,
+                y: tiledObject.y - center.y,
+              },
+              botomRight: {
+                x: tiledObject.x + tiledObject.width - center.x,
+                y: tiledObject.y + tiledObject.height - center.y,
+              },
+            };
+
+            pointList.push(rect.topLeft.x, rect.topLeft.y, rect.botomRight.x, rect.topLeft.y, rect.botomRight.x, rect.botomRight.y, rect.topLeft.x, rect.botomRight.y);
+            break;
+          case MapObject.Polygon:
+            for (const polygonPoint of tiledObject.polygon) {
+              const point = {
+                x: tiledObject.x + polygonPoint.x - center.x,
+                y: tiledObject.y + polygonPoint.y - center.y,
+              }
+
+              pointList.push(point.x, point.y);
+            }
+            break;
+          default:
+            break;
+        }
+
+        const polygon = new Polygon({ pointList });
+        polygonList.push(polygon);
+      }
+    }
+
+    const angularVelocity = physicsData.angular_velocity || 0;
+
+    const linearVelocity = new Vector2({
+      x: physicsData.linear_velocity?.value?.x || 0,
+      y: physicsData.linear_velocity?.value?.y || 0,
+    });
+
+    return new PhysicsData({
+      angularVelocity,
+      linearVelocity,
+      polygonList,
+      id: layerID,
+    });
   }
 
   /**
