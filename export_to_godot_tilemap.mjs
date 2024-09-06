@@ -18,6 +18,7 @@ import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
 import { GDTileset } from './models/tileset.mjs';
 import { Vector2 } from './models/vector2.mjs';
+import { CanvasItem } from './models/canvas_item.mjs';
 
 /**
  * @class GodotTilemapExporter
@@ -160,10 +161,15 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleObjectGroup(objectGroup, groups, owner) {
-    const node = new GDNode({
-      name: objectGroup.name,
-      owner,
-      groups,
+    const node = new Node2D({
+      canvasItem: {
+        zIndex: objectGroup.property(`${prefix}z_index`),
+        node: {
+          name: objectGroup.name,
+          owner,
+          groups,
+        },
+      },
     });
     this.scene.nodeList.push(node);
 
@@ -186,10 +192,17 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleGroupLayer(groupLayer, groups, owner) {
-    const node = new GDNode({
-      name: groupLayer.name,
-      owner,
-      groups,
+    const zIndex = groupLayer.property(`${prefix}z_index`);
+    
+    const node = new Node2D({
+      canvasItem: {
+        zIndex,
+        node: {
+          name: groupLayer.name,
+          owner,
+          groups,
+        },
+      },
     });
     this.scene.nodeList.push(node);
 
@@ -563,7 +576,7 @@ class GodotTilemapExporter {
    * @param {string} tilesetName - The name of the tileset.
    * @param {Array<number>} tilemapData - The tilemap data.
    * @param {string[]} groups - The groups this layer is part of.
-   * @param {GDNode} owner - The owner node.
+   * @param {CanvasItem} owner - The owner node.
    */
   createTileMapLayerNode(tileLayer, tilesetName, tilemapData, groups, owner) {
     const scriptPath = tileLayer.property(`${prefix}script`);
@@ -574,6 +587,8 @@ class GodotTilemapExporter {
       script = this.registerScript(scriptPath, scriptPropertyMap);
     }
 
+    const zIndex = owner?.zIndex ?? tileLayer.property(`${prefix}z_index`);
+
     const node = new TileMapLayer({
       tileset: this.getTilesetByName(tilesetName),
       tileMapData: new PackedByteArray({
@@ -581,7 +596,7 @@ class GodotTilemapExporter {
       }),
       node2D: {
         canvasItem: {
-          zIndex: tileLayer.property(`${prefix}z_index`),
+          zIndex,
           node: {
             name: `${tileLayer.name}_${tilesetName}`,
             owner,
