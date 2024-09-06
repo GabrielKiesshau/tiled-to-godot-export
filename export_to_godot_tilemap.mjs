@@ -618,6 +618,12 @@ class GodotTilemapExporter {
             formattedValue = `Vector2i(${value.value.x}, ${value.value.y})`;
             break;
           case 'Resource':
+            if (!value.value.path) {
+              const scriptPath = tiledObject.property(`${prefix}script`).value;
+              tiled.log(`Ignoring property of ${tiledObject.className}'s ${scriptPath} because it is blank.`);
+              break;
+            }
+
             const resource = this.registerResource(value.value.path);
             formattedValue = `ExtResource("${resource.id}")`;
             break;
