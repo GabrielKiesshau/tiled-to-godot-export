@@ -23,7 +23,7 @@ export class Node {
     groups = [],
     script = null,
   } = {}) {
-    this.name = name;
+    this.name = name || "Node";
     this.owner = owner;
     this.groups = groups;
     this.type = "Node";
