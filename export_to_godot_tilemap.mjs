@@ -1,4 +1,4 @@
-import { getFileName, getResPath, splitCommaSeparatedString, getTilesetColumns, getAreaCenter, getRotation, roundToDecimals } from './utils.mjs';
+import { getAreaCenter, getFileName, getRotation, getTilesetColumns, isTileUnused, roundToDecimals, splitCommaSeparatedString } from './utils.mjs';
 import { prefix } from './constants.mjs';
 import { Area2D } from './models/area_2d.mjs';
 import { CircleShape2D } from './models/circle_shape_2d.mjs';
@@ -135,6 +135,7 @@ class GodotTilemapExporter {
         if (cell.empty) continue;
 
         const tile = tileLayer.tileAt(x, y);
+        if (isTileUnused(tile)) continue;
         const tilesetName = tile.tileset.name;
 
         //* Initialize tilemapData if not already done
