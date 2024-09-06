@@ -58,7 +58,7 @@ export class GDTileset extends Resource {
 
     this.physicsLayerList.forEach((physicsLayer, i) => {
       properties[`physics_layer_${i}/collision_layer`] = physicsLayer.collisionLayer;
-      properties[`physics_layer_${i}/collision_mask`] = physicsLayer.collisionMask;
+      properties[`physics_layer_${i}/collision_mask`] = checkDefault(physicsLayer.collisionMask, 1);
     });
 
     this.customDataLayerList.forEach((customDataLayer, i) => {
