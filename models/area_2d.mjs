@@ -14,6 +14,7 @@ export class Area2D extends CollisionObject2D {
     collisionObject2D = {
       node2D: {
         canvasItem: {
+          zIndex: 0,
           node: {
             name: "Area2D",
           },

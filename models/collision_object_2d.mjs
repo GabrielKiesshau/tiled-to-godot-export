@@ -18,6 +18,7 @@ export class CollisionObject2D extends Node2D {
     collisionMask = 1,
     node2D = {
       canvasItem: {
+        zIndex: 0,
         node: {
           name: "CollisionObject2D",
         },

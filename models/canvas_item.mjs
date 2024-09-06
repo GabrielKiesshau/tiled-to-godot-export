@@ -1,3 +1,4 @@
+import { checkDefault } from '../utils.mjs';
 import { Node as GDNode } from './node.mjs';
 
 /**
@@ -11,11 +12,21 @@ export class CanvasItem extends GDNode {
    * @param {GDNode} [props.node]
    */
   constructor({
+    zIndex = 0,
     node = {
       name: "CanvasItem",
     },
   } = {}) {
     super(node);
+    this.zIndex = zIndex;
     this.type = "CanvasItem";
+  }
+
+  getProperties() {
+    var properties = {};
+
+    properties.z_index = checkDefault(this.zIndex, 0);
+
+    return properties;
   }
 }

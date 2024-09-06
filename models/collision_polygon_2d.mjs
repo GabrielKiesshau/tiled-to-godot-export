@@ -20,6 +20,7 @@ export class CollisionPolygon2D extends Node2D {
     polygon = "",
     node2D = {
       canvasItem: {
+        zIndex: 0,
         node: {
           name: "CollisionPolygon2D",
         },

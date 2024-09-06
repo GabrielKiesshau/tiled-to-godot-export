@@ -40,7 +40,7 @@ export class Node2D extends CanvasItem {
   }
 
   getProperties() {
-    var properties = {};
+    var properties = super.getProperties();
 
     properties.position = checkDefault(this.position, new Vector2({x: 0, y: 0}));
     properties.rotation = checkDefault(this.rotation, 0);

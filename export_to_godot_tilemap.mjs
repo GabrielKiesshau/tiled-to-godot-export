@@ -118,6 +118,10 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleTileLayer(tileLayer, groups, owner) {
+    if (tileLayer.resolvedProperty(`${prefix}ignore`)) {
+      return;
+    }
+
     // const isIsometric = this.map.orientation === TileMap.Isometric;
     // const mode = isIsometric ? 1 : undefined;
 
@@ -242,6 +246,7 @@ class GodotTilemapExporter {
         node2D: {
           position: mapObjectPosition,
           canvasItem: {
+            zIndex: mapObject.property(`${prefix}z_index`),
             node: {
               name: mapObject.name,
               owner,
@@ -314,6 +319,7 @@ class GodotTilemapExporter {
           position: center,
           rotation: getRotation(mapObject.rotation),
           canvasItem: {
+            zIndex: mapObject.property(`${prefix}z_index`),
             node: {
               name: mapObject.name,
               owner,
@@ -338,6 +344,7 @@ class GodotTilemapExporter {
       shape: rectangleShape,
       node2D: {
         canvasItem: {
+          zIndex: mapObject.property(`${prefix}z_index`),
           node: {
             owner: area2DNode,
             groups: shapeGroupList,
@@ -383,6 +390,7 @@ class GodotTilemapExporter {
           position: center,
           rotation: getRotation(mapObject.rotation),
           canvasItem: {
+            zIndex: mapObject.property(`${prefix}z_index`),
             node: {
               name: mapObject.name,
               owner,
@@ -408,6 +416,7 @@ class GodotTilemapExporter {
       polygon: polygon,
       node2D: {
         canvasItem: {
+          zIndex: mapObject.property(`${prefix}z_index`),
           node: {
             owner: area2DNode,
             groups: shapeGroupList,
@@ -453,6 +462,7 @@ class GodotTilemapExporter {
           position: center,
           rotation: getRotation(mapObject.rotation),
           canvasItem: {
+            zIndex: mapObject.property(`${prefix}z_index`),
             node: {
               name: mapObject.name,
               owner,
@@ -477,6 +487,7 @@ class GodotTilemapExporter {
       shape: circleShape,
       node2D: {
         canvasItem: {
+          zIndex: mapObject.property(`${prefix}z_index`),
           node: {
             owner: area2DNode,
             groups: shapeGroupList,
@@ -512,6 +523,7 @@ class GodotTilemapExporter {
       position: position,
       rotation: getRotation(mapObject.rotation),
       canvasItem: {
+        zIndex: mapObject.property(`${prefix}z_index`),
         node: {
           name,
           owner,
@@ -568,6 +580,7 @@ class GodotTilemapExporter {
       }),
       node2D: {
         canvasItem: {
+          zIndex: tileLayer.property(`${prefix}z_index`),
           node: {
             name: `${tileLayer.name}_${tilesetName}`,
             owner,

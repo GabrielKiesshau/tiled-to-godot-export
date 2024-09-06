@@ -34,7 +34,10 @@ export class TileMapLayer extends Node2D {
     ySortOrigin = 0,
     node2D = {
       canvasItem: {
-        name: "TileMapLayer",
+        zIndex: 0,
+        node: {
+          name: "TileMapLayer",
+        },
       },
     },
   } = {}) {
