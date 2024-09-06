@@ -21,7 +21,9 @@ export class GDObject {
     this.id = 0;
     this.type = "Object";
     this.script = script;
+    /** @type {Resource[]} */
     this.externalResourceList = [];
+    /** @type {Resource[]} */
     this.subResourceList = [];
     this.currentExternalResourceID = 0;
     this.currentSubResourceID = 0;
@@ -33,6 +35,7 @@ export class GDObject {
    */
   addExternalResource(resource) {
     resource.id = this.currentExternalResourceID;
+    tiled.log(`Adding external resource: "${resource.name}", Type: ${resource.type}, ID: ${resource.id}`);
     this.externalResourceList.push(resource)
     this.currentExternalResourceID++;
 
@@ -45,6 +48,7 @@ export class GDObject {
    */
   addSubResource(resource) {
     resource.id = this.currentSubResourceID;
+    tiled.log(`Adding subresource: "${resource.name}", Type: ${resource.type}, ID: ${resource.id}`);
     this.subResourceList.push(resource)
     this.currentSubResourceID++;
   }
@@ -69,6 +73,7 @@ export class GDObject {
     let externalResourceListString = "\n";
 
     for (const resource of this.externalResourceList) {
+      tiled.log(`Serializing: ${resource.name}, Type: ${resource.type}, Path: ${resource.path}, ID: ${resource.id}`);
       externalResourceListString += resource.serializeAsExternalResource();
     }
 
