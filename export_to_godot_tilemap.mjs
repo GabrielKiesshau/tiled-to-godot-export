@@ -569,7 +569,7 @@ class GodotTilemapExporter {
       node2D: {
         canvasItem: {
           node: {
-            name: tileLayer.name,
+            name: `${tileLayer.name}_${tilesetName}`,
             owner,
             groups,
             script,
