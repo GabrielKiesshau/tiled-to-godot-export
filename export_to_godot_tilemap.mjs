@@ -97,6 +97,7 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleLayer(layer, owner) {
+    tiled.log(`Handling layer ${layer.name}`);
     const groups = splitCommaSeparatedString(layer.property(`${prefix}groups`));
 
     if (layer.isTileLayer) {
@@ -171,7 +172,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(node);
+    this.scene.registerNode(node);
 
     for (const mapObject of objectGroup.objects) {
       const mapObjectGroups = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
@@ -204,7 +205,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(node);
+    this.scene.registerNode(node);
 
     for (const layer of groupLayer.layers) {
       this.handleLayer(layer, node);
@@ -270,7 +271,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(node);
+    this.scene.registerNode(node);
   }
 
   /**
@@ -344,7 +345,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(area2DNode);
+    this.scene.registerNode(area2DNode);
 
     const rectangleShape = new RectangleShape2D({
       size: size,
@@ -366,7 +367,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(collisionShape2DNode);
+    this.scene.registerNode(collisionShape2DNode);
   }
   
   /**
@@ -415,7 +416,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(area2DNode);
+    this.scene.registerNode(area2DNode);
 
     const polygonPointsArray = mapObject.polygon.map(point => new Vector2({ x: point.x, y: point.y }));
 
@@ -438,7 +439,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(collisionPolygon2DNode);
+    this.scene.registerNode(collisionPolygon2DNode);
   }
 
   /**
@@ -487,7 +488,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(area2DNode);
+    this.scene.registerNode(area2DNode);
 
     const circleShape = new CircleShape2D({
       radius: radius.toFixed(2).replace(/\.?0+$/, ""),
@@ -509,7 +510,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(collisionShape2DNode);
+    this.scene.registerNode(collisionShape2DNode);
   }
 
   /**
@@ -546,7 +547,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(node);
+    this.scene.registerNode(node);
   }
 
   /**
@@ -606,7 +607,7 @@ class GodotTilemapExporter {
         },
       },
     });
-    this.scene.nodeList.push(node);
+    this.scene.registerNode(node);
   }
 
   /**

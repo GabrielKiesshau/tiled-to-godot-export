@@ -24,6 +24,14 @@ export class PackedScene extends GDObject {
   }
 
   /**
+   * 
+   * @param {GDNode} node - 
+   */
+  registerNode(node) {
+    this.nodeList.push(node);
+  }
+
+  /**
    * Serializes the object as a Godot file.
    *
    * @param {TileMap} map - The tiled map to export.
