@@ -1,4 +1,5 @@
 import { stringifyKeyValue } from '../utils.mjs';
+import { Script } from './script.mjs';
 
 /**
  * Represents a generic node in a scene graph.
@@ -21,12 +22,14 @@ export class Node {
     name = "Node",
     owner = null,
     groups = [],
+    /** @type {Script} */
     script = null,
   } = {}) {
     this.name = name || "Node";
     this.owner = owner;
     this.groups = groups;
     this.type = "Node";
+    /** @type {Script} */
     this.script = script;
   }
 
@@ -67,15 +70,16 @@ export class Node {
 
     if (this.script) {
       nodeString += `\nscript = ExtResource("${this.script.id}")`;
-      
-      for (let [key, value] of Object.entries(this.script.getProperties())) {
-        if (value === undefined || value === null) continue;
-  
+
+      this.script.getProperties().forEach((value, key) => {
+        if (value === undefined || value === null) return;
+        
+        key = key.substring(1);
         const keyValue = stringifyKeyValue(key, value, false, false, true);
         nodeString += `\n${keyValue}`;
-      }
+      });
     }
-  
+
     return `${nodeString}\n`;
   }
 

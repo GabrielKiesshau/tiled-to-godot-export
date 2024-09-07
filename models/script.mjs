@@ -7,6 +7,7 @@ import { Resource } from './resource.mjs';
  */
 export class Script extends Resource {
   constructor({
+    /** @type {Map<string, any>} */
     properties = new Map(),
     resource = {
       name: "Script",
@@ -14,6 +15,7 @@ export class Script extends Resource {
     },
   } = {}) {
     super(resource);
+    /** @type {Map<string, any>} */
     this.properties = properties;
     this.type = "Script";
   }
