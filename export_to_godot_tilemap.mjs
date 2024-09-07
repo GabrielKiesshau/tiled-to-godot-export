@@ -97,7 +97,6 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleLayer(layer, owner) {
-    tiled.log(`Handling layer ${layer.name}`);
     const groups = splitCommaSeparatedString(layer.property(`${prefix}groups`));
 
     if (layer.isTileLayer) {
