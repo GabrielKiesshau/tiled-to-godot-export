@@ -5,11 +5,12 @@
 export class PackedByteArray {
   /**
    * @param {Object} [props]
-   * @param {int[]} [props.array]
+   * @param {number[]} [props.array]
    */
   constructor({
     array = [],
   } = {}) {
+    /** @type {number[]} */
     this.array = array;
   }
 

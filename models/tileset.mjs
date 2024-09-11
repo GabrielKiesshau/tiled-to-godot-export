@@ -11,13 +11,19 @@ import { Vector2i } from './vector2.mjs';
 /**
 * Represents a collection of tiles used in a TileMapLayer.
 * @class Tileset
- * @property {TileLayout} tileLayout - 
- * @property {TileOffsetAxis} tileOffsetAxis - 
- * @property {TileShape} tileShape - 
- * @property {Vector2i} tileSize - 
- * @property {boolean} uvClipping - 
 */
 export class GDTileset extends Resource {
+  /**
+   * @param {Object} [props]
+   * @param {TileLayout} [props.tileLayout]
+   * @param {TileOffsetAxis} [props.tileOffsetAxis]
+   * @param {TileShape} [props.tileShape]
+   * @param {Vector2i} [props.tileSize]
+   * @param {boolean} [props.uvClipping]
+   * @param {TileSetAtlasSource} [props.tilesetSource]
+   * @param {PhysicsLayer[]} [props.physicsLayerList]
+   * @param {CustomDataLayer[]} [props.customDataLayerList]
+   */
   constructor({
     tileLayout = TileLayout.Stacked,
     tileOffsetAxis = TileOffsetAxis.Horizontal,
@@ -33,10 +39,15 @@ export class GDTileset extends Resource {
     },
   } = {}) {
     super(resource);
+    /** @type {TileLayout} */
     this.tileLayout = tileLayout;
+    /** @type {TileOffsetAxis} */
     this.tileOffsetAxis = tileOffsetAxis;
+    /** @type {TileShape} */
     this.tileShape = tileShape;
+    /** @type {Vector2i} */
     this.tileSize = tileSize;
+    /** @type {boolean} */
     this.uvClipping = uvClipping;
     /** @type {TileSetAtlasSource} */
     this.tilesetSource = tilesetSource;
@@ -44,6 +55,7 @@ export class GDTileset extends Resource {
     this.physicsLayerList = physicsLayerList;
     /** @type {CustomDataLayer[]} */
     this.customDataLayerList = customDataLayerList;
+    /** @type {string} */
     this.type = "TileSet";
   }
 

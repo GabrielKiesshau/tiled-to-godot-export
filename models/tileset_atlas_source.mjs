@@ -1,19 +1,22 @@
 import { checkDefault } from '../utils.mjs';
 import { Resource } from './resource.mjs';
+import { Texture2D } from './texture_2d.mjs';
 import { TileData } from './tile_data.mjs';
 import { Vector2, Vector2i } from './vector2.mjs';
 
 /**
 * Represents a TileSetAtlasSource.
 * @class TileSetAtlasSource
- * @property {TileLayout} margins - 
- * @property {TileOffsetAxis} separation - 
- * @property {Texture2D} texture - 
- * @property {Vector2i} textureRegionSize - 
- * @property {boolean} useTexturePadding - 
- * @property {TileData[]} tileDataList - 
 */
 export class TileSetAtlasSource extends Resource {
+  /**
+   * @param {Object} [props]
+   * @param {Vector2i} [props.margins]
+   * @param {TileOffsetAxis} [props.separation]
+   * @param {Texture2D} [props.texture]
+   * @param {Vector2i} [props.textureRegionSize]
+   * @param {boolean} [props.useTexturePadding]
+   */
   constructor({
     margins = new Vector2i({x: 0, y: 0}),
     separation = new Vector2i({x: 0, y: 0}),
@@ -25,13 +28,19 @@ export class TileSetAtlasSource extends Resource {
     },
   } = {}) {
     super(resource);
+    /** @type {TileLayout} */
     this.margins = margins;
+    /** @type {TileOffsetAxis} */
     this.separation = separation;
+    /** @type {Texture2D} */
     this.texture = texture;
+    /** @type {Vector2i} */
     this.textureRegionSize = textureRegionSize;
+    /** @type {boolean} */
     this.useTexturePadding = useTexturePadding;
     /** @type {TileData[]} */
     this.tileDataList = [];
+    /** @type {string} */
     this.type = "TileSetAtlasSource";
   }
 

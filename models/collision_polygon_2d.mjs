@@ -28,8 +28,11 @@ export class CollisionPolygon2D extends Node2D {
     },
   } = {}) {
     super(node2D);
+    /** @type {PolygonBuildMode} */
     this.buildMode = buildMode;
+    /** @type {PackedVector2Array} */
     this.polygon = polygon;
+    /** @type {string} */
     this.type = "CollisionPolygon2D";
   }
 

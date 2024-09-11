@@ -6,11 +6,18 @@ import { Vector2i } from './vector2.mjs';
  * @class TileData
  */
 export class TileData {
+  /**
+   * @param {Object} [props]
+   * @param {Vector2i} [props.position]
+   * @param {PhysicsData[]} [props.physicsDataList]
+   * @param {CustomData[]} [props.customDataList]
+   */
   constructor({
     position = new Vector2i({ x: 0, y: 0 }),
     physicsDataList = [],
     customDataList = [],
   } = {}) {
+    /** @type {Vector2i} */
     this.position = position;
     /** @type {PhysicsData[]} */
     this.physicsDataList = physicsDataList;

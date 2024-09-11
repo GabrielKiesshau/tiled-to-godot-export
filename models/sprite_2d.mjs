@@ -6,10 +6,6 @@ import { Node2D } from './node_2d.mjs';
  * @extends Node2D
  */
 export class Sprite2D extends Node2D {
-  /**
-   * @param {Object} [props]
-   * @param {Node2D} [props.node2D]
-   */
   constructor({
     node2D = {
       canvasItem: {
@@ -21,6 +17,7 @@ export class Sprite2D extends Node2D {
     },
   } = {}) {
     super(node2D);
+    /** @type {string} */
     this.type = "Sprite2D";
   }
 }

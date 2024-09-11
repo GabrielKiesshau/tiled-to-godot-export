@@ -18,7 +18,9 @@ export class CanvasItem extends GDNode {
     },
   } = {}) {
     super(node);
+    /** @type {number} */
     this.zIndex = zIndex;
+    /** @type {string} */
     this.type = "CanvasItem";
   }
 

@@ -24,7 +24,9 @@ export class CollisionShape2D extends Node2D {
     },
   } = {}) {
     super(node2D);
+    /** @type {Shape2D} */
     this.shape = shape;
+    /** @type {string} */
     this.type = "CollisionShape2D";
   }
 

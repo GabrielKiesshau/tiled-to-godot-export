@@ -1,15 +1,20 @@
 /**
  * Represents a 2D vector.
- * @typedef {Object} Vector2
- * @property {number} x - The X-coordinate of the vector.
- * @property {number} y - The Y-coordinate of the vector.
+ * @class Vector2
  */
 export class Vector2 {
+  /**
+   * @param {Object} [props]
+   * @param {number} [props.x]
+   * @param {number} [props.y]
+   */
   constructor({
     x = 0,
     y = 0,
   } = {}) {
+    /** @type {number} */
     this.x = x;
+    /** @type {number} */
     this.y = y;
   }
 
@@ -29,16 +34,21 @@ export class Vector2 {
 
 /**
  * Represents a 2D vector.
- * @typedef {Object} Vector2i
- * @property {number} x - The X-coordinate of the vector.
- * @property {number} y - The Y-coordinate of the vector.
+ * @class Vector2i
  */
 export class Vector2i {
+  /**
+   * @param {Object} [props]
+   * @param {number} [props.x]
+   * @param {number} [props.y]
+   */
   constructor({
     x = 0,
     y = 0,
   } = {}) {
+    /** @type {number} */
     this.x = x;
+    /** @type {number} */
     this.y = y;
   }
 

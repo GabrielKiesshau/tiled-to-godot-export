@@ -17,7 +17,9 @@ export class CircleShape2D extends Shape2D {
     shape2D = { },
   } = {}) {
     super(shape2D);
+    /** @type {number} */
     this.radius = radius;
+    /** @type {string} */
     this.type = "CircleShape2D";
   }
 

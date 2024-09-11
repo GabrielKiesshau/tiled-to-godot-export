@@ -4,18 +4,23 @@ import { GDObject } from './gd_object.mjs';
 /**
  * Represents a resource.
  * @class Resource
- * 
- * @property {string} name - 
- * @property {string} path - 
  */
 export class Resource extends GDObject {
+  /**
+   * @param {Object} [props]
+   * @param {string} [props.name]
+   * @param {string} [props.path]
+   */
   constructor({
     name = "",
     path = "",
   } = {}) {
     super();
+    /** @type {string} */
     this.name = name;
+    /** @type {string} */
     this.type = "Resource";
+    /** @type {string} */
     this.path = path;
   }
 

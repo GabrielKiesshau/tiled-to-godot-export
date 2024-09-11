@@ -2,24 +2,28 @@ import { checkDefault } from '../utils.mjs';
 import { DebugVisibilityMode } from '../enums/debug_visibility_mode.mjs';
 import { Node2D } from './node_2d.mjs';
 import { PackedByteArray } from './packed_byte_array.mjs';
+import { GDTileset } from './tileset.mjs';
 
 /**
  * Represents a layer within a TileMap.
  * @class TileMapLayer
  * @extends Node2D
- * @property {boolean} collisionEnabled - Whether collision detection is enabled for this layer.
- * @property {DebugVisibilityMode} collisionVisibilityMode - The mode for collision visibility.
- * @property {boolean} enabled - Whether the layer is enabled for rendering.
- * @property {boolean} navigationEnabled - Whether navigation is enabled for this layer.
- * @property {DebugVisibilityMode} navigationVisibilityMode - The mode for navigation visibility.
- * @property {number} renderingQuadrantSize - The size of the rendering quadrant for this layer.
- * @property {PackedByteArray} tileMapData - The tilemap data of this this layer.
- * @property {GDTileset} tileset - The tileset associated with this layer.
- * @property {boolean} useKinematicBodies - Whether to use kinematic bodies for collision.
- * @property {boolean} xDrawOrderReversed - 
- * @property {number} ySortOrigin - The Y-coordinate origin used for Y-sorting.
  */
 export class TileMapLayer extends Node2D {
+  /**
+   * @param {Object} [props]
+   * @param {boolean} [props.collisionEnabled] - Whether collision detection is enabled for this layer.
+   * @param {DebugVisibilityMode} [props.collisionVisibilityMode] - The mode for collision visibility.
+   * @param {boolean} [props.enabled] - Whether the layer is enabled for rendering.
+   * @param {boolean} [props.navigationEnabled] - Whether navigation is enabled for this layer.
+   * @param {DebugVisibilityMode} [props.navigationVisibilityMode] - The mode for navigation visibility.
+   * @param {number} [props.renderingQuadrantSize] - The size of the rendering quadrant for this layer.
+   * @param {PackedByteArray} [props.tileMapData] - The tilemap data of this this layer.
+   * @param {GDTileset} [props.tileset] - The tileset associated with this layer.
+   * @param {boolean} [props.useKinematicBodies] - Whether to use kinematic bodies for collision.
+   * @param {boolean} [props.xDrawOrderReversed] - 
+   * @param {number} [props.ySortOrigin] - The Y-coordinate origin used for Y-sorting.
+   */
   constructor({
     collisionEnabled = true,
     collisionVisibilityMode = DebugVisibilityMode.Default,
@@ -42,17 +46,29 @@ export class TileMapLayer extends Node2D {
     },
   } = {}) {
     super(node2D);
+    /** @type {boolean} */
     this.collisionEnabled = collisionEnabled;
+    /** @type {DebugVisibilityMode} */
     this.collisionVisibilityMode = collisionVisibilityMode;
+    /** @type {boolean} */
     this.enabled = enabled;
+    /** @type {boolean} */
     this.navigationEnabled = navigationEnabled;
+    /** @type {DebugVisibilityMode} */
     this.navigationVisibilityMode = navigationVisibilityMode;
+    /** @type {number} */
     this.renderingQuadrantSize = renderingQuadrantSize;
+    /** @type {PackedByteArray} */
     this.tileMapData = tileMapData;
+    /** @type {GDTileset} */
     this.tileset = tileset;
+    /** @type {boolean} */
     this.useKinematicBodies = useKinematicBodies;
+    /** @type {boolean} */
     this.xDrawOrderReversed = xDrawOrderReversed;
+    /** @type {number} */
     this.ySortOrigin = ySortOrigin;
+    /** @type {string} */
     this.type = "TileMapLayer";
   }
 

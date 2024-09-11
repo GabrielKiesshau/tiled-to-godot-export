@@ -12,6 +12,7 @@ export class PackedVector2Array {
   constructor({
     array = [],
   } = {}) {
+    /** @type {Vector2[]} */
     this.array = array;
   }
 

@@ -26,8 +26,11 @@ export class CollisionObject2D extends Node2D {
     },
   } = {}) {
     super(node2D);
+    /** @type {number} */
     this.collisionLayer = collisionLayer;
+    /** @type {number} */
     this.collisionMask = collisionMask;
+    /** @type {string} */
     this.type = "CollisionObject2D";
   }
 

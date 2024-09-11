@@ -23,6 +23,7 @@ export class Area2D extends CollisionObject2D {
     },
   } = {}) {
     super(collisionObject2D);
+    /** @type {string} */
     this.type = "Area2D";
   }
 }

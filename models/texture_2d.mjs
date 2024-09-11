@@ -12,6 +12,7 @@ export class Texture2D extends Resource {
     },
   } = {}) {
     super(resource);
+    /** @type {string} */
     this.type = "Texture2D";
   }
 }

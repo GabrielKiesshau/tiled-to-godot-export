@@ -1,15 +1,9 @@
 import { Resource } from './resource.mjs';
+import { Script } from './script.mjs';
 
 /**
  * Represents a Godot Object.
  * @class GDObject
- * 
- * @property {number} id - 
- * @property {Script} script - The script of this object.
- * @property {Resource[]} externalResourceList - List of external resources.
- * @property {Resource[]} subResourceList - List of subresources.
- * @property {number} currentExternalResourceID - ID of the current external resource.
- * @property {number} currentSubResourceID - ID of the current subresource.
  */
 export class GDObject {
   /**
@@ -18,14 +12,19 @@ export class GDObject {
   constructor({
     script = null,
   } = { }) {
+    /** @type {number} */
     this.id = 0;
+    /** @type {string} */
     this.type = "Object";
+    /** @type {Script} */
     this.script = script;
     /** @type {Resource[]} */
     this.externalResourceList = [];
     /** @type {Resource[]} */
     this.subResourceList = [];
+    /** @type {number} */
     this.currentExternalResourceID = 0;
+    /** @type {number} */
     this.currentSubResourceID = 0;
   }
 

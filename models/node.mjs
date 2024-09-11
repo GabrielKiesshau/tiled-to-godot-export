@@ -4,11 +4,6 @@ import { Script } from './script.mjs';
 /**
  * Represents a generic node in a scene graph.
  * @class Node
- * @property {string} name - The name of the node.
- * @property {Node} owner - The parent of this node.
- * @property {string} type - The type of this node.
- * @property {string[]} groups - The groups this node is part of.
- * @property {Script} script - The script of this node.
  */
 export class Node {
   /**
@@ -22,12 +17,15 @@ export class Node {
     name = "Node",
     owner = null,
     groups = [],
-    /** @type {Script} */
     script = null,
   } = {}) {
+    /** @type {string} */
     this.name = name || "Node";
+    /** @type {Node} */
     this.owner = owner;
+    /** @type {string[]} */
     this.groups = groups;
+    /** @type {string} */
     this.type = "Node";
     /** @type {Script} */
     this.script = script;
