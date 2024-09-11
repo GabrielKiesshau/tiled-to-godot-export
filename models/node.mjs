@@ -25,10 +25,9 @@ export class Node {
     this.owner = owner;
     /** @type {string[]} */
     this.groups = groups;
-    /** @type {string} */
-    this.type = "Node";
-    /** @type {Script} */
+
     this.script = script;
+    this.type = "Node";
   }
 
   getProperties() {
