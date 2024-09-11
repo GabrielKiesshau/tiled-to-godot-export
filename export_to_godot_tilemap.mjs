@@ -161,7 +161,7 @@ class GodotTilemapExporter {
   handleObjectGroup(objectGroup, groups, owner) {
     const node = new Node2D();
     node.zIndex = objectGroup.property(`${prefix}z_index`);
-    node.name = objectGroup.name;
+    node.setName(objectGroup.name);
     node.owner = owner;
     node.groups = groups;
 
@@ -191,7 +191,7 @@ class GodotTilemapExporter {
     
     const node = new Node2D();
     node.zIndex = zIndex;
-    node.name = groupLayer.name;
+    node.setName(groupLayer.name);
     node.owner = owner;
     node.groups = groups;
 
@@ -250,7 +250,7 @@ class GodotTilemapExporter {
     });
     node.position = mapObjectPosition;
     node.zIndex = mapObject.property(`${prefix}z_index`);
-    node.name = mapObject.name;
+    node.setName(mapObject.name);
     node.owner = owner;
     node.groups = groups;
 
@@ -317,7 +317,7 @@ class GodotTilemapExporter {
     area2DNode.position = center;
     area2DNode.rotation = getRotation(mapObject.rotation);
     area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    area2DNode.name = mapObject.name;
+    area2DNode.setName(mapObject.name);
     area2DNode.owner = owner;
     area2DNode.groups = groups;
     area2DNode.script = script;
@@ -372,7 +372,7 @@ class GodotTilemapExporter {
     area2DNode.position = center;
     area2DNode.rotation = getRotation(mapObject.rotation);
     area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    area2DNode.name = mapObject.name;
+    area2DNode.setName(mapObject.name);
     area2DNode.owner = owner;
     area2DNode.groups = groups;
     area2DNode.script = script;
@@ -432,7 +432,7 @@ class GodotTilemapExporter {
     area2DNode.position = center;
     area2DNode.rotation = getRotation(mapObject.rotation);
     area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    area2DNode.name = mapObject.name;
+    area2DNode.setName(mapObject.name);
     area2DNode.owner = owner;
     area2DNode.groups = groups;
     area2DNode.script = script;
@@ -480,7 +480,7 @@ class GodotTilemapExporter {
       rotation: getRotation(mapObject.rotation),
     });
     node.zIndex = mapObject.property(`${prefix}z_index`);
-    node.name = name;
+    node.setName(name);
     node.owner = owner;
     node.groups = groups;
     node.script = script;
@@ -537,7 +537,7 @@ class GodotTilemapExporter {
       }),
     });
     node.zIndex = zIndex;
-    node.name = `${tileLayer.name}_${tilesetName}`;
+    node.setName(`${tileLayer.name}_${tilesetName}`);
     node.owner = owner;
     node.groups = groups;
     node.script = script;

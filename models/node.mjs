@@ -29,6 +29,17 @@ export class Node extends GDObject {
     super.type = "Node";
   }
 
+  /**
+   * Sets the name of this node only if the name isn't empty, null or undefined.
+   * 
+   * @param {string} name - The new name to set.
+   */
+  setName(name) {
+    if (name && name.trim()) {
+      this.name = name;
+    }
+  }
+
   getProperties() {
     return {
       script: this.script ? `ExtResource("${this.script.id}")` : null,
@@ -84,6 +95,7 @@ export class Node extends GDObject {
 
   /**
    * Determines the ownership chain of the node and returns a string.
+   * 
    * @returns {string}
    */
   getOwnershipChain() {
