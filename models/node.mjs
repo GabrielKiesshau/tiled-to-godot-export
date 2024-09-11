@@ -1,33 +1,32 @@
 import { stringifyKeyValue } from '../utils.mjs';
-import { Script } from './script.mjs';
+import { GDObject } from './gd_object.mjs';
 
 /**
  * Represents a generic node in a scene graph.
  * @class Node
  */
-export class Node {
+export class Node extends GDObject {
   /**
    * @param {Object} [props]
    * @param {string} [props.name]
    * @param {Node} [props.owner]
    * @param {string[]} [props.groups]
-   * @param {Script} [props.script]
    */
   constructor({
     name = "Node",
     owner = null,
     groups = [],
-    script = null,
   } = {}) {
-    /** @type {string} */
+    super();
+
+    /** @type {string} - The name of the node. */
     this.name = name || "Node";
-    /** @type {Node} */
+    /** @type {Node} - The owner of this node. */
     this.owner = owner;
     /** @type {string[]} */
     this.groups = groups;
 
-    this.script = script;
-    this.type = "Node";
+    super.type = "Node";
   }
 
   getProperties() {

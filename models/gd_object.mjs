@@ -1,5 +1,7 @@
-import { Resource } from './resource.mjs';
-import { Script } from './script.mjs';
+/**
+ * @typedef {import('./resource.mjs').Resource} Resource
+ * @typedef {import('./script.mjs').Script} Script
+ */
 
 /**
  * Represents a Godot Object.
@@ -14,7 +16,7 @@ export class GDObject {
   } = { }) {
     /** @type {number} */
     this.id = 0;
-    /** @type {string} */
+    /** @type {string} - The node type */
     this.type = "Object";
     /** @type {Script} */
     this.script = script;
