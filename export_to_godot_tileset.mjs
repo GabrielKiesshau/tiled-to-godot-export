@@ -15,8 +15,6 @@ import { Polygon } from './models/polygon.mjs';
 
 /**
  * @class GodotTilesetExporter
- * @property {Tileset} tileset - The tileset to export.
- * @property {string} fileName - Path of the file the tileset should be exported to.
  */
 class GodotTilesetExporter {
   /**
@@ -25,7 +23,9 @@ class GodotTilesetExporter {
    * @param {string} [fileName] - Path of the file the tileset should be exported to.
    */
   constructor(tileset, fileName) {
+    /** @type {Tileset} - The tileset to export. */
     this.tileset = tileset;
+    /** @type {string} - Path of the file the tileset should be exported to. */
     this.fileName = fileName;
   };
 
