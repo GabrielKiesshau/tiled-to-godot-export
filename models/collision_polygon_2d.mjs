@@ -13,27 +13,20 @@ export class CollisionPolygon2D extends Node2D {
    * @param {Object} [props]
    * @param {PolygonBuildMode} [props.buildMode]
    * @param {PackedVector2Array} [props.polygon]
-   * @param {Node2D} [props.node2D]
    */
   constructor({
     buildMode = PolygonBuildMode.Polygon,
     polygon = "",
-    node2D = {
-      canvasItem: {
-        zIndex: 0,
-        node: {
-          name: "CollisionPolygon2D",
-        },
-      },
-    },
   } = {}) {
-    super(node2D);
+    super();
     /** @type {PolygonBuildMode} */
     this.buildMode = buildMode;
     /** @type {PackedVector2Array} */
     this.polygon = polygon;
-    /** @type {string} */
-    this.type = "CollisionPolygon2D";
+
+    super.name = "CollisionPolygon2D";
+    super.type = "CollisionPolygon2D";
+    super.zIndex = 0;
   }
 
   getProperties() {

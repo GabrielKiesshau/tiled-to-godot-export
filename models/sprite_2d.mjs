@@ -6,18 +6,11 @@ import { Node2D } from './node_2d.mjs';
  * @extends Node2D
  */
 export class Sprite2D extends Node2D {
-  constructor({
-    node2D = {
-      canvasItem: {
-        zIndex: 0,
-        node: {
-          name: "Node2D",
-        },
-      },
-    },
-  } = {}) {
-    super(node2D);
-    /** @type {string} */
-    this.type = "Sprite2D";
+  constructor() {
+    super();
+
+    super.name = "Node2D";
+    super.type = "Sprite2D";
+    super.zIndex = 0;
   }
 }

@@ -14,20 +14,14 @@ export class Node2D extends CanvasItem {
    * @param {number} [props.rotation]
    * @param {Vector2} [props.scale]
    * @param {number} [props.skew]
-   * @param {CanvasItem} [props.canvasItem]
    */
   constructor({
     position = new Vector2({ x: 0, y: 0 }),
     rotation = 0,
     scale = new Vector2({ x: 1, y: 1 }),
     skew = 0,
-    canvasItem = {
-      node: {
-        name: "Node2D",
-      },
-    },
   } = {}) {
-    super(canvasItem);
+    super();
     /** @type {Vector2} */
     this.position = position;
     /** @type {number} */
@@ -36,8 +30,10 @@ export class Node2D extends CanvasItem {
     this.scale = scale;
     /** @type {number} */
     this.skew = skew;
-    /** @type {string} */
-    this.type = "Node2D";
+
+    super.name = "Node2D";
+    super.type = "Node2D";
+    super.zIndex = 0;
   }
 
   getProperties() {

@@ -12,16 +12,13 @@ export class Script extends Resource {
    */
   constructor({
     properties = new Map(),
-    resource = {
-      name: "Script",
-      path: "",
-    },
   } = {}) {
-    super(resource);
+    super();
     /** @type {Map<string, any>} */
     this.properties = properties;
-    /** @type {string} */
-    this.type = "Script";
+
+    super.name = "Script";
+    super.type = "Script";
   }
 
   getProperties() {

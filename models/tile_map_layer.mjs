@@ -36,16 +36,8 @@ export class TileMapLayer extends Node2D {
     useKinematicBodies = false,
     xDrawOrderReversed = false,
     ySortOrigin = 0,
-    node2D = {
-      canvasItem: {
-        zIndex: 0,
-        node: {
-          name: "TileMapLayer",
-        },
-      },
-    },
   } = {}) {
-    super(node2D);
+    super();
     /** @type {boolean} */
     this.collisionEnabled = collisionEnabled;
     /** @type {DebugVisibilityMode} */
@@ -68,8 +60,10 @@ export class TileMapLayer extends Node2D {
     this.xDrawOrderReversed = xDrawOrderReversed;
     /** @type {number} */
     this.ySortOrigin = ySortOrigin;
-    /** @type {string} */
-    this.type = "TileMapLayer";
+
+    super.name = "TileMapLayer";
+    super.type = "TileMapLayer";
+    super.zIndex = 0;
   }
 
   getProperties() {

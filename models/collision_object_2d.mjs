@@ -11,27 +11,20 @@ export class CollisionObject2D extends Node2D {
    * @param {Object} [props]
    * @param {number} [props.collisionLayer]
    * @param {number} [props.collisionMask]
-   * @param {Node2D} [props.node2D]
    */
   constructor({
     collisionLayer = 1,
     collisionMask = 1,
-    node2D = {
-      canvasItem: {
-        zIndex: 0,
-        node: {
-          name: "CollisionObject2D",
-        },
-      },
-    },
   } = {}) {
-    super(node2D);
+    super();
     /** @type {number} */
     this.collisionLayer = collisionLayer;
     /** @type {number} */
     this.collisionMask = collisionMask;
-    /** @type {string} */
-    this.type = "CollisionObject2D";
+
+    super.name = "CollisionObject2D";
+    super.type = "CollisionObject2D";
+    super.zIndex = 0;
   }
 
   getProperties() {

@@ -5,14 +5,10 @@ import { Resource } from './resource.mjs';
 * @class Texture2D
 */
 export class Texture2D extends Resource {
-  constructor({
-    resource = {
-      name: "Texture2D",
-      path: "",
-    },
-  } = {}) {
-    super(resource);
-    /** @type {string} */
-    this.type = "Texture2D";
+  constructor() {
+    super();
+
+    super.name = "Texture2D";
+    super.type = "Texture2D";
   }
 }

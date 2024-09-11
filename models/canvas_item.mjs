@@ -9,19 +9,17 @@ import { Node as GDNode } from './node.mjs';
 export class CanvasItem extends GDNode {
   /**
    * @param {Object} [props]
-   * @param {GDNode} [props.node]
+   * @param {number} [props.zIndex]
    */
   constructor({
     zIndex = 0,
-    node = {
-      name: "CanvasItem",
-    },
   } = {}) {
-    super(node);
+    super();
     /** @type {number} */
     this.zIndex = zIndex;
-    /** @type {string} */
-    this.type = "CanvasItem";
+
+    super.name = "CanvasItem";
+    super.type = "CanvasItem";
   }
 
   getProperties() {

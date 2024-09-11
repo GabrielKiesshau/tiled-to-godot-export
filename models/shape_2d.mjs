@@ -6,9 +6,9 @@ import { Resource } from './resource.mjs';
  * @extends Resource
  */
 export class Shape2D extends Resource {
-  constructor({ } = { }) {
-    super({});
-    /** @type {string} */
-    this.type = "Shape2D";
+  constructor() {
+    super();
+
+    super.type = "Shape2D";
   }
 }

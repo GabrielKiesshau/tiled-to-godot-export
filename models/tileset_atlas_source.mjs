@@ -18,16 +18,13 @@ export class TileSetAtlasSource extends Resource {
    * @param {boolean} [props.useTexturePadding]
    */
   constructor({
-    margins = new Vector2i({x: 0, y: 0}),
-    separation = new Vector2i({x: 0, y: 0}),
+    margins = new Vector2i({ x: 0, y: 0 }),
+    separation = new Vector2i({ x: 0, y: 0 }),
     texture = null,
-    textureRegionSize = new Vector2i({x: 16, y: 16}),
+    textureRegionSize = new Vector2i({ x: 16, y: 16 }),
     useTexturePadding = true,
-    resource = {
-      type: "TileSetAtlasSource",
-    },
   } = {}) {
-    super(resource);
+    super();
     /** @type {TileLayout} */
     this.margins = margins;
     /** @type {TileOffsetAxis} */
@@ -40,8 +37,8 @@ export class TileSetAtlasSource extends Resource {
     this.useTexturePadding = useTexturePadding;
     /** @type {TileData[]} */
     this.tileDataList = [];
-    /** @type {string} */
-    this.type = "TileSetAtlasSource";
+
+    super.type = "TileSetAtlasSource";
   }
 
   /**

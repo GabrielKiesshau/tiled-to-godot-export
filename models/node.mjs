@@ -53,9 +53,12 @@ export class Node {
    */
   serializeAsNode() {
     const parent = this.getOwnershipChain();
-    const groups = this.formatStringList(this.groups);
 
-    const groupsProperty = this.groups.length > 0 ? ` groups=${groups}` : '';
+    let groupsProperty = "";
+    if (this.groups?.length) {
+      const formattedGroups  = this.formatStringList(this.groups);
+      groupsProperty = ` groups=${formattedGroups}`;
+    }
 
     let nodeString = `[node name="${this.name}" type="${this.type}" parent="${parent}"${groupsProperty}]`;
 

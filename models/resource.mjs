@@ -19,9 +19,9 @@ export class Resource extends GDObject {
     /** @type {string} */
     this.name = name;
     /** @type {string} */
-    this.type = "Resource";
-    /** @type {string} */
     this.path = path;
+
+    super.type = "Resource";
   }
 
   getProperties() {

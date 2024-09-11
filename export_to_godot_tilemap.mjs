@@ -22,27 +22,24 @@ import { CanvasItem } from './models/canvas_item.mjs';
 
 /**
  * @class GodotTilemapExporter
- * @property {TileMap} map - The tilemap to export.
- * @property {string} fileName - Path of the file the tilemap should be exported to.
  */
 class GodotTilemapExporter {
   /**
    * Constructs a new instance of the tilemap exporter.
+   * 
    * @param {TileMap} [map] - The tilemap to export.
    * @param {string} [fileName] - Path of the file the tilemap should be exported to.
    */
   constructor(map, fileName) {
+    /** @type {TileMap} - The tilemap to export. */
     this.map = map;
+    /** @type {string} - Path of the file the tilemap should be exported to. */
     this.fileName = fileName;
 
     const name = this.map.property(`${prefix}name`) || getFileName(this.fileName);
-    const rootNode = new GDNode({
-      name,
-    });
+    const rootNode = new GDNode({ name });
 
-    this.scene = new PackedScene({
-      rootNode,
-    });
+    this.scene = new PackedScene({ rootNode });
   };
 
   write() {
@@ -59,26 +56,23 @@ class GodotTilemapExporter {
    * Tiled editor supports only one tile sprite image per tileset.
    */
   determineTilesets() {
-    for (const tileset of this.map.usedTilesets()) {
+    for (const tiledTileset of this.map.usedTilesets()) {
       //! let path = getResPath(tileset.property(`${prefix}project_root`), tileset.property(`${prefix}relative_path`), tileset.asset.fileName.replace('.tsx', '.tres'));
-      const path = tileset.property(`${prefix}res_path`);
+      const path = tiledTileset.property(`${prefix}res_path`);
 
       if (path === undefined) {
-        tiled.warn(`${prefix}res_path is not defined for tileset ${tileset.fileName}. The scene will be broken when imported in Godot.`);
+        tiled.warn(`${prefix}res_path is not defined for tileset ${tiledTileset.fileName}. The scene will be broken when imported in Godot.`);
       }
 
       for (const resource of this.scene.externalResourceList) {
         if (resource.path == path) return;
       }
 
-      const tilesetResource = new GDTileset({
-        resource: {
-          name: tileset.name,
-          path,
-        },
-      });
+      const tileset = new GDTileset();
+      tileset.name = tiledTileset.name;
+      tileset.path = path;
 
-      this.scene.addExternalResource(tilesetResource);
+      this.scene.addExternalResource(tileset);
     }
   }
 
@@ -93,6 +87,7 @@ class GodotTilemapExporter {
 
   /**
    * Handle exporting a single layer.
+   * 
    * @param {Layer} layer - The target layer.
    * @param {GDNode} owner - The owner node.
    */
@@ -114,6 +109,7 @@ class GodotTilemapExporter {
 
   /**
    * Handle exporting a tile layer.
+   * 
    * @param {TileLayer} tileLayer - The target layer.
    * @param {string[]} groups - The groups this layer is part of.
    * @param {GDNode} owner - The owner node.
@@ -156,21 +152,18 @@ class GodotTilemapExporter {
 
   /**
    * Handle exporting an object group.
+   * 
    * @param {ObjectGroup} objectGroup - The target layer.
    * @param {string[]} groups - The groups this layer is part of.
    * @param {GDNode} owner - The owner node.
    */
   handleObjectGroup(objectGroup, groups, owner) {
-    const node = new Node2D({
-      canvasItem: {
-        zIndex: objectGroup.property(`${prefix}z_index`),
-        node: {
-          name: objectGroup.name,
-          owner,
-          groups,
-        },
-      },
-    });
+    const node = new Node2D();
+    node.zIndex = objectGroup.property(`${prefix}z_index`);
+    node.name = objectGroup.name;
+    node.owner = owner;
+    node.groups = groups;
+
     this.scene.registerNode(node);
 
     for (const mapObject of objectGroup.objects) {
@@ -187,6 +180,7 @@ class GodotTilemapExporter {
 
   /**
    * Handle exporting a group layer.
+   * 
    * @param {GroupLayer} groupLayer - The target layer.
    * @param {string[]} groups - The groups this layer is part of.
    * @param {GDNode} owner - The owner node.
@@ -194,16 +188,12 @@ class GodotTilemapExporter {
   handleGroupLayer(groupLayer, groups, owner) {
     const zIndex = groupLayer.property(`${prefix}z_index`);
     
-    const node = new Node2D({
-      canvasItem: {
-        zIndex,
-        node: {
-          name: groupLayer.name,
-          owner,
-          groups,
-        },
-      },
-    });
+    const node = new Node2D();
+    node.zIndex = zIndex;
+    node.name = groupLayer.name;
+    node.owner = owner;
+    node.groups = groups;
+
     this.scene.registerNode(node);
 
     for (const layer of groupLayer.layers) {
@@ -213,6 +203,7 @@ class GodotTilemapExporter {
 
   /**
    * Generates a Tile node.
+   * 
    * @param {MapObject} mapObject - An object that can be part of an ObjectGroup.
    * @param {GDNode} owner - The owner node.
    */
@@ -231,9 +222,8 @@ class GodotTilemapExporter {
     //     mapObject.tile.tileset.imageFileName,
     //   );
 
-    //   const texture = new Texture({
-    //     path: tilesetPath,
-    //   });
+    //   const texture = new Texture2D();
+    //   texture.path = tilesetPath;
 
     //   if (texture == null) {
     //     return;
@@ -256,25 +246,19 @@ class GodotTilemapExporter {
       texture: `ExtResource("${textureResourceID}")`,
       region_enabled: true,
       region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
-      collisionObject2D: {
-        node2D: {
-          position: mapObjectPosition,
-          canvasItem: {
-            zIndex: mapObject.property(`${prefix}z_index`),
-            node: {
-              name: mapObject.name,
-              owner,
-              groups,
-            },
-          },
-        },
-      },
     });
+    node.position = mapObjectPosition;
+    node.zIndex = mapObject.property(`${prefix}z_index`);
+    node.name = mapObject.name;
+    node.owner = owner;
+    node.groups = groups;
+
     this.scene.registerNode(node);
   }
 
   /**
    * Generates a node.
+   * 
    * @param {MapObject} mapObject - An object that can be part of an ObjectGroup.
    * @param {Array<string>} groups - The groups this Node belongs to.
    * @param {GDNode} owner - The owner node.
@@ -301,6 +285,7 @@ class GodotTilemapExporter {
 
   /**
    * Generates a Area2D node with a rectangle shape.
+   * 
    * @param {MapObject} mapObject - The object representing the Area2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
    * @param {GDNode} owner - The owner node.
@@ -325,52 +310,36 @@ class GodotTilemapExporter {
       script = this.registerScript(scriptPath, scriptPropertyMap);
     }
 
-    const area2DNode = new Area2D({
-      collisionObject2D: {
-        collisionLayer: mapObject.property(`${prefix}collision_layer`),
-        collisionMask: mapObject.property(`${prefix}collision_mask`),
-        node2D: {
-          position: center,
-          rotation: getRotation(mapObject.rotation),
-          canvasItem: {
-            zIndex: mapObject.property(`${prefix}z_index`),
-            node: {
-              name: mapObject.name,
-              owner,
-              groups,
-              script,
-            },
-          },
-        },
-      },
-    });
+    const area2DNode = new Area2D();
+    area2DNode.collisionLayer = mapObject.property(`${prefix}collision_layer`);
+    area2DNode.collisionMask = mapObject.property(`${prefix}collision_mask`);
+    area2DNode.position = center;
+    area2DNode.rotation = getRotation(mapObject.rotation);
+    area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
+    area2DNode.name = mapObject.name;
+    area2DNode.owner = owner;
+    area2DNode.groups = groups;
+    area2DNode.script = script;
+
     this.scene.registerNode(area2DNode);
 
-    const rectangleShape = new RectangleShape2D({
-      size: size,
-    });
+    const shape = new RectangleShape2D({ size });
 
-    this.scene.addSubResource(rectangleShape);
+    this.scene.addSubResource(shape);
 
     const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
-    const collisionShape2DNode = new CollisionShape2D({
-      shape: rectangleShape,
-      node2D: {
-        canvasItem: {
-          zIndex: mapObject.property(`${prefix}z_index`),
-          node: {
-            owner: area2DNode,
-            groups: shapeGroupList,
-          },
-        },
-      },
-    });
+    const collisionShape2DNode = new CollisionShape2D({ shape });
+    collisionShape2DNode.zIndex = mapObject.property(`${prefix}z_index`);
+    collisionShape2DNode.owner = area2DNode;
+    collisionShape2DNode.groups = shapeGroupList;
+
     this.scene.registerNode(collisionShape2DNode);
   }
   
   /**
    * Generates a Area2D node with a polygon shape.
+   * 
    * @param {MapObject} mapObject - The object representing the Area2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
    * @param {PolygonBuildMode} buildMode - Whether the mode of the polygon should be solid or just use lines for collision.
@@ -396,25 +365,17 @@ class GodotTilemapExporter {
       script = this.registerScript(scriptPath, scriptPropertyMap);
     }
 
-    const area2DNode = new Area2D({
-      collisionObject2D: {
-        collisionLayer: mapObject.property(`${prefix}collision_layer`),
-        collisionMask: mapObject.property(`${prefix}collision_mask`),
-        node2D: {
-          position: center,
-          rotation: getRotation(mapObject.rotation),
-          canvasItem: {
-            zIndex: mapObject.property(`${prefix}z_index`),
-            node: {
-              name: mapObject.name,
-              owner,
-              groups,
-              script,
-            },
-          },
-        },
-      },
-    });
+    const area2DNode = new Area2D();
+    area2DNode.collisionLayer = mapObject.property(`${prefix}collision_layer`);
+    area2DNode.collisionMask = mapObject.property(`${prefix}collision_mask`);
+    area2DNode.position = center;
+    area2DNode.rotation = getRotation(mapObject.rotation);
+    area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
+    area2DNode.name = mapObject.name;
+    area2DNode.owner = owner;
+    area2DNode.groups = groups;
+    area2DNode.script = script;
+
     this.scene.registerNode(area2DNode);
 
     const polygonPointsArray = mapObject.polygon.map(point => new Vector2({ x: point.x, y: point.y }));
@@ -426,23 +387,19 @@ class GodotTilemapExporter {
     const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
     const collisionPolygon2DNode = new CollisionPolygon2D({
-      buildMode: buildMode,
-      polygon: polygon,
-      node2D: {
-        canvasItem: {
-          zIndex: mapObject.property(`${prefix}z_index`),
-          node: {
-            owner: area2DNode,
-            groups: shapeGroupList,
-          },
-        },
-      },
+      buildMode,
+      polygon,
     });
+    collisionPolygon2DNode.zIndex = mapObject.property(`${prefix}z_index`);
+    collisionPolygon2DNode.owner = area2DNode;
+    collisionPolygon2DNode.groups = shapeGroupList;
+
     this.scene.registerNode(collisionPolygon2DNode);
   }
 
   /**
    * Generates a Area2D node with a polyline shape.
+   * 
    * @param {MapObject} mapObject - The object representing the Area2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
    * @param {GDNode} owner - The owner node.
@@ -468,52 +425,36 @@ class GodotTilemapExporter {
       script = this.registerScript(scriptPath, scriptPropertyMap);
     }
 
-    const area2DNode = new Area2D({
-      collisionObject2D: {
-        collisionLayer: mapObject.property(`${prefix}collision_layer`),
-        collisionMask: mapObject.property(`${prefix}collision_mask`),
-        node2D: {
-          position: center,
-          rotation: getRotation(mapObject.rotation),
-          canvasItem: {
-            zIndex: mapObject.property(`${prefix}z_index`),
-            node: {
-              name: mapObject.name,
-              owner,
-              groups,
-              script,
-            },
-          },
-        },
-      },
-    });
+    const area2DNode = new Area2D();
+    area2DNode.collisionLayer = mapObject.property(`${prefix}collision_layer`);
+    area2DNode.collisionMask = mapObject.property(`${prefix}collision_mask`);
+    area2DNode.position = center;
+    area2DNode.rotation = getRotation(mapObject.rotation);
+    area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
+    area2DNode.name = mapObject.name;
+    area2DNode.owner = owner;
+    area2DNode.groups = groups;
+    area2DNode.script = script;
+
     this.scene.registerNode(area2DNode);
 
-    const circleShape = new CircleShape2D({
-      radius: radius.toFixed(2).replace(/\.?0+$/, ""),
-    });
+    const shape = new CircleShape2D({ radius });
 
-    this.scene.addSubResource(circleShape);
+    this.scene.addSubResource(shape);
 
     const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
-    const collisionShape2DNode = new CollisionShape2D({
-      shape: circleShape,
-      node2D: {
-        canvasItem: {
-          zIndex: mapObject.property(`${prefix}z_index`),
-          node: {
-            owner: area2DNode,
-            groups: shapeGroupList,
-          },
-        },
-      },
-    });
+    const collisionShape2DNode = new CollisionShape2D({ shape });
+    collisionShape2DNode.zIndex = mapObject.property(`${prefix}z_index`);
+    collisionShape2DNode.owner = area2DNode;
+    collisionShape2DNode.groups = shapeGroupList;
+
     this.scene.registerNode(collisionShape2DNode);
   }
 
   /**
    * Generates a Point.
+   * 
    * @param {MapObject} mapObject - The object representing the Node2D.
    * @param {Array<string>} groups - The groups this Node belongs to.
    * @param {GDNode} owner - The owner node.
@@ -534,23 +475,21 @@ class GodotTilemapExporter {
     }
 
     const node = new Node2D({
-      position: position,
+      position,
       rotation: getRotation(mapObject.rotation),
-      canvasItem: {
-        zIndex: mapObject.property(`${prefix}z_index`),
-        node: {
-          name,
-          owner,
-          groups,
-          script,
-        },
-      },
     });
+    node.zIndex = mapObject.property(`${prefix}z_index`);
+    node.name = name;
+    node.owner = owner;
+    node.groups = groups;
+    node.script = script;
+
     this.scene.registerNode(node);
   }
 
   /**
    * Add tile data to the tilemapData array.
+   * 
    * @param {Array<number>} tilemapData - The array to add data to.
    * @param {Tile} tile - The tile to extract data from.
    * @param {number} x - The x-coordinate of the tile.
@@ -572,6 +511,7 @@ class GodotTilemapExporter {
 
   /**
    * Create a TileMapLayer node and add it to the scene.
+   * 
    * @param {TileLayer} tileLayer - The tile layer.
    * @param {string} tilesetName - The name of the tileset.
    * @param {Array<number>} tilemapData - The tilemap data.
@@ -594,18 +534,13 @@ class GodotTilemapExporter {
       tileMapData: new PackedByteArray({
         array: tilemapData,
       }),
-      node2D: {
-        canvasItem: {
-          zIndex,
-          node: {
-            name: `${tileLayer.name}_${tilesetName}`,
-            owner,
-            groups,
-            script,
-          },
-        },
-      },
     });
+    node.zIndex = zIndex;
+    node.name = `${tileLayer.name}_${tilesetName}`;
+    node.owner = owner;
+    node.groups = groups;
+    node.script = script;
+
     this.scene.registerNode(node);
   }
 
@@ -671,16 +606,12 @@ class GodotTilemapExporter {
       }
     }
 
-    const scriptResource = new Script({
-      properties,
-      resource: {
-        path,
-      },
-    });
+    const script = new Script({ properties });
+    script.path = path;
 
-    this.scene.addExternalResource(scriptResource);
+    this.scene.addExternalResource(script);
 
-    return scriptResource;
+    return script;
   }
 
   /**
@@ -697,9 +628,7 @@ class GodotTilemapExporter {
       }
     }
 
-    const resource = new Resource({
-      path,
-    });
+    const resource = new Resource({ path });
 
     this.scene.addExternalResource(resource);
 
@@ -708,6 +637,7 @@ class GodotTilemapExporter {
 
   /**
    * Find a tileset by its name.
+   * 
    * @param {string} tilesetName - The name of the tileset to find the id of.
    * @returns {GDTileset|undefined} - The tileset if found, undefined otherwise.
    */
@@ -758,6 +688,7 @@ const customTileMapFormat = {
 
   /**
    * Map exporter function
+   * 
    * @param {TileMap} map the map to export
    * @param {string} fileName path of the file where to export the map
    * @returns {undefined}

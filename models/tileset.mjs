@@ -28,17 +28,13 @@ export class GDTileset extends Resource {
     tileLayout = TileLayout.Stacked,
     tileOffsetAxis = TileOffsetAxis.Horizontal,
     tileShape = TileShape.Square,
-    tileSize = new Vector2i({x: 16, y: 16}),
+    tileSize = new Vector2i({ x: 16, y: 16 }),
     uvClipping = false,
     tilesetSource = null,
     physicsLayerList = [],
     customDataLayerList = [],
-    resource = {
-      name: "TileSet",
-      path: "",
-    },
   } = {}) {
-    super(resource);
+    super();
     /** @type {TileLayout} */
     this.tileLayout = tileLayout;
     /** @type {TileOffsetAxis} */
@@ -55,8 +51,9 @@ export class GDTileset extends Resource {
     this.physicsLayerList = physicsLayerList;
     /** @type {CustomDataLayer[]} */
     this.customDataLayerList = customDataLayerList;
-    /** @type {string} */
-    this.type = "TileSet";
+
+    super.name = "TileSet";
+    super.type = "TileSet";
   }
 
   getProperties() {
@@ -65,7 +62,7 @@ export class GDTileset extends Resource {
     properties.tile_layout = checkDefault(this.tileLayout, TileLayout.Stacked);
     properties.tile_offset_axis = checkDefault(this.tileOffsetAxis, TileOffsetAxis.Horizontal);
     properties.tile_shape = checkDefault(this.tileShape, TileShape.Square);
-    properties.tile_size = checkDefault(this.tileSize, new Vector2i({x: 16, y: 16}));
+    properties.tile_size = checkDefault(this.tileSize, new Vector2i({ x: 16, y: 16 }));
     properties.uv_clipping = checkDefault(this.uvClipping, false);
 
     this.physicsLayerList.forEach((physicsLayer, i) => {

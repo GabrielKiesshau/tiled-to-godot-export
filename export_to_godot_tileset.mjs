@@ -38,14 +38,12 @@ class GodotTilesetExporter {
 
   prepareTileset() {
     const tileset = this.tileset;
-    const texture = new Texture2D({
-      resource: {
-        path: getResPath(tileset.property(`${prefix}project_root`), tileset.property(`${prefix}relative_path`), tileset.imageFileName),
-      },
-    });
+    const texture = new Texture2D();
+    const textureResourcePath = getResPath(tileset.property(`${prefix}project_root`), tileset.property(`${prefix}relative_path`), tileset.imageFileName);
+    texture.path = textureResourcePath;
 
     const tilesetSource = new TileSetAtlasSource({
-      margins: new Vector2i({x: tileset.margin, y: tileset.margin }),
+      margins: new Vector2i({ x: tileset.margin, y: tileset.margin }),
       separation: new Vector2i({
         x: tileset.tileSpacing,
         y: tileset.tileSpacing,

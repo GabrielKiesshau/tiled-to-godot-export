@@ -10,17 +10,15 @@ export class CircleShape2D extends Shape2D {
   /**
    * @param {Object} [props]
    * @param {number} [props.radius]
-   * @param {Shape2D} [props.shape2D]
    */
   constructor({
     radius = 10,
-    shape2D = { },
   } = {}) {
-    super(shape2D);
+    super();
     /** @type {number} */
-    this.radius = radius;
-    /** @type {string} */
-    this.type = "CircleShape2D";
+    this.radius = radius.toFixed(2).replace(/\.?0+$/, "");
+
+    super.type = "CircleShape2D";
   }
 
   getProperties() {
