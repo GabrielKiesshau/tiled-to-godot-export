@@ -1,10 +1,10 @@
 import { getAreaCenter, getFileName, getRotation, getTilesetColumns, isTileUnused, roundToDecimals, splitCommaSeparatedString } from './utils.mjs';
 import { prefix } from './constants.mjs';
 import { Area2D } from './models/area_2d.mjs';
+import { CanvasItem } from './models/canvas_item.mjs';
 import { CircleShape2D } from './models/circle_shape_2d.mjs';
 import { CollisionPolygon2D } from './models/collision_polygon_2d.mjs';
 import { CollisionShape2D } from './models/collision_shape_2d.mjs';
-import { Resource } from './models/resource.mjs';
 import { MapObjectShape } from './enums/map_object_shape.mjs';
 import { Node as GDNode } from './models/node.mjs';
 import { Node2D } from './models/node_2d.mjs';
@@ -12,13 +12,13 @@ import { PackedByteArray } from './models/packed_byte_array.mjs';
 import { PackedVector2Array } from './models/packed_vector2_array.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { PackedScene } from './models/scene.mjs';
+import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
+import { Resource } from './models/resource.mjs';
 import { Script } from './models/script.mjs';
 import { Sprite2D } from './models/sprite_2d.mjs';
-import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
 import { GDTileset } from './models/tileset.mjs';
 import { Vector2 } from './models/vector2.mjs';
-import { CanvasItem } from './models/canvas_item.mjs';
 
 /**
  * @class GodotTilemapExporter
