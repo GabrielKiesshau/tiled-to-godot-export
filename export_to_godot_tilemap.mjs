@@ -39,6 +39,7 @@ class GodotTilemapExporter {
     const name = this.map.property(`${prefix}name`) || getFileName(this.fileName);
     const rootNode = new GDNode({ name });
 
+    /** @type {PackedScene} */
     this.scene = new PackedScene({ rootNode });
   };
 
