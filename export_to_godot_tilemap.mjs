@@ -11,7 +11,6 @@ import { Node2D } from './models/node_2d.mjs';
 import { PackedByteArray } from './models/packed_byte_array.mjs';
 import { PackedVector2Array } from './models/packed_vector2_array.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
-import { PackedScene } from './models/scene.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
 import { Resource } from './models/resource.mjs';
 import { Script } from './models/script.mjs';
@@ -36,11 +35,9 @@ class GodotTilemapExporter {
     /** @type {string} - Path of the file the tilemap should be exported to. */
     this.fileName = fileName;
 
-    const name = this.map.property(`${prefix}name`) || getFileName(this.fileName);
-    const rootNode = new GDNode({ name });
-
-    /** @type {PackedScene} */
-    this.scene = new PackedScene({ rootNode });
+    /** @type {GDNode} */
+    this.scene = new Node2D();
+    this.scene.name = this.map.property(`${prefix}name`) || getFileName(this.fileName);
   };
 
   write() {

@@ -43,7 +43,7 @@ export class Resource extends GDObject {
     const uid = File.exists(absolutePath) ? getUID(absolutePath) : '';
     const uidProperty = uid ? ` uid="${uid}"` : '';
 
-    return `[ext_resource type="${this.type}"${uidProperty} path="res://${this.path}" id="${this.id}"]\n`;
+    return `[ext_resource type="${this.type}"${uidProperty} path="res://${this.path}" id="${this.id}"]`;
   }
 
   /**

@@ -73,12 +73,9 @@ export class GDObject {
 
     let externalResourceListString = "\n";
 
-    for (const resource of this.externalResourceList) {
-      tiled.log(`Serializing: ${resource.name}, Type: ${resource.type}, Path: ${resource.path}, ID: ${resource.id}`);
-      externalResourceListString += resource.serializeAsExternalResource();
-    }
+    externalResourceListString += this.externalResourceList.map(resource => resource.serializeAsExternalResource()).join('\n');
 
-    return externalResourceListString;
+    return externalResourceListString + '\n';
   }
   
   /**
@@ -95,7 +92,7 @@ export class GDObject {
 
     subResourceListString += this.subResourceList.map(resource => resource.serializeAsSubResource()).join('\n');
 
-    return subResourceListString;
+    return subResourceListString + '\n';
   }
 
   getProperties() {
