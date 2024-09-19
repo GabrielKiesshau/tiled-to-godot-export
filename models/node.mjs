@@ -1,4 +1,3 @@
-import { prefix } from '../constants.mjs';
 import { stringifyKeyValue } from '../utils.mjs';
 import { GDObject } from './gd_object.mjs';
 
@@ -102,6 +101,10 @@ export class Node extends GDObject {
    * @returns {string}
    */
   getOwnershipChain() {
+    if (this.owner === 0) {
+      return null;
+    }
+
     if (this.owner === null) {
       return ".";
     }
@@ -151,6 +154,7 @@ export class Node extends GDObject {
    */
   serializeAsNode() {
     const parent = this.getOwnershipChain();
+    const parentProperty = parent ? ` parent="${parent}"` : "";
 
     let groupsProperty = "";
     if (this.groups?.length) {
@@ -158,7 +162,12 @@ export class Node extends GDObject {
       groupsProperty = ` groups=${formattedGroups}`;
     }
 
-    let nodeString = `[node name="${this.name}" type="${this.type}" parent="${parent}"${groupsProperty}]`;
+    let instanceProperty = "";
+    if (this.instanceID) {
+      instanceProperty = ` instance=ExtResource("${this.instanceID}")`;
+    }
+
+    let nodeString = `[node name="${this.name}" type="${this.type}"${parentProperty}${groupsProperty}${instanceProperty}]`;
 
     for (let [key, value] of Object.entries(this.getProperties())) {
       if (value === undefined || value === null) continue;
@@ -205,9 +214,8 @@ export class Node extends GDObject {
    * @param {TileMap} map - The tiled map to export.
    * @returns {string} - Serialized scene in Godot string format.
    */
-  serializeToGodot(map) {
+  serializeToGodot() {
     const loadSteps = 1 + this.externalResourceList.length + this.subResourceList.length;
-    const type = map.property(`${prefix}type`) || "Node2D";
 
     const externalResourceListString = this.serializeExternalResourceList();
     const subResourceListString = this.serializeSubResourceList();
@@ -216,21 +224,9 @@ export class Node extends GDObject {
     let sceneString = `[gd_scene load_steps=${loadSteps} format=3]\n`
     sceneString += `${externalResourceListString}`;
     sceneString += `${subResourceListString}`;
-    sceneString += `\n`;
-    sceneString += `[node name="${this.name}" type="${type}"]\n`;
-    sceneString += `${nodeListString}`;
+    sceneString += `${nodeListString}\n`;
+    sceneString += `[connection signal="body_entered" from="." to="." method="FooBar"]`
 
     return sceneString;
-  }
-
-  /**
-   * Sets the name of this node only if the name isn't empty, null or undefined.
-   * 
-   * @param {string} name - The new name to set.
-   */
-  setName(name) {
-    if (name && name.trim()) {
-      this.name = name;
-    }
   }
 }
