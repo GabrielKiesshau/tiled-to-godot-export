@@ -8,12 +8,16 @@ export class Polygon {
   /**
    * @param {Object} [props]
    * @param {Vector2[]} [props.pointList]
+   * @param {bool} [props.oneWay]
    */
   constructor({
     pointList = [],
+    oneWay = false,
   } = {}) {
     /** @type {Vector2[]} */
     this.pointList = pointList;
+    /** @type {bool} */
+    this.oneWay = oneWay;
   }
 
   getPointList() {

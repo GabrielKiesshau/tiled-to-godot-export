@@ -38,7 +38,7 @@ export class TileSetAtlasSource extends Resource {
     /** @type {TileData[]} */
     this.tileDataList = [];
 
-    super.type = "TileSetAtlasSource";
+    this.setType("TileSetAtlasSource");
   }
 
   /**
@@ -71,6 +71,7 @@ export class TileSetAtlasSource extends Resource {
         physicsData.polygonList.forEach((polygon, j) => {
           const polygonKey = `${physicsDataKey}/polygon_${j}`;
           properties[`${polygonKey}/points`] = `PackedVector2Array(${polygon.getPointList()})`;
+          properties[`${polygonKey}/one_way`] = checkDefault(polygon.oneWay, false);
         });
       });
     });

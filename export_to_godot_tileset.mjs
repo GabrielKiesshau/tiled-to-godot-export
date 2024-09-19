@@ -199,7 +199,12 @@ class GodotTilesetExporter {
             break;
         }
 
-        const polygon = new Polygon({ pointList });
+        const oneWay = tiledObject.resolvedProperty("one_way");
+
+        const polygon = new Polygon({
+          pointList,
+          oneWay,
+        });
         polygonList.push(polygon);
       }
     }
