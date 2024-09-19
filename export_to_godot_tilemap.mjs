@@ -13,6 +13,7 @@ import { PackedVector2Array } from './models/packed_vector2_array.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
 import { Resource } from './models/resource.mjs';
+import { Room } from './models/room.mjs';
 import { Script } from './models/script.mjs';
 import { Sprite2D } from './models/sprite_2d.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
@@ -35,9 +36,68 @@ class GodotTilemapExporter {
     /** @type {string} - Path of the file the tilemap should be exported to. */
     this.fileName = fileName;
 
-    /** @type {GDNode} */
-    this.scene = new Node2D();
-    this.scene.name = this.map.property(`${prefix}name`) || getFileName(this.fileName);
+    /** @type {Room} */
+    this.scene = new Room()
+      .setCollisionLayer(64)
+      .setCollisionMask(2)
+      .setGroups(["Room"])
+      .setName(this.map.property(`${prefix}name`) || getFileName(this.fileName));
+
+    const roomDataPath = map.property(`${prefix}data`);
+
+    if (!roomDataPath || !roomDataPath.value.path) {
+      tiled.error("Missing room data! Set the room data property in Map > Map Properties to the file that represents this room.");
+    }
+
+    const res = this.registerResource(roomDataPath.value.path);
+    this.scene.data = res;
+    const properties = new Map();
+    properties.set(`_data`, `ExtResource("${res.id}")`)
+
+    for (const layer of this.map.layers) {
+      if (layer.isObjectLayer) {
+        for (const mapObject of layer.objects) {
+          if (mapObject.className == "Spawn Point") {
+            properties.set(`_spawn_position`, `Vector2(${mapObject.pos.x}, ${mapObject.pos.y})`)
+          }
+        }
+      }
+    }
+
+    //* Registering room script
+    const script = this.registerScript("addons/CustomNodeController/Room.cs", properties);
+    this.scene.script = script;
+
+    this.scene.registerNode(this.scene);
+
+    let hasCameraBoundary = false;
+
+    for (const layer of map.layers) {
+      if (layer.isObjectLayer && layer.objects) {
+        for (const mapObject of layer.objects) {
+          if (mapObject.className == "CameraBoundary") {
+            // Found a CameraBoundary object, add them separately
+            hasCameraBoundary = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!hasCameraBoundary) {
+      const size = new Vector2({
+        x: this.map.size.width * this.map.tileWidth,
+        y: this.map.size.height * this.map.tileHeight,
+      });
+      const position = new Vector2({ x: size.x / 2, y: size.y / 2 });
+      const shape = new RectangleShape2D({ size });
+      this.scene.addSubResource(shape);
+
+      const collisionShape = new CollisionShape2D({ shape })
+        .setPosition(position)
+        .setName("Camera Boundaries");
+      this.scene.registerNode(collisionShape);
+    }
   };
 
   write() {
@@ -156,17 +216,17 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleObjectGroup(objectGroup, groups, owner) {
-    const node = new Node2D();
-    node.zIndex = objectGroup.property(`${prefix}z_index`);
-    node.setName(objectGroup.name);
-    node.owner = owner;
-    node.groups = groups;
+    const node = new Node2D()
+      .setZIndex(objectGroup.property(`${prefix}z_index`))
+      .setName(objectGroup.name)
+      .setOwner(owner)
+      .setGroups(groups);
 
     this.scene.registerNode(node);
 
     for (const mapObject of objectGroup.objects) {
       const mapObjectGroups = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
-      
+
       if (mapObject.tile) {
         this.generateTileNode(mapObject, mapObjectGroups, node);
         continue;
@@ -185,12 +245,12 @@ class GodotTilemapExporter {
    */
   handleGroupLayer(groupLayer, groups, owner) {
     const zIndex = groupLayer.property(`${prefix}z_index`);
-    
-    const node = new Node2D();
-    node.zIndex = zIndex;
-    node.setName(groupLayer.name);
-    node.owner = owner;
-    node.groups = groups;
+
+    const node = new Node2D()
+      .setZIndex(zIndex)
+      .setName(groupLayer.name)
+      .setOwner(owner)
+      .setGroups(groups);
 
     this.scene.registerNode(node);
 
@@ -244,12 +304,11 @@ class GodotTilemapExporter {
       texture: `ExtResource("${textureResourceID}")`,
       region_enabled: true,
       region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
-    });
-    node.position = mapObjectPosition;
-    node.zIndex = mapObject.property(`${prefix}z_index`);
-    node.setName(mapObject.name);
-    node.owner = owner;
-    node.groups = groups;
+    }).setPosition(mapObjectPosition)
+      .setZIndex(mapObject.property(`${prefix}z_index`))
+      .setName(mapObject.name)
+      .setOwner(owner)
+      .setGroups(groups);
 
     this.scene.registerNode(node);
   }
@@ -297,27 +356,27 @@ class GodotTilemapExporter {
       x: mapObject.width,
       y: mapObject.height,
     });
-    
+
     const center = getAreaCenter(position, size, mapObject.rotation);
 
     const scriptPath = mapObject.property(`${prefix}script`);
     let script = null;
 
     if (scriptPath) {
-      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
-      script = this.registerScript(scriptPath, scriptPropertyMap);
+      script = this.registerScript(scriptPath);
+      script.properties = this.resolveScriptProperties(mapObject);
     }
 
-    const area2DNode = new Area2D();
-    area2DNode.collisionLayer = mapObject.property(`${prefix}collision_layer`);
-    area2DNode.collisionMask = mapObject.property(`${prefix}collision_mask`);
-    area2DNode.position = center;
-    area2DNode.rotation = getRotation(mapObject.rotation);
-    area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    area2DNode.setName(mapObject.name);
-    area2DNode.owner = owner;
-    area2DNode.groups = groups;
-    area2DNode.script = script;
+    const area2DNode = new Area2D()
+      .setCollisionLayer(mapObject.property(`${prefix}collision_layer`))
+      .setCollisionMask(mapObject.property(`${prefix}collision_mask`))
+      .setPosition(center)
+      .setRotation(getRotation(mapObject.rotation))
+      .setZIndex(mapObject.property(`${prefix}z_index`))
+      .setName(mapObject.name)
+      .setOwner(owner)
+      .setGroups(groups)
+      .setScript(script);
 
     this.scene.registerNode(area2DNode);
 
@@ -327,10 +386,10 @@ class GodotTilemapExporter {
 
     const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
-    const collisionShape2DNode = new CollisionShape2D({ shape });
-    collisionShape2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    collisionShape2DNode.owner = area2DNode;
-    collisionShape2DNode.groups = shapeGroupList;
+    const collisionShape2DNode = new CollisionShape2D({ shape })
+      .setZIndex(mapObject.property(`${prefix}z_index`))
+      .setOwner(area2DNode)
+      .setGroups(shapeGroupList);
 
     this.scene.registerNode(collisionShape2DNode);
   }
@@ -359,20 +418,20 @@ class GodotTilemapExporter {
     let script = null;
 
     if (scriptPath) {
-      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
       script = this.registerScript(scriptPath, scriptPropertyMap);
+      script.properties = this.resolveScriptProperties(mapObject);
     }
 
-    const area2DNode = new Area2D();
-    area2DNode.collisionLayer = mapObject.property(`${prefix}collision_layer`);
-    area2DNode.collisionMask = mapObject.property(`${prefix}collision_mask`);
-    area2DNode.position = center;
-    area2DNode.rotation = getRotation(mapObject.rotation);
-    area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    area2DNode.setName(mapObject.name);
-    area2DNode.owner = owner;
-    area2DNode.groups = groups;
-    area2DNode.script = script;
+    const area2DNode = new Area2D()
+      .setCollisionLayer(mapObject.property(`${prefix}collision_layer`))
+      .setCollisionMask(mapObject.property(`${prefix}collision_mask`))
+      .setPosition(center)
+      .setRotation(getRotation(mapObject.rotation))
+      .setZIndex(mapObject.property(`${prefix}z_index`))
+      .setName(mapObject.name)
+      .setOwner(owner)
+      .setGroups(groups)
+      .setScript(script);
 
     this.scene.registerNode(area2DNode);
 
@@ -387,10 +446,9 @@ class GodotTilemapExporter {
     const collisionPolygon2DNode = new CollisionPolygon2D({
       buildMode,
       polygon,
-    });
-    collisionPolygon2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    collisionPolygon2DNode.owner = area2DNode;
-    collisionPolygon2DNode.groups = shapeGroupList;
+    }).setZIndex(mapObject.property(`${prefix}z_index`))
+      .setOwner(area2DNode)
+      .setGroups(shapeGroupList);
 
     this.scene.registerNode(collisionPolygon2DNode);
   }
@@ -419,20 +477,20 @@ class GodotTilemapExporter {
     let script = null;
 
     if (scriptPath) {
-      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
-      script = this.registerScript(scriptPath, scriptPropertyMap);
+      script = this.registerScript(scriptPath);
+      script.properties = this.resolveScriptProperties(mapObject);
     }
 
-    const area2DNode = new Area2D();
-    area2DNode.collisionLayer = mapObject.property(`${prefix}collision_layer`);
-    area2DNode.collisionMask = mapObject.property(`${prefix}collision_mask`);
-    area2DNode.position = center;
-    area2DNode.rotation = getRotation(mapObject.rotation);
-    area2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    area2DNode.setName(mapObject.name);
-    area2DNode.owner = owner;
-    area2DNode.groups = groups;
-    area2DNode.script = script;
+    const area2DNode = new Area2D()
+      .setCollisionLayer(mapObject.property(`${prefix}collision_layer`))
+      .setCollisionMask(mapObject.property(`${prefix}collision_mask`))
+      .setPosition(center)
+      .setRotation(getRotation(mapObject.rotation))
+      .setZIndex(mapObject.property(`${prefix}z_index`))
+      .setName(mapObject.name)
+      .setOwner(owner)
+      .setGroups(groups)
+      .setScript(script);
 
     this.scene.registerNode(area2DNode);
 
@@ -442,10 +500,10 @@ class GodotTilemapExporter {
 
     const shapeGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}shape_groups`));
 
-    const collisionShape2DNode = new CollisionShape2D({ shape });
-    collisionShape2DNode.zIndex = mapObject.property(`${prefix}z_index`);
-    collisionShape2DNode.owner = area2DNode;
-    collisionShape2DNode.groups = shapeGroupList;
+    const collisionShape2DNode = new CollisionShape2D({ shape })
+      .setZIndex(mapObject.property(`${prefix}z_index`))
+      .setOwner(area2DNode)
+      .setGroups(shapeGroupList);
 
     this.scene.registerNode(collisionShape2DNode);
   }
@@ -468,19 +526,18 @@ class GodotTilemapExporter {
     let script = null;
 
     if (scriptPath) {
-      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
-      script = this.registerScript(scriptPath, scriptPropertyMap);
+      script = this.registerScript(scriptPath);
+      script.properties = this.resolveScriptProperties(mapObject);
     }
 
     const node = new Node2D({
       position,
       rotation: getRotation(mapObject.rotation),
-    });
-    node.zIndex = mapObject.property(`${prefix}z_index`);
-    node.setName(name);
-    node.owner = owner;
-    node.groups = groups;
-    node.script = script;
+    }).setZIndex(mapObject.property(`${prefix}z_index`))
+      .setName(name)
+      .setOwner(owner)
+      .setGroups(groups)
+      .setScript(script);
 
     this.scene.registerNode(node);
   }
@@ -521,8 +578,8 @@ class GodotTilemapExporter {
     let script = null;
 
     if (scriptPath) {
-      const scriptPropertyMap = this.resolveScriptProperties(mapObject);
-      script = this.registerScript(scriptPath, scriptPropertyMap);
+      script = this.registerScript(scriptPath);
+      script.properties = this.resolveScriptProperties(mapObject);
     }
 
     const zIndex = owner?.zIndex ?? tileLayer.property(`${prefix}z_index`);
@@ -532,12 +589,11 @@ class GodotTilemapExporter {
       tileMapData: new PackedByteArray({
         array: tilemapData,
       }),
-    });
-    node.zIndex = zIndex;
-    node.setName(`${tileLayer.name}_${tilesetName}`);
-    node.owner = owner;
-    node.groups = groups;
-    node.script = script;
+    }).setZIndex(zIndex)
+      .setName(`${tileLayer.name}_${tilesetName}`)
+      .setOwner(owner)
+      .setGroups(groups)
+      .setScript(script);
 
     this.scene.registerNode(node);
   }
@@ -597,7 +653,7 @@ class GodotTilemapExporter {
    * @param {Map} properties - The properties of the script.
    * @returns {Script} - The registered script.
    */
-  registerScript(path, properties) {
+  registerScript(path, properties = new Map()) {
     for (const resource of this.scene.externalResourceList) {
       if (resource instanceof Script && resource.path == path) {
         return resource;
@@ -673,7 +729,7 @@ class GodotTilemapExporter {
   saveToFile() {
     const file = new TextFile(this.fileName, TextFile.WriteOnly);
 
-    const serializedScene = this.scene.serializeToGodot(this.map);
+    const serializedScene = this.scene.serializeToGodot();
 
     file.write(serializedScene);
     file.commit();
