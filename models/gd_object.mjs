@@ -31,6 +31,26 @@ export class GDObject {
   }
 
   /**
+   * Sets the type of this node.
+   * 
+   * @param {string} type - The new type to set.
+   */
+  setType(type) {
+    this.type = type;
+  }
+
+  /**
+   * Sets the script of this object.
+   * 
+   * @param {Script} script - The new script to set.
+   * @returns {GDObject} - The object, updated.
+   */
+  setScript(script) {
+    this.script = script;
+    return this;
+  }
+
+  /**
    * Adds an external resource to this object.
    * @param {Resource} resource - The resource to be added as an external resource to this object.
    */

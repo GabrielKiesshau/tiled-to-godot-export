@@ -21,7 +21,18 @@ export class Resource extends GDObject {
     /** @type {string} */
     this.path = path;
 
-    super.type = "Resource";
+    this.setType("Resource");
+  }
+
+  /**
+   * Sets the path of this resource.
+   * 
+   * @param {string} path - The new path to set.
+   * @returns {Resource} - The resource, updated.
+   */
+  setPath(path) {
+    this.path = path;
+    return this;
   }
 
   getProperties() {

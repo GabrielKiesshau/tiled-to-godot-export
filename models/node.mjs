@@ -28,8 +28,57 @@ export class Node extends GDObject {
     this.groups = groups;
     /** @type {Node[]} */
     this.nodeList = [];
+    /** @type {string} */
+    this.instanceID = "";
 
-    super.type = "Node";
+    this.setType("Node");
+  }
+
+  /**
+   * Sets the name of this node only if the name isn't empty, null or undefined.
+   * 
+   * @param {string} name - The new name to set.
+   * @returns {Node} - The node, updated.
+   */
+  setName(name) {
+    if (name && name.trim()) {
+      this.name = name;
+    }
+
+    return this;
+  }
+
+  /**
+   * Sets the owner of this node.
+   * 
+   * @param {Node} owner - The new owner to set.
+   * @returns {Node} - The node, updated.
+   */
+  setOwner(owner) {
+    this.owner = owner;
+    return this;
+  }
+
+  /**
+   * Sets the groups of this node.
+   * 
+   * @param {string[]} groups - The new groups to set.
+   * @returns {Node} - The node, updated.
+   */
+  setGroups(groups) {
+    this.groups = groups;
+    return this;
+  }
+
+  /**
+   * Sets the instance ID of this node.
+   * 
+   * @param {string} instanceID - The new instance ID to set.
+   * @returns {Node} - The node, updated.
+   */
+  setInstance(instanceID) {
+    this.instanceID = instanceID;
+    return this;
   }
 
   /**

@@ -31,9 +31,31 @@ export class Node2D extends CanvasItem {
     /** @type {number} */
     this.skew = skew;
 
-    super.name = "Node2D";
-    super.type = "Node2D";
-    super.zIndex = 0;
+    this.setName("Node2D");
+    this.setType("Node2D");
+    this.setZIndex(0);
+  }
+
+  /**
+   * Sets the position of this Node2D.
+   * 
+   * @param {Vector2} position - The new position to set.
+   * @returns {Node2D} - The Node2D, updated.
+   */
+  setPosition(position) {
+    this.position = position;
+    return this;
+  }
+
+  /**
+   * Sets the rotation of this Node2D.
+   * 
+   * @param {number} rotation - The new rotation to set.
+   * @returns {Node2D} - The Node2D, updated.
+   */
+  setRotation(rotation) {
+    this.rotation = rotation;
+    return this;
   }
 
   getProperties() {

@@ -22,9 +22,31 @@ export class CollisionObject2D extends Node2D {
     /** @type {number} */
     this.collisionMask = collisionMask;
 
-    super.name = "CollisionObject2D";
-    super.type = "CollisionObject2D";
-    super.zIndex = 0;
+    this.setName("CollisionObject2D");
+    this.setType("CollisionObject2D");
+    this.setZIndex(0);
+  }
+
+  /**
+   * Sets the collision layer of this collision object 2D.
+   * 
+   * @param {number} collisionLayer - The new collision layer to set.
+   * @returns {CollisionObject2D} - The collision object 2D, updated.
+   */
+  setCollisionLayer(collisionLayer) {
+    this.collisionLayer = collisionLayer;
+    return this;
+  }
+
+  /**
+   * Sets the collision mask of this collision object 2D.
+   * 
+   * @param {number} collisionMask - The new collision mask to set.
+   * @returns {CollisionObject2D} - The collision object 2D, updated.
+   */
+  setCollisionMask(collisionMask) {
+    this.collisionMask = collisionMask;
+    return this;
   }
 
   getProperties() {

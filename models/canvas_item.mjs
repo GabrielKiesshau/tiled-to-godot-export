@@ -22,6 +22,17 @@ export class CanvasItem extends GDNode {
     super.type = "CanvasItem";
   }
 
+  /**
+   * Sets the z-index of this canvas.
+   * 
+   * @param {number} zIndex - The new z-index to set.
+   * @returns {CanvasItem} - The canvas item, updated.
+   */
+  setZIndex(zIndex) {
+    this.zIndex = zIndex;
+    return this;
+  }
+
   getProperties() {
     var properties = {};
 

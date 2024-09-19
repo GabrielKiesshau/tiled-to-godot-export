@@ -9,8 +9,8 @@ export class Area2D extends CollisionObject2D {
   constructor() {
     super();
 
-    super.name = "Area2D";
-    super.type = "Area2D";
-    super.zIndex = 0;
+    this.setName("Area2D");
+    this.setType("Area2D");
+    this.setZIndex(0);
   }
 }
