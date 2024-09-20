@@ -144,7 +144,7 @@ class GodotTilesetExporter {
 
         return isPhysicsIDRegistered;
       })
-      .map(([_, { value: physicsData }]) => this.createPhysicsDataForTile(tile, physicsData));
+      .map(([_, { value: physicsData }]) => this.createPhysicsDataForTile(tile, physicsData, physicsLayerList));
 
     return physicsDataList;
   }
@@ -153,8 +153,9 @@ class GodotTilesetExporter {
    * 
    * @param {Tile} tile - 
    * @param {PhysicsData} physicsData - 
+   * @param {PhysicsLayer[]} physicsLayerList - 
    */
-  createPhysicsDataForTile(tile, physicsData = {}) {
+  createPhysicsDataForTile(tile, physicsData = {}, physicsLayerList) {
     const objectGroup = tile.objectGroup;
     /** @type {Polygon[]} */
     let polygonList = [];
@@ -230,11 +231,16 @@ class GodotTilesetExporter {
       y: physicsData.linear_velocity?.value?.y || 0,
     });
 
+
+    const id = physicsLayerList.findIndex((physicsLayer) => {
+      return physicsLayer.id.value == layerID;
+    }) || 0;
+
     return new PhysicsData({
       angularVelocity,
       linearVelocity,
       polygonList,
-      id: layerID,
+      id,
     });
   }
 
