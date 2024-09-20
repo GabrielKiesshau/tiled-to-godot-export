@@ -56,15 +56,15 @@ class GodotTilesetExporter {
       useTexturePadding: tileset.property(`${prefix}use_texture_padding`),
     });
 
-    const resolvedProperties = Object.entries(tileset.resolvedProperties());
-    const physicsLayerList = resolvedProperties
+    const tilesetProperties = Object.entries(tileset.resolvedProperties());
+    const physicsLayerList = tilesetProperties
       .filter(([_, { typeName, value }]) => typeName == physicsLayerTypeName && value)
       .map(([_, { value }]) => new PhysicsLayer({
         collisionLayer: value.collision_layer,
         collisionMask: value.collision_mask,
         id: value.id,
       }));
-    const customDataLayerList = resolvedProperties
+    const customDataLayerList = tilesetProperties
       .filter(([_, { typeName, value }]) => typeName == customDataLayerTypeName && value)
       .map(([_, { value }]) => new CustomDataLayer({
         name: value.name,
@@ -114,14 +114,13 @@ class GodotTilesetExporter {
    * @param {PhysicsLayer[]} physicsLayerList - 
    */
   setupTilePhysicsDataList(tile, physicsLayerList) {
-    const resolvedProperties = Object.entries(tile.resolvedProperties());
+    const tileProperties = Object.entries(tile.resolvedProperties());
 
-    if (resolvedProperties.length === 0) {
-      const physicsData = this.createPhysicsDataForTile(tile, physicsLayerList);
-      return [physicsData];
+    if (tileProperties.length === 0) {
+      return [];
     }
 
-    const physicsDataList = resolvedProperties
+    const physicsDataList = tileProperties
       .filter(([_, { typeName, value: physicsData }]) => {
         const hasPhysicsData = typeName === "PhysicsData";
 
@@ -136,18 +135,20 @@ class GodotTilesetExporter {
         return hasPhysicsData && hasMatchingId;
       })
       .map(([_, { value: physicsData }]) => this.createPhysicsDataForTile(tile, physicsData));
-    
+
     return physicsDataList;
   }
 
   /**
    * 
    * @param {Tile} tile - 
-   * @param {PhysicsLayer[]} physicsData - 
+   * @param {PhysicsData} physicsData - 
    */
   createPhysicsDataForTile(tile, physicsData = {}) {
     const objectGroup = tile.objectGroup;
+    /** @type {Polygon[]} */
     let polygonList = [];
+    /** @type {number} */
     const layerID = physicsData.id?.value || 0;
 
     if (objectGroup) {
@@ -164,10 +165,12 @@ class GodotTilesetExporter {
           continue;
         }
 
+        /** @type {number} */
         const polygonLayerID = tiledObject.resolvedProperty("physics_layer_id")?.value || 0;
 
         if (polygonLayerID != layerID) continue;
 
+        /** @type {number[]} */
         let pointList = [];
 
         switch (shape) {
@@ -199,6 +202,7 @@ class GodotTilesetExporter {
             break;
         }
 
+        /** @type {bool} */
         const oneWay = tiledObject.resolvedProperty("one_way");
 
         const polygon = new Polygon({
