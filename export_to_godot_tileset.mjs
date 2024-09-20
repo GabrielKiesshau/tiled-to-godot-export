@@ -132,7 +132,7 @@ class GodotTilesetExporter {
           (layer) => layer.id === physicsData.id
         );
 
-        return hasPhysicsData && hasMatchingId;
+        return isPhysicsData && hasMatchingId;
       })
       .map(([_, { value: physicsData }]) => this.createPhysicsDataForTile(tile, physicsData));
 
