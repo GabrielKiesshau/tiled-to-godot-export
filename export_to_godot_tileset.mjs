@@ -128,11 +128,21 @@ class GodotTilesetExporter {
           return false;
         }
 
-        const hasMatchingId = physicsData && physicsLayerList.some(
-          (layer) => layer.id === physicsData.id
+        if (!physicsData) {
+          return false;
+        }
+
+        const isPhysicsIDRegistered = physicsLayerList.some(
+          (layer) => {
+            return layer.id === physicsData.id;
+          }
         );
 
-        return isPhysicsData && hasMatchingId;
+        if (!isPhysicsIDRegistered) {
+          tiled.log(`Tile ${tile.id} has a layer with ID ${physicsData.id}. Add a collision layer with this ID in order to export it.`);
+        }
+
+        return isPhysicsIDRegistered;
       })
       .map(([_, { value: physicsData }]) => this.createPhysicsDataForTile(tile, physicsData));
 
