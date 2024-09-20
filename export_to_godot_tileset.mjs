@@ -122,10 +122,10 @@ class GodotTilesetExporter {
 
     const physicsDataList = tileProperties
       .filter(([_, { typeName, value: physicsData }]) => {
-        const hasPhysicsData = typeName === "PhysicsData";
+        const isPhysicsData = typeName === "PhysicsData";
 
-        if (!hasPhysicsData) {
-          return true;
+        if (!isPhysicsData) {
+          return false;
         }
 
         const hasMatchingId = physicsData && physicsLayerList.some(
