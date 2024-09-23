@@ -585,6 +585,7 @@ class GodotTilemapExporter {
     const zIndex = owner?.zIndex ?? tileLayer.property(`${prefix}z_index`);
 
     const node = new TileMapLayer({
+      collisionEnabled: tileLayer.resolvedProperty(`${prefix}collision_enabled`) || false,
       tileset: this.getTilesetByName(tilesetName),
       tileMapData: new PackedByteArray({
         array: tilemapData,

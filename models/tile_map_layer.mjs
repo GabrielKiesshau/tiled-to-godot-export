@@ -61,9 +61,9 @@ export class TileMapLayer extends Node2D {
     /** @type {number} */
     this.ySortOrigin = ySortOrigin;
 
-    super.name = "TileMapLayer";
-    super.type = "TileMapLayer";
-    super.zIndex = 0;
+    this.setName("TileMapLayer");
+    this.setType("TileMapLayer");
+    this.setZIndex(0);
   }
 
   getProperties() {
