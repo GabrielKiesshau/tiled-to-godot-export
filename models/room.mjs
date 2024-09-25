@@ -1,3 +1,4 @@
+import { checkDefault } from '../utils.mjs';
 import { Area2D } from './area_2d.mjs';
 import { Node2D } from './node_2d.mjs';
 import { Resource } from './resource.mjs';
@@ -25,8 +26,6 @@ export class Room extends Area2D {
     /** @type {Vector2} */
     this.spawnPosition = spawnPosition;
 
-    this.scriptPath = "addons/CustomNodeController/Room.cs";
-
     this.setName("Room");
     this.setZIndex(0);
     this.setOwner(0);
@@ -34,6 +33,9 @@ export class Room extends Area2D {
 
   getProperties() {
     var properties = super.getProperties();
+
+    properties.data = `ExtResource("${this.data.id}")`;
+    properties.spawn_position = checkDefault(this.spawnPosition, new Vector2({ x: 0, y: 0 }));
 
     return properties;
   }
