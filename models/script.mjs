@@ -17,8 +17,8 @@ export class Script extends Resource {
     /** @type {Map<string, any>} */
     this.properties = properties;
 
-    super.name = "Script";
-    super.type = "Script";
+    this.setName("Script");
+    this.setType("Script");
   }
 
   getProperties() {

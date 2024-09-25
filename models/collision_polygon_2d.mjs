@@ -24,9 +24,9 @@ export class CollisionPolygon2D extends Node2D {
     /** @type {PackedVector2Array} */
     this.polygon = polygon;
 
-    super.name = "CollisionPolygon2D";
-    super.type = "CollisionPolygon2D";
-    super.zIndex = 0;
+    this.setName("CollisionPolygon2D");
+    this.setType("CollisionPolygon2D");
+    this.setZIndex(0);
   }
 
   getProperties() {

@@ -52,8 +52,8 @@ export class GDTileset extends Resource {
     /** @type {CustomDataLayer[]} */
     this.customDataLayerList = customDataLayerList;
 
-    super.name = "TileSet";
-    super.type = "TileSet";
+    this.setName("TileSet");
+    this.setType("TileSet");
   }
 
   getProperties() {

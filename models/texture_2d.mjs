@@ -8,7 +8,7 @@ export class Texture2D extends Resource {
   constructor() {
     super();
 
-    super.name = "Texture2D";
-    super.type = "Texture2D";
+    this.setName("Texture2D");
+    this.setType("Texture2D");
   }
 }

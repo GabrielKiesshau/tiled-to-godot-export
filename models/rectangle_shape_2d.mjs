@@ -19,7 +19,7 @@ export class RectangleShape2D extends Shape2D {
     /** @type {Vector2} */
     this.size = size;
 
-    super.type = "RectangleShape2D";
+    this.setType("RectangleShape2D");
   }
 
   getProperties() {

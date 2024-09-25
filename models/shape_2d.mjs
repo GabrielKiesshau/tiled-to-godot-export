@@ -9,6 +9,6 @@ export class Shape2D extends Resource {
   constructor() {
     super();
 
-    super.type = "Shape2D";
+    this.setType("Shape2D");
   }
 }

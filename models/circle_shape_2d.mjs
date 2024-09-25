@@ -18,7 +18,7 @@ export class CircleShape2D extends Shape2D {
     /** @type {number} */
     this.radius = radius.toFixed(2).replace(/\.?0+$/, "");
 
-    super.type = "CircleShape2D";
+    this.setType("CircleShape2D");
   }
 
   getProperties() {
