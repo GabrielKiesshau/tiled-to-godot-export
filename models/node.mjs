@@ -153,6 +153,7 @@ export class Node extends GDObject {
    * @returns {string} - Serialized subresource in Godot string format.
    */
   serializeAsNode() {
+    let typeProperty = this.type ? ` type="${this.type}"` : "";
     const parent = this.getOwnershipChain();
     const parentProperty = parent ? ` parent="${parent}"` : "";
 
@@ -163,11 +164,12 @@ export class Node extends GDObject {
     }
 
     let instanceProperty = "";
-    if (this.instanceID) {
+    if (this.instanceID.length != 0) {
+      typeProperty = "";
       instanceProperty = ` instance=ExtResource("${this.instanceID}")`;
     }
 
-    let nodeString = `[node name="${this.name}" type="${this.type}"${parentProperty}${groupsProperty}${instanceProperty}]`;
+    let nodeString = `[node name="${this.name}"${typeProperty}${parentProperty}${groupsProperty}${instanceProperty}]`;
 
     for (let [key, value] of Object.entries(this.getProperties())) {
       if (value === undefined || value === null) continue;
@@ -225,7 +227,6 @@ export class Node extends GDObject {
     sceneString += `${externalResourceListString}`;
     sceneString += `${subResourceListString}`;
     sceneString += `${nodeListString}\n`;
-    sceneString += `[connection signal="body_entered" from="." to="." method="FooBar"]`
 
     return sceneString;
   }
