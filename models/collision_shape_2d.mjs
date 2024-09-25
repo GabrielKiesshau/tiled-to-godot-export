@@ -18,9 +18,9 @@ export class CollisionShape2D extends Node2D {
     /** @type {Shape2D} */
     this.shape = shape;
 
-    super.name = "CollisionShape2D";
-    super.type = "CollisionShape2D";
-    super.zIndex = 0;
+    this.setName("CollisionShape2D");
+    this.setType("CollisionShape2D");
+    this.setZIndex(0);
   }
 
   getProperties() {
