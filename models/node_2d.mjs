@@ -16,9 +16,9 @@ export class Node2D extends CanvasItem {
    * @param {number} [props.skew]
    */
   constructor({
-    position = new Vector2({ x: 0, y: 0 }),
+    position = new Vector2(0, 0),
     rotation = 0,
-    scale = new Vector2({ x: 1, y: 1 }),
+    scale = new Vector2(1, 1),
     skew = 0,
   } = {}) {
     super();
@@ -61,9 +61,9 @@ export class Node2D extends CanvasItem {
   getProperties() {
     var properties = super.getProperties();
 
-    properties.position = checkDefault(this.position, new Vector2({ x: 0, y: 0 }));
+    properties.position = checkDefault(this.position, new Vector2(0, 0));
     properties.rotation = checkDefault(this.rotation, 0);
-    properties.scale = checkDefault(this.scale, new Vector2({ x: 1, y: 1 }));
+    properties.scale = checkDefault(this.scale, new Vector2(1, 1));
     properties.skew = checkDefault(this.skew, 0);
 
     return properties;

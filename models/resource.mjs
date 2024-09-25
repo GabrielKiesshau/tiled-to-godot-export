@@ -25,6 +25,20 @@ export class Resource extends GDObject {
   }
 
   /**
+   * Sets the name of this resource only if the name isn't empty, null or undefined.
+   * 
+   * @param {string} name - The new name to set.
+   * @returns {Node} - The node, updated.
+   */
+  setName(name) {
+    if (name && name.trim()) {
+      this.name = name;
+    }
+
+    return this;
+  }
+
+  /**
    * Sets the path of this resource.
    * 
    * @param {string} path - The new path to set.

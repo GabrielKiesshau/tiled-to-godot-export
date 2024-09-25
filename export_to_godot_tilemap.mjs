@@ -59,7 +59,7 @@ class GodotTilemapExporter {
       if (layer.isObjectLayer) {
         for (const mapObject of layer.objects) {
           if (mapObject.className == "Spawn Point") {
-            this.scene.spawnPosition = new Vector2({ x: mapObject.pos.x, y: mapObject.pos.y });
+            this.scene.spawnPosition = new Vector2(mapObject.pos.x, mapObject.pos.y);
           }
         }
       }
@@ -82,11 +82,11 @@ class GodotTilemapExporter {
     }
 
     if (!hasCameraBoundary) {
-      const size = new Vector2({
-        x: this.map.size.width * this.map.tileWidth,
-        y: this.map.size.height * this.map.tileHeight,
-      });
-      const position = new Vector2({ x: size.x / 2, y: size.y / 2 });
+      const size = new Vector2(
+        this.map.size.width * this.map.tileWidth,
+        this.map.size.height * this.map.tileHeight,
+      );
+      const position = new Vector2(size.x / 2, size.y / 2);
       const shape = new RectangleShape2D({ size });
       this.scene.addSubResource(shape);
 
@@ -293,10 +293,10 @@ class GodotTilemapExporter {
     const tileOffset = this.getTileOffset(mapObject.tile.tileset, mapObject.tile.id);
 
     //* Converts Tiled pivot (top left corner) to Godot pivot (center);
-    const mapObjectPosition = new Vector2({
-      x: mapObject.x + (mapObject.tile.width / 2),
-      y: mapObject.y - (mapObject.tile.height / 2),
-    });
+    const mapObjectPosition = new Vector2(
+      mapObject.x + (mapObject.tile.width / 2),
+      mapObject.y - (mapObject.tile.height / 2),
+    );
 
     const node = new Sprite2D({
       texture: `ExtResource("${textureResourceID}")`,
@@ -346,14 +346,14 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   generateRectangle(mapObject, groups, owner) {
-    const position = new Vector2({
-      x: mapObject.x,
-      y: mapObject.y,
-    });
-    const size = new Vector2({
-      x: mapObject.width,
-      y: mapObject.height,
-    });
+    const position = new Vector2(
+      mapObject.x,
+      mapObject.y,
+    );
+    const size = new Vector2(
+      mapObject.width,
+      mapObject.height,
+    );
 
     const center = getAreaCenter(position, size, mapObject.rotation);
 
@@ -401,14 +401,14 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   generatePolygon(mapObject, groups, buildMode, owner) {
-    const position = new Vector2({
-      x: mapObject.x,
-      y: mapObject.y,
-    });
-    const size = new Vector2({
-      x: mapObject.width,
-      y: mapObject.height,
-    });
+    const position = new Vector2(
+      mapObject.x,
+      mapObject.y,
+    );
+    const size = new Vector2(
+      mapObject.width,
+      mapObject.height,
+    );
 
     const center = getAreaCenter(position, size, mapObject.rotation);
 
@@ -433,7 +433,7 @@ class GodotTilemapExporter {
 
     this.scene.registerNode(area2DNode);
 
-    const polygonPointsArray = mapObject.polygon.map(point => new Vector2({ x: point.x, y: point.y }));
+    const polygonPointsArray = mapObject.polygon.map(point => new Vector2(point.x, point.y));
 
     const polygon = new PackedVector2Array({
       array: polygonPointsArray,
@@ -459,14 +459,14 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   generateEllipse(mapObject, groups, owner) {
-    const position = new Vector2({
-      x: mapObject.x,
-      y: mapObject.y,
-    });
-    const size = new Vector2({
-      x: mapObject.width,
-      y: mapObject.height,
-    });
+    const position = new Vector2(
+      mapObject.x,
+      mapObject.y,
+    );
+    const size = new Vector2(
+      mapObject.width,
+      mapObject.height,
+    );
     const radius = mapObject.width / 2;
     
     const center = getAreaCenter(position, size, mapObject.rotation);
@@ -515,10 +515,10 @@ class GodotTilemapExporter {
    */
   generatePoint(mapObject, groups, owner) {
     const name = mapObject.name || "Point";
-    const position = new Vector2({
-      x: roundToDecimals(mapObject.x),
-      y: roundToDecimals(mapObject.y),
-    });
+    const position = new Vector2(
+      roundToDecimals(mapObject.x),
+      roundToDecimals(mapObject.y),
+    );
 
     const scriptPath = mapObject.property(`${prefix}script`);
     let script = null;

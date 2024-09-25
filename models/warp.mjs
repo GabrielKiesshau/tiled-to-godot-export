@@ -20,7 +20,7 @@ export class Warp extends Area2D {
   constructor({
     targetRoom = null,
     transitionDirection = Direction.Right,
-    transitionStart = new Vector2({ x: 0, y: 0 }),
+    transitionStart = new Vector2(0, 0),
   } = {}) {
     super();
 
@@ -39,7 +39,7 @@ export class Warp extends Area2D {
 
     properties.target_room = `ExtResource("${this.targetRoom.id}")`;
     properties.transition_direction = checkDefault(this.transitionDirection, Direction.Right);
-    properties.transition_start = checkDefault(this.transitionStart, new Vector2({ x: 0, y: 0 }));
+    properties.transition_start = checkDefault(this.transitionStart, new Vector2(0, 0));
 
     return properties;
   }

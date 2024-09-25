@@ -43,16 +43,16 @@ class GodotTilesetExporter {
     texture.path = textureResourcePath;
 
     const tilesetSource = new TileSetAtlasSource({
-      margins: new Vector2i({ x: tileset.margin, y: tileset.margin }),
-      separation: new Vector2i({
-        x: tileset.tileSpacing,
-        y: tileset.tileSpacing,
-      }),
+      margins: new Vector2i(tileset.margin, tileset.margin),
+      separation: new Vector2i(
+        tileset.tileSpacing,
+        tileset.tileSpacing,
+      ),
       texture,
-      textureRegionSize: new Vector2i({
-        x: tileset.tileWidth,
-        y: tileset.tileHeight,
-      }),
+      textureRegionSize: new Vector2i(
+        tileset.tileWidth,
+        tileset.tileHeight,
+      ),
       useTexturePadding: tileset.property(`${prefix}use_texture_padding`),
     });
 
@@ -80,10 +80,10 @@ class GodotTilesetExporter {
       const customDataList = this.setupTileCustomDataList(tile, customDataLayerList);
 
       const gdTile = new TileData({
-        position: new Vector2i({
-          x: tile.id % this.tileset.columnCount,
-          y: Math.floor(tile.id / this.tileset.columnCount),
-        }),
+        position: new Vector2i(
+          tile.id % this.tileset.columnCount,
+          Math.floor(tile.id / this.tileset.columnCount),
+        ),
         physicsDataList,
         customDataList,
       });
@@ -98,10 +98,10 @@ class GodotTilesetExporter {
       tileLayout,
       tileOffsetAxis: tileset.property(`${prefix}tile_offset_axis`),
       tileShape,
-      tileSize: new Vector2i({
-        x: tileset.tileSize.width,
-        y: tileset.tileSize.height,
-      }),
+      tileSize: new Vector2i(
+        tileset.tileSize.width,
+        tileset.tileSize.height,
+      ),
       tilesetSource,
       physicsLayerList,
       customDataLayerList,
@@ -163,10 +163,10 @@ class GodotTilesetExporter {
     const layerID = physicsData.id?.value || 0;
 
     if (objectGroup) {
-      const center = new Vector2({
-        x: tile.width / 2,
-        y: tile.height / 2,
-      });
+      const center = new Vector2(
+        tile.width / 2,
+        tile.height / 2,
+      );
 
       for (const tiledObject of objectGroup.objects) {
         const shape = tiledObject.shape;
@@ -226,10 +226,10 @@ class GodotTilesetExporter {
 
     const angularVelocity = physicsData.angular_velocity || 0;
 
-    const linearVelocity = new Vector2({
-      x: physicsData.linear_velocity?.value?.x || 0,
-      y: physicsData.linear_velocity?.value?.y || 0,
-    });
+    const linearVelocity = new Vector2(
+      physicsData.linear_velocity?.value?.x || 0,
+      physicsData.linear_velocity?.value?.y || 0,
+    );
 
 
     const id = physicsLayerList.findIndex((physicsLayer) => {

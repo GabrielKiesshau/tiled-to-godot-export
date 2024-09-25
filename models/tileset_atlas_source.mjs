@@ -18,10 +18,10 @@ export class TileSetAtlasSource extends Resource {
    * @param {boolean} [props.useTexturePadding]
    */
   constructor({
-    margins = new Vector2i({ x: 0, y: 0 }),
-    separation = new Vector2i({ x: 0, y: 0 }),
+    margins = new Vector2i(0, 0),
+    separation = new Vector2i(0, 0),
     texture = null,
-    textureRegionSize = new Vector2i({ x: 16, y: 16 }),
+    textureRegionSize = new Vector2i(16, 16),
     useTexturePadding = true,
   } = {}) {
     super();
@@ -51,10 +51,10 @@ export class TileSetAtlasSource extends Resource {
   getProperties() {
     var properties = super.getProperties();
 
-    properties.margins = checkDefault(this.margins, new Vector2i({ x: 0, y: 0 }));
-    properties.separation = checkDefault(this.separation, new Vector2i({ x: 0, y: 0 }));
+    properties.margins = checkDefault(this.margins, new Vector2i(0, 0));
+    properties.separation = checkDefault(this.separation, new Vector2i(0, 0));
     properties.texture = `ExtResource("${this.texture.id}")`;
-    properties.texture_region_size = checkDefault(this.textureRegionSize, new Vector2i({ x: 16, y: 16 }));
+    properties.texture_region_size = checkDefault(this.textureRegionSize, new Vector2i(16, 16));
     properties.use_texture_padding = checkDefault(this.useTexturePadding, true);
 
     this.tileDataList.forEach((tileData, i) => {
@@ -66,7 +66,7 @@ export class TileSetAtlasSource extends Resource {
         const physicsDataKey = `${tileKey}/physics_layer_${physicsData.id}`;
 
         properties[`${physicsDataKey}/angular_velocity`] = checkDefault(physicsData.angularVelocity, 0);
-        properties[`${physicsDataKey}/linear_velocity`] = checkDefault(physicsData.linearVelocity, new Vector2({ x: 0, y: 0 }));
+        properties[`${physicsDataKey}/linear_velocity`] = checkDefault(physicsData.linearVelocity, new Vector2(0, 0));
 
         physicsData.polygonList.forEach((polygon, j) => {
           const polygonKey = `${physicsDataKey}/polygon_${j}`;

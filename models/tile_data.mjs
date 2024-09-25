@@ -13,7 +13,7 @@ export class TileData {
    * @param {CustomData[]} [props.customDataList]
    */
   constructor({
-    position = new Vector2i({ x: 0, y: 0 }),
+    position = new Vector2i(0, 0),
     physicsDataList = [],
     customDataList = [],
   } = {}) {

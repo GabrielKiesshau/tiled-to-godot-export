@@ -191,10 +191,10 @@ export function getFileName(path) {
  */
 export function getAreaCenter(position, size, rotationDegrees) {
   // Calculate the original center of the rectangle
-  const center = new Vector2({
-    x: position.x + size.x / 2,
-    y: position.y + size.y / 2,
-  });
+  const center = new Vector2(
+    position.x + size.x / 2,
+    position.y + size.y / 2,
+  );
 
   // Rotation in radians
   const rotationRadians = rotationDegrees * (Math.PI / 180);
@@ -203,10 +203,10 @@ export function getAreaCenter(position, size, rotationDegrees) {
   const rotatedCenterX = position.x + (center.x - position.x) * Math.cos(rotationRadians) - (center.y - position.y) * Math.sin(rotationRadians);
   const rotatedCenterY = position.y + (center.x - position.x) * Math.sin(rotationRadians) + (center.y - position.y) * Math.cos(rotationRadians);
 
-  const areaCenter = new Vector2({
-    x: roundToDecimals(rotatedCenterX),
-    y: roundToDecimals(rotatedCenterY),
-  });
+  const areaCenter = new Vector2(
+    roundToDecimals(rotatedCenterX),
+    roundToDecimals(rotatedCenterY),
+  );
 
   return areaCenter;
 }
@@ -291,7 +291,7 @@ export function validateNumber(value, defaultValue = 0)
   return undefined;
 }
 
-export function validateVector2(value, defaultValue = { x: 0, y: 0 })
+export function validateVector2(value, defaultValue = new Vector2(0, 0))
 {
   if (typeof value === 'object' && value.x != defaultValue.x & value.y != defaultValue.y) {
     return `Vector2(${value.x}, ${value.y})`;

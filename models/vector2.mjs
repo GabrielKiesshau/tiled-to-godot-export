@@ -8,10 +8,7 @@ export class Vector2 {
    * @param {number} [props.x]
    * @param {number} [props.y]
    */
-  constructor({
-    x = 0,
-    y = 0,
-  } = {}) {
+  constructor(x = 0.0, y = 0.0) {
     /** @type {number} */
     this.x = x;
     /** @type {number} */
@@ -42,10 +39,7 @@ export class Vector2i {
    * @param {number} [props.x]
    * @param {number} [props.y]
    */
-  constructor({
-    x = 0,
-    y = 0,
-  } = {}) {
+  constructor(x = 0, y = 0) {
     /** @type {number} */
     this.x = x;
     /** @type {number} */

@@ -13,7 +13,7 @@ export class RectangleShape2D extends Shape2D {
    * @param {Vector2} [props.size]
    */
   constructor({
-    size = new Vector2({ x: 20, y: 20 }),
+    size = new Vector2(20, 20),
   } = {}) {
     super();
     /** @type {Vector2} */
@@ -24,7 +24,7 @@ export class RectangleShape2D extends Shape2D {
 
   getProperties() {
     return {
-      size: checkDefault(this.size, new Vector2({ x: 20, y: 20 })),
+      size: checkDefault(this.size, new Vector2(20, 20)),
     };
   }
 }

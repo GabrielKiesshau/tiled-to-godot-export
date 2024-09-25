@@ -28,7 +28,7 @@ export class GDTileset extends Resource {
     tileLayout = TileLayout.Stacked,
     tileOffsetAxis = TileOffsetAxis.Horizontal,
     tileShape = TileShape.Square,
-    tileSize = new Vector2i({ x: 16, y: 16 }),
+    tileSize = new Vector2i(16, 16),
     uvClipping = false,
     tilesetSource = null,
     physicsLayerList = [],
@@ -62,7 +62,7 @@ export class GDTileset extends Resource {
     properties.tile_layout = checkDefault(this.tileLayout, TileLayout.Stacked);
     properties.tile_offset_axis = checkDefault(this.tileOffsetAxis, TileOffsetAxis.Horizontal);
     properties.tile_shape = checkDefault(this.tileShape, TileShape.Square);
-    properties.tile_size = checkDefault(this.tileSize, new Vector2i({ x: 16, y: 16 }));
+    properties.tile_size = checkDefault(this.tileSize, new Vector2i(16, 16));
     properties.uv_clipping = checkDefault(this.uvClipping, false);
 
     this.physicsLayerList.forEach((physicsLayer, i) => {

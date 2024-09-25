@@ -14,7 +14,7 @@ export class PhysicsData {
    * @param {number} [props.id]
    */
   constructor({
-    linearVelocity = new Vector2({ x: 0, y: 0 }),
+    linearVelocity = new Vector2(0, 0),
     angularVelocity = 0.0,
     polygonList = [],
     id = 0,

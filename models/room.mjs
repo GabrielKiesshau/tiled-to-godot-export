@@ -17,7 +17,7 @@ export class Room extends Area2D {
    */
   constructor({
     data = null,
-    spawnPosition = new Vector2({ x: 0, y: 0 }),
+    spawnPosition = new Vector2(0, 0),
   } = {}) {
     super();
 
@@ -35,7 +35,7 @@ export class Room extends Area2D {
     var properties = super.getProperties();
 
     properties.data = `ExtResource("${this.data.id}")`;
-    properties.spawn_position = checkDefault(this.spawnPosition, new Vector2({ x: 0, y: 0 }));
+    properties.spawn_position = checkDefault(this.spawnPosition, new Vector2(0, 0));
 
     return properties;
   }
