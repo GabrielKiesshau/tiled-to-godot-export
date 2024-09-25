@@ -34,9 +34,20 @@ export class GDObject {
    * Sets the type of this node.
    * 
    * @param {string} type - The new type to set.
+   * @returns {GDObject} - The object, updated.
    */
   setType(type) {
     this.type = type;
+    return this;
+  }
+
+  /**
+   * Hides the type property of this node.
+   * @returns {GDObject} - The object, updated.
+   */
+  hideType() {
+    this.type = null;
+    return this;
   }
 
   /**
