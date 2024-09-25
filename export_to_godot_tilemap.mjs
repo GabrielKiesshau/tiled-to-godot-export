@@ -9,6 +9,7 @@ import { MapObjectShape } from './enums/map_object_shape.mjs';
 import { Node as GDNode } from './models/node.mjs';
 import { Node2D } from './models/node_2d.mjs';
 import { PackedByteArray } from './models/packed_byte_array.mjs';
+import { PackedScene } from './models/packed_scene.mjs';
 import { PackedVector2Array } from './models/packed_vector2_array.mjs';
 import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
@@ -38,35 +39,31 @@ class GodotTilemapExporter {
 
     /** @type {Room} */
     this.scene = new Room()
-      .setCollisionLayer(64)
-      .setCollisionMask(2)
-      .setGroups(["Room"])
       .setName(this.map.property(`${prefix}name`) || getFileName(this.fileName));
+    
+    var room_instance = new PackedScene()
+      .setPath("assets/data/prefabs/room.tscn");
+    var room_resource = this.scene.addExternalResource(room_instance);
+    this.scene.setInstance(room_resource.id);
 
-    const roomDataPath = map.property(`${prefix}data`);
+    const room_data_path = map.property(`${prefix}data`);
 
-    if (!roomDataPath || !roomDataPath.value.path) {
+    if (!room_data_path || !room_data_path.value.path) {
       tiled.error("Missing room data! Set the room data property in Map > Map Properties to the file that represents this room.");
     }
 
-    const res = this.registerResource(roomDataPath.value.path);
-    this.scene.data = res;
-    const properties = new Map();
-    properties.set(`_data`, `ExtResource("${res.id}")`)
+    const room_data_resource = this.registerResource(room_data_path.value.path);
+    this.scene.data = room_data_resource;
 
     for (const layer of this.map.layers) {
       if (layer.isObjectLayer) {
         for (const mapObject of layer.objects) {
           if (mapObject.className == "Spawn Point") {
-            properties.set(`_spawn_position`, `Vector2(${mapObject.pos.x}, ${mapObject.pos.y})`)
+            this.scene.spawnPosition = new Vector2({ x: mapObject.pos.x, y: mapObject.pos.y });
           }
         }
       }
     }
-
-    //* Registering room script
-    const script = this.registerScript("addons/CustomNodeController/Room.cs", properties);
-    this.scene.script = script;
 
     this.scene.registerNode(this.scene);
 
@@ -76,7 +73,7 @@ class GodotTilemapExporter {
       if (layer.isObjectLayer && layer.objects) {
         for (const mapObject of layer.objects) {
           if (mapObject.className == "CameraBoundary") {
-            // Found a CameraBoundary object, add them separately
+            //TODO Found a CameraBoundary object, add them separately
             hasCameraBoundary = true;
             break;
           }
@@ -95,7 +92,8 @@ class GodotTilemapExporter {
 
       const collisionShape = new CollisionShape2D({ shape })
         .setPosition(position)
-        .setName("Camera Boundaries");
+        .setName("Camera Boundaries")
+        .hideType();
       this.scene.registerNode(collisionShape);
     }
   };
