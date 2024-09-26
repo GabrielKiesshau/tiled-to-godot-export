@@ -77,21 +77,51 @@ class GodotTilesetExporter {
     for (const tile of this.tileset.tiles) {
       if (isTileUnused(tile)) continue;
 
+      //* Implementing animation
       if (animated_tile_id_list.find((tile_id) => tile_id == tile.id)) {
-        tiled.log("This tile is part of an animated tile, skip");
         continue;
       }
 
       const is_tile_animated = tile.animated;
 
       if (is_tile_animated) {
-        for (const frame of tile.frames) {
-          animated_tile_id_list.push(frame.tileId);
+        const tile_frames = tile.frames;
+
+        const first_frame_tile_id = tile_frames[0].tileId;
+
+        if (first_frame_tile_id != tile.id) {
+          tiled.log(`Tile ${tile.id} has an animation, but the tile must be the first frame. Skipping.`);
+          continue;
         }
 
-        const frame_count = tile.frames.length;
-        const frame = JSON.stringify(tile.frames[0]);
-        tiled.log(`count: ${frame_count} frame: ${frame}`);
+        let is_valid = true;
+        const frame_count = tile_frames.length;
+
+        if (frame_count > 1) {
+          const expected_difference = tile_frames[1].tileId - tile_frames[0].tileId;
+          
+          for (let i = 1; i < frame_count - 1; i++) {
+            const current_difference = tile_frames[i + 1].tileId - tile_frames[i].tileId;
+        
+            if (current_difference !== expected_difference) {
+              is_valid = false;
+              tiled.log(`Invalid animation sequence: inconsistent frame at tile ${tile_frames[i + 1].tileId}`);
+              break;
+            }
+          }
+        }
+
+        if (!is_valid) {
+          continue;
+        }
+
+        tiled.log(`Tile ${tile.id} has an animation, adding frames:`);
+        for (const frame of tile_frames) {
+          tiled.log(`${frame.tileId}`);
+          animated_tile_id_list.push(frame.tileId);
+        }
+        
+        const frame = JSON.stringify(tile_frames[0]);
       }
 
       const physicsDataList = this.setupTilePhysicsDataList(tile, physicsLayerList);
@@ -108,6 +138,7 @@ class GodotTilesetExporter {
 
       tilesetSource.addTile(gdTile);
     }
+    //* Ending implementing animation
 
     const tileLayout = tileset.orientation === Tileset.Isometric ? TileLayout.DiamondDown : TileLayout.Stacked;
     const tileShape = tileset.orientation === Tileset.Isometric ? TileShape.Isometric : TileShape.Square;
