@@ -71,10 +71,28 @@ class GodotTilesetExporter {
         type: value.type,
       }));
 
+    /** @type {number[]} - The list of tile IDs that are animated. */
+    const animated_tile_id_list = [];
+
     for (const tile of this.tileset.tiles) {
       if (isTileUnused(tile)) continue;
 
-      //TODO Ignore animated tiles frames that are not the first frame
+      if (animated_tile_id_list.find((tile_id) => tile_id == tile.id)) {
+        tiled.log("This tile is part of an animated tile, skip");
+        continue;
+      }
+
+      const is_tile_animated = tile.animated;
+
+      if (is_tile_animated) {
+        for (const frame of tile.frames) {
+          animated_tile_id_list.push(frame.tileId);
+        }
+
+        const frame_count = tile.frames.length;
+        const frame = JSON.stringify(tile.frames[0]);
+        tiled.log(`count: ${frame_count} frame: ${frame}`);
+      }
 
       const physicsDataList = this.setupTilePhysicsDataList(tile, physicsLayerList);
       const customDataList = this.setupTileCustomDataList(tile, customDataLayerList);
