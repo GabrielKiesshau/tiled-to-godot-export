@@ -1,4 +1,5 @@
 import { AnimatedTileFrame } from './animated_tile_frame.mjs';
+import { CustomData } from './custom_data.mjs';
 import { PhysicsData } from './physics_data.mjs';
 import { Vector2i } from './vector2.mjs';
 
