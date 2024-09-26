@@ -60,10 +60,19 @@ export class TileSetAtlasSource extends Resource {
     this.tileDataList.forEach((tileData, i) => {
       const tileKey = tileData.getKey();
 
-      properties[tileKey] = 0;
+      if (tileData.is_animated) {
+        properties[`${tileKey}/animation_columns`] = tileData.animation_columns;
+        properties[`${tileKey}/animation_separation`] = tileData.animation_separation.toString();
+        properties[`${tileKey}/animation_speed`] = tileData.animation_speed;
+
+        tileData.animation_sequence.forEach((frame, frame_index) => {
+          properties[`${tileKey}/animation_frame_${frame_index}/duration`] = frame.duration;
+        });
+      }
+      properties[`${tileKey}/0`] = 0;
 
       tileData.physicsDataList.forEach((physicsData, i) => {
-        const physicsDataKey = `${tileKey}/physics_layer_${physicsData.id}`;
+        const physicsDataKey = `${tileKey}/0/physics_layer_${physicsData.id}`;
 
         properties[`${physicsDataKey}/angular_velocity`] = checkDefault(physicsData.angularVelocity, 0);
         properties[`${physicsDataKey}/linear_velocity`] = checkDefault(physicsData.linearVelocity, new Vector2(0, 0));
