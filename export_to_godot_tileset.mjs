@@ -133,7 +133,7 @@ class GodotTilesetExporter {
               }
             }
 
-            const frame = new AnimatedTileFrame({ duration: 1.0 });
+            const frame = new AnimatedTileFrame({ duration: 0.1 });
             animation_sequence.push(frame);
 
             if (i == frame_count - 1) {
