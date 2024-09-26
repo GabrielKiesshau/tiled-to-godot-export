@@ -1,5 +1,10 @@
 import { getResPath, isTileUnused } from './utils.mjs';
 import { prefix, physicsLayerTypeName, customDataLayerTypeName } from './constants.mjs';
+import { AnimatedTileFrame } from './models/animated_tile_frame.mjs';
+import { CustomDataLayer } from './models/custom_data_layer.mjs';
+import { PhysicsData } from './models/physics_data.mjs';
+import { PhysicsLayer } from './models/physics_layer.mjs';
+import { Polygon } from './models/polygon.mjs';
 import { Texture2D } from './models/texture_2d.mjs';
 import { TileData } from './models/tile_data.mjs';
 import { TileLayout } from './enums/tile_layout.mjs';
@@ -7,11 +12,6 @@ import { GDTileset } from './models/tileset.mjs';
 import { TileSetAtlasSource } from './models/tileset_atlas_source.mjs';
 import { TileShape } from './enums/tile_shape.mjs';
 import { Vector2, Vector2i } from './models/vector2.mjs';
-import { PhysicsData } from './models/physics_data.mjs';
-import { PhysicsLayer } from './models/physics_layer.mjs';
-import { CustomDataLayer } from './models/custom_data_layer.mjs';
-import { PhysicsData } from './models/physics_data.mjs';
-import { Polygon } from './models/polygon.mjs';
 
 /**
  * @class GodotTilesetExporter
@@ -77,51 +77,115 @@ class GodotTilesetExporter {
     for (const tile of this.tileset.tiles) {
       if (isTileUnused(tile)) continue;
 
-      //* Implementing animation
       if (animated_tile_id_list.find((tile_id) => tile_id == tile.id)) {
         continue;
       }
 
       const is_tile_animated = tile.animated;
+      let animation_separation = new Vector2i(0, 0);
+      let animation_columns = 1;
+      /** @type {AnimatedTileFrame[]} */
+      let animation_sequence = [];
+      let is_animated = false;
 
       if (is_tile_animated) {
         const tile_frames = tile.frames;
 
-        const first_frame_tile_id = tile_frames[0].tileId;
+        const starting_frame_id = tile_frames[0].tileId;
 
-        if (first_frame_tile_id != tile.id) {
+        if (starting_frame_id != tile.id) {
           tiled.log(`Tile ${tile.id} has an animation, but the tile must be the first frame. Skipping.`);
           continue;
         }
 
+        //* Determine if frames are valid
         let is_valid = true;
         const frame_count = tile_frames.length;
+        const tileset_width = tileset.imageWidth / tileset.tileWidth;
 
+        //* Ensure there are at least two frames to compare
         if (frame_count > 1) {
-          const expected_difference = tile_frames[1].tileId - tile_frames[0].tileId;
-          
-          for (let i = 1; i < frame_count - 1; i++) {
-            const current_difference = tile_frames[i + 1].tileId - tile_frames[i].tileId;
-        
-            if (current_difference !== expected_difference) {
+          let separation = new Vector2i(tile_frames[1].tileId - starting_frame_id - 1, 0);
+          let is_vertical_separation_set = false;
+          let first_tile_id_of_current_row = starting_frame_id;
+
+          //* Loop through the frames and check for consistent movement and crescent order
+          for (let i = 0; i < frame_count; i++) {
+            const current_tile_id = tile_frames[i].tileId;
+
+            let next_tile_id;
+            if (i < frame_count - 1) {
+              next_tile_id = tile_frames[i + 1].tileId;
+
+              //* Check if the next tile ID is lower than the current one (crescent check)
+              if (next_tile_id <= current_tile_id) {
+                is_valid = false;
+
+                let result = "";
+                tile.frames.forEach((frame, _) => {
+                  result += `${frame.tileId}, `;
+                });
+                result = result.slice(0, -2);
+
+                tiled.log(`Verifying animation with tile id sequence: ${result}`);
+                tiled.log(`Invalid animation sequence: tile IDs must be crescent. Tile ${next_tile_id} is lower or equal to ${current_tile_id}`);
+                break;
+              }
+            }
+
+            const frame = new AnimatedTileFrame({ duration: 1.0 });
+            animation_sequence.push(frame);
+
+            if (i == frame_count - 1) {
+              continue;
+            }
+
+            //* Calculate the horizontal and vertical separations
+            const current_tile_row = Math.floor(current_tile_id / tileset_width);
+            const next_tile_row = Math.floor(next_tile_id / tileset_width);
+
+            if (current_tile_row === next_tile_row) {
+              //* The next tile is in the same row as the current tile
+              const next_horizontal_separation = next_tile_id - current_tile_id - 1;
+
+              if (next_horizontal_separation !== separation.x) {
+                is_valid = false;
+                tiled.log(`Invalid animation sequence: inconsistent horizontal separation at tile ${next_tile_id}`);
+                break;
+              }
+              animation_columns++;
+              continue;
+            }
+
+            //* The next tile is in the next row
+            if (!is_vertical_separation_set) {
+              const vertical_separation = next_tile_id - starting_frame_id - tileset_width;
+
+              separation.y = vertical_separation;
+              is_vertical_separation_set = true;
+            }
+
+            const next_vertical_separation = next_tile_id - first_tile_id_of_current_row - tileset_width;
+            if (next_vertical_separation !== separation.y || next_vertical_separation % tileset_width != 0) {
               is_valid = false;
-              tiled.log(`Invalid animation sequence: inconsistent frame at tile ${tile_frames[i + 1].tileId}`);
+              tiled.log(`Invalid animation sequence: inconsistent vertical separation at tile ${next_tile_id}`);
               break;
             }
+
+            first_tile_id_of_current_row = next_tile_id;
           }
+          animation_separation = separation;
         }
 
         if (!is_valid) {
           continue;
         }
 
-        tiled.log(`Tile ${tile.id} has an animation, adding frames:`);
         for (const frame of tile_frames) {
-          tiled.log(`${frame.tileId}`);
           animated_tile_id_list.push(frame.tileId);
         }
-        
-        const frame = JSON.stringify(tile_frames[0]);
+
+        is_animated = true;
       }
 
       const physicsDataList = this.setupTilePhysicsDataList(tile, physicsLayerList);
@@ -134,11 +198,15 @@ class GodotTilesetExporter {
         ),
         physicsDataList,
         customDataList,
+        is_animated,
+        animation_columns,
+        animation_separation,
+        animation_speed: 1.0,
+        animation_sequence,
       });
 
       tilesetSource.addTile(gdTile);
     }
-    //* Ending implementing animation
 
     const tileLayout = tileset.orientation === Tileset.Isometric ? TileLayout.DiamondDown : TileLayout.Stacked;
     const tileShape = tileset.orientation === Tileset.Isometric ? TileShape.Isometric : TileShape.Square;
