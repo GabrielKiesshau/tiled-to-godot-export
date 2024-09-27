@@ -71,7 +71,7 @@ export class GDTileset extends Resource {
     });
 
     this.customDataLayerList.forEach((customDataLayer, i) => {
-      properties[`custom_data_layer_${i}/name`] = customDataLayer.name;
+      properties[`custom_data_layer_${i}/name`] = `"${customDataLayer.name}"`;
       properties[`custom_data_layer_${i}/type`] = customDataLayer.type;
     });
 
