@@ -68,7 +68,8 @@ class GodotTilesetExporter {
       .filter(([_, { typeName, value }]) => typeName == customDataLayerTypeName && value)
       .map(([_, { value }]) => new CustomDataLayer({
         name: value.name,
-        type: value.type,
+        type: value.type.value,
+        id: value.id,
       }));
 
     /** @type {number[]} - The list of tile IDs that are animated. */
