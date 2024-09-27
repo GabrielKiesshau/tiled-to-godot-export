@@ -12,7 +12,7 @@ export class TileData {
    * @param {Object} [props]
    * @param {Vector2i} [props.position]
    * @param {PhysicsData[]} [props.physicsDataList]
-   * @param {CustomData[]} [props.customDataList]
+   * @param {CustomData[]} [props.custom_data_list]
    * @param {number} [props.animation_columns]
    * @param {Vector2i} [props.animation_separation]
    * @param {number} [props.animation_speed]
@@ -21,7 +21,7 @@ export class TileData {
   constructor({
     position = new Vector2i(0, 0),
     physicsDataList = [],
-    customDataList = [],
+    custom_data_list = [],
     is_animated = false,
     animation_columns = 1,
     animation_separation = new Vector2i(0, 0),
@@ -33,7 +33,7 @@ export class TileData {
     /** @type {PhysicsData[]} */
     this.physicsDataList = physicsDataList;
     /** @type {CustomData[]} */
-    this.customDataList = customDataList;
+    this.custom_data_list = custom_data_list;
     /** @type {boolean} */
     this.is_animated = is_animated;
     /** @type {number} */

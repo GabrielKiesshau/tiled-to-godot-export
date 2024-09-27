@@ -71,17 +71,21 @@ export class TileSetAtlasSource extends Resource {
       }
       properties[`${tileKey}/0`] = 0;
 
-      tileData.physicsDataList.forEach((physicsData, i) => {
+      tileData.physicsDataList.forEach((physicsData) => {
         const physicsDataKey = `${tileKey}/0/physics_layer_${physicsData.id}`;
 
         properties[`${physicsDataKey}/angular_velocity`] = checkDefault(physicsData.angularVelocity, 0);
         properties[`${physicsDataKey}/linear_velocity`] = checkDefault(physicsData.linearVelocity, new Vector2(0, 0));
 
-        physicsData.polygonList.forEach((polygon, j) => {
-          const polygonKey = `${physicsDataKey}/polygon_${j}`;
+        physicsData.polygonList.forEach((polygon, index) => {
+          const polygonKey = `${physicsDataKey}/polygon_${index}`;
           properties[`${polygonKey}/points`] = `PackedVector2Array(${polygon.getPointList()})`;
           properties[`${polygonKey}/one_way`] = checkDefault(polygon.oneWay, false);
         });
+      });
+
+      tileData.custom_data_list.forEach((custom_data) => {
+        properties[`${tileKey}/0/custom_data_${custom_data.id}`] = custom_data.value;
       });
     });
 

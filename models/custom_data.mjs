@@ -6,15 +6,19 @@ export class CustomData {
   /**
    * @param {Object} [props]
    * @param {string} [props.name]
-   * @param {number} [props.type]
+   * @param {any} [props.value]
+   * @param {number} [props.id]
    */
   constructor({
     name = "Custom Data",
-    type = 0,
+    value,
+    id = 0,
   } = {}) {
     /** @type {string} */
     this.name = name;
+    /** @type {any} */
+    this.value = value;
     /** @type {number} */
-    this.type = type;
+    this.id = id;
   }
 }

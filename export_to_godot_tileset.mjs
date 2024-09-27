@@ -12,6 +12,7 @@ import { GDTileset } from './models/tileset.mjs';
 import { TileSetAtlasSource } from './models/tileset_atlas_source.mjs';
 import { TileShape } from './enums/tile_shape.mjs';
 import { Vector2, Vector2i } from './models/vector2.mjs';
+import { CustomData } from './models/custom_data.mjs';
 
 /**
  * @class GodotTilesetExporter
@@ -64,16 +65,11 @@ class GodotTilesetExporter {
         collisionMask: value.collision_mask,
         id: value.id,
       }));
-    const customDataLayerList = tilesetProperties
-      .filter(([_, { typeName, value }]) => typeName == customDataLayerTypeName && value)
-      .map(([_, { value }]) => new CustomDataLayer({
-        name: value.name,
-        type: value.type.value,
-        id: value.id,
-      }));
 
     /** @type {number[]} - The list of tile IDs that are animated. */
     const animated_tile_id_list = [];
+    /** @type {CustomDataLayer[]} - The custom data layer list of this tileset. */
+    const custom_data_layer_list = [];
 
     for (const tile of this.tileset.tiles) {
       if (isTileUnused(tile)) continue;
@@ -190,7 +186,7 @@ class GodotTilesetExporter {
       }
 
       const physicsDataList = this.setupTilePhysicsDataList(tile, physicsLayerList);
-      const customDataList = this.setupTileCustomDataList(tile, customDataLayerList);
+      const custom_data_list = this.setupTileCustomDataList(tile, custom_data_layer_list);
 
       const gdTile = new TileData({
         position: new Vector2i(
@@ -198,7 +194,7 @@ class GodotTilesetExporter {
           Math.floor(tile.id / this.tileset.columnCount),
         ),
         physicsDataList,
-        customDataList,
+        custom_data_list,
         is_animated,
         animation_columns,
         animation_separation,
@@ -222,7 +218,7 @@ class GodotTilesetExporter {
       ),
       tilesetSource,
       physicsLayerList,
-      customDataLayerList,
+      custom_data_layer_list,
     });
   }
 
@@ -365,19 +361,47 @@ class GodotTilesetExporter {
   /**
    * 
    * @param {Tile} tile - 
-   * @param {CustomDataLayer[]} customDataLayerList - 
+   * @param {CustomDataLayer[]} custom_data_layer_list - 
+   * 
+   * @returns {CustomData[]} - Serialized tileset in Godot string format.
    */
-  setupTileCustomDataList(tile, customDataLayerList) {
-    //! const propertyMap = propertiesToMap(properties);
-    //! if (propertyMap.size != 0) {
-    //!   for (const [key, value] of propertyMap) {
-    //!     if (!customDataLayerList.has(key)) {
-    //!       customDataLayerList.set(key, {})
-    //!     }
-    //!     tilesetString += `${tileName}/custom_data_${key} = ${value}\n`;
-    //!   }
-    //! }
-    return [];
+  setupTileCustomDataList(tile, custom_data_layer_list) {
+    const tile_property_map = tile.resolvedProperties();
+    var filtered_property_map = Object.entries(tile_property_map).filter(function(property) {
+      return property[1] && property[1].typeName && property[1].typeName.indexOf("🟩") === 0;
+    });
+
+    let custom_data_list = [];
+
+    for (const filtered_property of filtered_property_map) {
+      const name = filtered_property[1].value.name;
+      const value = filtered_property[1].value.value;
+      const type = filtered_property[1].value.type.value;
+
+      let id = custom_data_layer_list.findIndex((value) => value.name == name);
+      const is_layer_unregistered = id == -1;
+
+      if (is_layer_unregistered) {
+        const custom_data_layer = new CustomDataLayer({
+          name,
+          type,
+        });
+        id = custom_data_layer_list.push(custom_data_layer) - 1;
+      }
+      else if (custom_data_layer_list[id].type !== type) {
+        tiled.log(`Tried to give tile ${tile.id} a custom data with a value type ${type} different of what's already registered (${custom_data_layer_list[id].type}).`);
+        return;
+      }
+
+      const custom_data = new CustomData({
+        name,
+        value,
+        id,
+      });
+      custom_data_list.push(custom_data);
+    }
+
+    return custom_data_list;
   }
 
   saveToFile() {

@@ -22,7 +22,7 @@ export class GDTileset extends Resource {
    * @param {boolean} [props.uvClipping]
    * @param {TileSetAtlasSource} [props.tilesetSource]
    * @param {PhysicsLayer[]} [props.physicsLayerList]
-   * @param {CustomDataLayer[]} [props.customDataLayerList]
+   * @param {CustomDataLayer[]} [props.custom_data_layer_list]
    */
   constructor({
     tileLayout = TileLayout.Stacked,
@@ -32,7 +32,7 @@ export class GDTileset extends Resource {
     uvClipping = false,
     tilesetSource = null,
     physicsLayerList = [],
-    customDataLayerList = [],
+    custom_data_layer_list = [],
   } = {}) {
     super();
     /** @type {TileLayout} */
@@ -50,7 +50,7 @@ export class GDTileset extends Resource {
     /** @type {PhysicsLayer[]} */
     this.physicsLayerList = physicsLayerList;
     /** @type {CustomDataLayer[]} */
-    this.customDataLayerList = customDataLayerList;
+    this.custom_data_layer_list = custom_data_layer_list;
 
     this.setName("TileSet");
     this.setType("TileSet");
@@ -70,9 +70,9 @@ export class GDTileset extends Resource {
       properties[`physics_layer_${i}/collision_mask`] = checkDefault(physicsLayer.collisionMask, 1);
     });
 
-    this.customDataLayerList.forEach((customDataLayer, i) => {
-      properties[`custom_data_layer_${i}/name`] = `"${customDataLayer.name}"`;
-      properties[`custom_data_layer_${i}/type`] = customDataLayer.type;
+    this.custom_data_layer_list.forEach((custom_data_layer, i) => {
+      properties[`custom_data_layer_${i}/name`] = `"${custom_data_layer.name}"`;
+      properties[`custom_data_layer_${i}/type`] = custom_data_layer.type;
     });
 
     properties['sources/0'] = `SubResource("${this.tilesetSource.id}")`;
