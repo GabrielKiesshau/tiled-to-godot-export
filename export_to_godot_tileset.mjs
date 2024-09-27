@@ -1,5 +1,5 @@
 import { getResPath, isTileUnused } from './utils.mjs';
-import { prefix, physicsLayerTypeName, customDataLayerTypeName } from './constants.mjs';
+import { prefix, physicsLayerTypeName } from './constants.mjs';
 import { AnimatedTileFrame } from './models/animated_tile_frame.mjs';
 import { CustomDataLayer } from './models/custom_data_layer.mjs';
 import { PhysicsData } from './models/physics_data.mjs';
