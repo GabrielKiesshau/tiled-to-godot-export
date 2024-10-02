@@ -1,4 +1,4 @@
-import { getAreaCenter, getFileName, getRotation, getTilesetColumns, isTileUnused, roundToDecimals, splitCommaSeparatedString } from './utils.mjs';
+import { colorToValues, getAreaCenter, getFileName, getRotation, getTilesetColumns, isTileUnused, roundToDecimals, splitCommaSeparatedString } from './utils.mjs';
 import { prefix } from './constants.mjs';
 import { Area2D } from './models/area_2d.mjs';
 import { CanvasItem } from './models/canvas_item.mjs';
@@ -580,6 +580,8 @@ class GodotTilemapExporter {
       script.properties = this.resolveScriptProperties(mapObject);
     }
 
+    const tint_color_string = JSON.stringify(tileLayer.tintColor);
+    const modulate = colorToValues(tint_color_string);
     const zIndex = owner?.zIndex ?? tileLayer.property(`${prefix}z_index`);
 
     const node = new TileMapLayer({
@@ -588,7 +590,8 @@ class GodotTilemapExporter {
       tileMapData: new PackedByteArray({
         array: tilemapData,
       }),
-    }).setZIndex(zIndex)
+    }).setModulate(modulate)
+      .setZIndex(zIndex)
       .setName(`${tileLayer.name}_${tilesetName}`)
       .setOwner(owner)
       .setGroups(groups)

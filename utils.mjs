@@ -1,4 +1,5 @@
 import { prefix } from './constants.mjs';
+import { Color } from './models/color.mjs';
 import { Vector2 } from './models/vector2.mjs';
 
 /**
@@ -421,4 +422,31 @@ export function isTileUnused(tile) {
   }
 
   return false;
+}
+
+/**
+ * Converts a color string in ARGB format to its normalized RGBA values.
+ * 
+ * @param {string} color - A hex color string in either the format #ffffff (no alpha, fully opaque) or #ffffffff (with alpha).
+ * @returns {Color} - A Color object with normalized values for alpha, red, green, and blue.
+ */
+export function colorToValues(color) {
+  // Remove any double quotes from the color string
+  color = color.replace(/"/g, '');
+
+  // Ensure the color is in the format of either #ffffff or #ffffffff (ARGB)
+  if (color[0] !== '#' || ![7, 9].includes(color.length)) {
+    throw new Error("Invalid color format. Expected format: #ffffff or #ffffffff (ARGB)");
+  }
+
+  // Pad with 'ff' alpha if needed (default to fully opaque)
+  color = color.length === 7 ? `#ff${color.slice(1)}` : color;
+
+  // Extract alpha, red, green, and blue using destructuring
+  const [alphaHex, redHex, greenHex, blueHex] = [color.slice(1, 3), color.slice(3, 5), color.slice(5, 7), color.slice(7, 9)];
+
+  // Convert hex values to decimal and normalize (0 - 1)
+  const [alpha, red, green, blue] = [alphaHex, redHex, greenHex, blueHex].map(hex => parseInt(hex, 16) / 255);
+
+  return new Color(red, green, blue, alpha);
 }
