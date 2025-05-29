@@ -48,12 +48,13 @@ class GodotTilemapExporter {
 
     const room_data_path = map.property(`${prefix}data`);
 
-    if (!room_data_path || !room_data_path.value.path) {
-      tiled.error("Missing room data! Set the room data property in Map > Map Properties to the file that represents this room.");
+    if (!room_data_path) {
+      tiled.log("No room data set for this room! Set the room data property in Map > Map Properties to the file that represents this room or set it directly in Godot.");
     }
-
-    const room_data_resource = this.registerResource(room_data_path.value.path);
-    this.scene.data = room_data_resource;
+    else {
+      const room_data_resource = this.registerResource(room_data_path);
+      this.scene.data = room_data_resource;
+    }
 
     for (const layer of this.map.layers) {
       if (layer.isObjectLayer) {
@@ -113,7 +114,6 @@ class GodotTilemapExporter {
    */
   determineTilesets() {
     for (const tiledTileset of this.map.usedTilesets()) {
-      //! let path = getResPath(tileset.property(`${prefix}project_root`), tileset.property(`${prefix}relative_path`), tileset.asset.fileName.replace('.tsx', '.tres'));
       const path = tiledTileset.property(`${prefix}res_path`);
 
       if (path === undefined) {
