@@ -345,9 +345,8 @@ class GodotTilesetExporter {
       physicsData.linear_velocity?.value?.y || 0,
     );
 
-
     const id = physicsLayerList.findIndex((physicsLayer) => {
-      return physicsLayer.id.value == layerID;
+      return physicsLayer.id == layerID;
     }) || 0;
 
     return new PhysicsData({
