@@ -375,7 +375,7 @@ class GodotTilesetExporter {
     for (const filtered_property of filtered_property_map) {
       const name = filtered_property[1].value.name;
       const value = filtered_property[1].value.value;
-      const type = filtered_property[1].value.type.value;
+      const type = filtered_property[1].value.type;
 
       let id = custom_data_layer_list.findIndex((value) => value.name == name);
       const is_layer_unregistered = id == -1;
