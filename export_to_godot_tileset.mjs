@@ -274,7 +274,7 @@ class GodotTilesetExporter {
     /** @type {Polygon[]} */
     let polygonList = [];
     /** @type {number} */
-    const layerID = physicsData.id?.value || 0;
+    const layerID = physicsData.id || 0;
 
     if (objectGroup) {
       const center = new Vector2(
@@ -291,7 +291,7 @@ class GodotTilesetExporter {
         }
 
         /** @type {number} */
-        const polygonLayerID = tiledObject.resolvedProperty("physics_layer_id")?.value || 0;
+        const polygonLayerID = tiledObject.resolvedProperty("physics_layer_id") || 0;
 
         if (polygonLayerID != layerID) continue;
 

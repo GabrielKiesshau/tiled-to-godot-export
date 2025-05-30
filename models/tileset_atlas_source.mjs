@@ -62,8 +62,8 @@ export class TileSetAtlasSource extends Resource {
 
       if (tileData.is_animated) {
         properties[`${tileKey}/animation_columns`] = tileData.animation_columns;
-        properties[`${tileKey}/animation_separation`] = tileData.animation_separation.toString();
-        properties[`${tileKey}/animation_speed`] = tileData.animation_speed;
+        properties[`${tileKey}/animation_separation`] = checkDefault(tileData.animation_separation, new Vector2i(0, 0));
+        properties[`${tileKey}/animation_speed`] = checkDefault(tileData.animation_speed, 1);
 
         tileData.animation_sequence.forEach((frame, frame_index) => {
           properties[`${tileKey}/animation_frame_${frame_index}/duration`] = frame.duration;
