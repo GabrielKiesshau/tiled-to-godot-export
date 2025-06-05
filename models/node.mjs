@@ -157,6 +157,12 @@ export class Node extends GDObject {
     const parent = this.getOwnershipChain();
     const parentProperty = parent ? ` parent="${parent}"` : "";
 
+    let nodePathsProperty = "";
+    if (this.properties) {
+      const packedStringArray = Object.keys(this.properties).map(key => `"${key}"`).join(', ');
+      nodePathsProperty = ` node_paths=PackedStringArray(${packedStringArray})`;
+    }
+
     let groupsProperty = "";
     if (this.groups?.length) {
       const formattedGroups  = this.formatStringList(this.groups);
@@ -169,7 +175,7 @@ export class Node extends GDObject {
       instanceProperty = ` instance=ExtResource("${this.instanceID}")`;
     }
 
-    let nodeString = `[node name="${this.name}"${typeProperty}${parentProperty}${groupsProperty}${instanceProperty}]`;
+    let nodeString = `[node name="${this.name}"${typeProperty}${parentProperty}${nodePathsProperty}${groupsProperty}${instanceProperty}]`;
 
     for (let [key, value] of Object.entries(this.getProperties())) {
       if (value === undefined || value === null) continue;
@@ -188,6 +194,15 @@ export class Node extends GDObject {
         const keyValue = stringifyKeyValue(key, value, false, false, true);
         nodeString += `\n${keyValue}`;
       });
+    }
+
+    if (this.properties) {
+      for (let [key, value] of Object.entries(this.properties)) {
+        if (value === undefined || value === null) continue;
+
+        const keyValue = stringifyKeyValue(key, value, false, false, true);
+        nodeString += `\n${keyValue}`;
+      }
     }
 
     return `${nodeString}\n`;

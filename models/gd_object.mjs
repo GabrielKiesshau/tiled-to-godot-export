@@ -61,6 +61,14 @@ export class GDObject {
     return this;
   }
 
+  addProperty(name, value) {
+    if (!this.properties) {
+      this.properties = {};
+    }
+    this.properties[name] = value;
+    return this;
+  }
+
   /**
    * Adds an external resource to this object.
    * @param {Resource} resource - The resource to be added as an external resource to this object.
@@ -127,6 +135,6 @@ export class GDObject {
   }
 
   getProperties() {
-    return { };
+    return this.properties || {};
   }
 }

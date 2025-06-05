@@ -54,6 +54,7 @@ export class CanvasItem extends GDNode {
 
     properties.modulate = checkDefault(this.modulate, new Color(1, 1, 1, 1));
     properties.z_index = checkDefault(this.zIndex, 0);
+    properties.z_as_relative = false;
 
     return properties;
   }

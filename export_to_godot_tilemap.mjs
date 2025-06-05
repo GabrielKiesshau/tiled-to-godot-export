@@ -56,33 +56,33 @@ class GodotTilemapExporter {
       this.scene.data = room_data_resource;
     }
 
-    for (const layer of this.map.layers) {
-      if (layer.isObjectLayer) {
-        for (const mapObject of layer.objects) {
-          if (mapObject.className == "Spawn Point") {
-            this.scene.spawnPosition = new Vector2(mapObject.pos.x, mapObject.pos.y);
-          }
-        }
-      }
-    }
-
     this.scene.registerNode(this.scene);
 
-    let hasCameraBoundary = false;
+    let hasCustomCameraLimits = false;
 
-    for (const layer of map.layers) {
+    for (const layer of this.map.layers) {
       if (layer.isObjectLayer && layer.objects) {
         for (const mapObject of layer.objects) {
-          if (mapObject.className == "CameraBoundary") {
-            //TODO Found a CameraBoundary object, add them separately
-            hasCameraBoundary = true;
-            break;
+          if (mapObject.className == "Spawn Point") {
+            const position = new Vector2(
+              mapObject.x + mapObject.width / 2,
+              mapObject.y - mapObject.height / 2,
+            );
+
+            const spawnPoint = new Node2D({ position })
+              .setName("PlayerSpawnPoint")
+              .hideType();
+            this.scene.registerNode(spawnPoint);
+          }
+
+          if (mapObject.className == "Camera Limits") {
+            hasCustomCameraLimits = true;
           }
         }
       }
     }
 
-    if (!hasCameraBoundary) {
+    if (!hasCustomCameraLimits) {
       const size = new Vector2(
         this.map.size.width * this.map.tileWidth,
         this.map.size.height * this.map.tileHeight,
@@ -93,7 +93,7 @@ class GodotTilemapExporter {
 
       const collisionShape = new CollisionShape2D({ shape })
         .setPosition(position)
-        .setName("Camera Boundaries")
+        .setName("CameraLimits")
         .hideType();
       this.scene.registerNode(collisionShape);
     }
@@ -114,6 +114,12 @@ class GodotTilemapExporter {
    */
   determineTilesets() {
     for (const tiledTileset of this.map.usedTilesets()) {
+      const ignore = tiledTileset.property(`${prefix}ignore`);
+      if (ignore) {
+        tiled.warn(`Ignoring tileset ${tiledTileset.fileName}.`);
+        continue;
+      }
+
       const path = tiledTileset.property(`${prefix}res_path`);
 
       if (path === undefined) {
@@ -223,6 +229,37 @@ class GodotTilemapExporter {
     this.scene.registerNode(node);
 
     for (const mapObject of objectGroup.objects) {
+      if (mapObject.className == "Spawn Point") {
+        continue;
+      }
+
+      if (mapObject.className == "Scene") {
+        const path = mapObject.property(`${prefix}res_path`);
+
+        const position = new Vector2(
+          mapObject.x + mapObject.width / 2,
+          mapObject.y - mapObject.height / 2,
+        );
+
+        var objectInstance = new PackedScene()
+          .setPath(path);
+        var objectResource = this.scene.addExternalResource(objectInstance);
+
+        const name = mapObject.property(`${prefix}name`) || "Node";
+
+        const objectNode = new Node2D({
+          position,
+        }).setInstance(objectResource.id)
+          .setName(name)
+          .setOwner(node)
+          .addProperty("room", 'NodePath("../..")')
+          .addProperty("camera_limits", 'NodePath("../../CameraLimits")');
+
+        this.scene.registerNode(objectNode);
+
+        continue;
+      }
+
       const mapObjectGroups = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
 
       if (mapObject.tile) {
