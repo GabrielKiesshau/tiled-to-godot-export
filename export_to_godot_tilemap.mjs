@@ -229,45 +229,7 @@ class GodotTilemapExporter {
     this.scene.registerNode(node);
 
     for (const mapObject of objectGroup.objects) {
-      if (mapObject.className == "Spawn Point") {
-        continue;
-      }
-
-      if (mapObject.className == "Scene") {
-        const path = mapObject.property(`${prefix}res_path`);
-
-        const position = new Vector2(
-          mapObject.x + mapObject.width / 2,
-          mapObject.y - mapObject.height / 2,
-        );
-
-        var objectInstance = new PackedScene()
-          .setPath(path);
-        var objectResource = this.scene.addExternalResource(objectInstance);
-
-        const name = mapObject.property(`${prefix}name`) || "Node";
-
-        const objectNode = new Node2D({
-          position,
-        }).setInstance(objectResource.id)
-          .setName(name)
-          .setOwner(node)
-          .addProperty("room", 'NodePath("../..")')
-          .addProperty("camera_limits", 'NodePath("../../CameraLimits")');
-
-        this.scene.registerNode(objectNode);
-
-        continue;
-      }
-
-      const mapObjectGroups = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
-
-      if (mapObject.tile) {
-        this.generateTileNode(mapObject, mapObjectGroups, node);
-        continue;
-      }
-
-      this.generateNode(mapObject, mapObjectGroups, node);
+      this.handleObject(mapObject, node);
     }
   }
 
@@ -295,57 +257,42 @@ class GodotTilemapExporter {
   }
 
   /**
-   * Generates a Tile node.
+   * Handle exporting a single map object.
    * 
-   * @param {MapObject} mapObject - An object that can be part of an ObjectGroup.
-   * @param {GDNode} owner - The owner node.
+   * @param {MapObject} mapobject - The target map object.
+   * @param {GDNode} node - The owner object.
    */
-  generateTileNode(mapObject, groups, owner) {
-    const tilesetsIndexKey = `${mapObject.tile.tileset.name}_Image`;
-    let textureResourceID = 0;
+  handleObject(mapObject, node) {
+    if (mapObject.className == "Spawn Point") {
+      return;
+    }
 
-    //TODO
-    // if (!this.tilesetIndexMap.get(tilesetsIndexKey)) {
-    //   textureResourceID = this.externalResourceID;
-    //   this.tilesetIndexMap.set(tilesetsIndexKey, this.externalResourceID);
-
-    //   const tilesetPath = getResPath(
-    //     this.map.property(`${prefix}project_root`),
-    //     this.map.property(`${prefix}relative_path`),
-    //     mapObject.tile.tileset.imageFileName,
-    //   );
-
-    //   const texture = new Texture2D();
-    //   texture.path = tilesetPath;
-
-    //   if (texture == null) {
-    //     return;
-    //   }
-
-    //   this.scene.addExternalResource(texture);
-    // } else {
-    //   textureResourceID = this.tilesetIndexMap.get(tilesetsIndexKey);
-    // }
-
-    const tileOffset = this.getTileOffset(mapObject.tile.tileset, mapObject.tile.id);
-
-    //* Converts Tiled pivot (top left corner) to Godot pivot (center);
-    const mapObjectPosition = new Vector2(
-      mapObject.x + (mapObject.tile.width / 2),
-      mapObject.y - (mapObject.tile.height / 2),
+    const path = mapObject.property(`${prefix}res_path`);
+    const position = new Vector2(
+      mapObject.x + mapObject.width / 2,
+      mapObject.y - mapObject.height / 2,
     );
+    const name = mapObject.name || mapObject.property(`${prefix}name`) || "Node";
+    const mapObjectGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
+    const objectPropertyList = mapObject.resolvedProperties();
 
-    const node = new Sprite2D({
-      texture: `ExtResource("${textureResourceID}")`,
-      region_enabled: true,
-      region_rect: `Rect2(${tileOffset.x}, ${tileOffset.y}, ${mapObject.tile.width}, ${mapObject.tile.height})`,
-    }).setPosition(mapObjectPosition)
-      .setZIndex(mapObject.property(`${prefix}z_index`))
-      .setName(mapObject.name)
-      .setOwner(owner)
-      .setGroups(groups);
+    const propertyList = Object.entries(objectPropertyList)
+      .filter(([key]) => key.startsWith('🟢'));
 
-    this.scene.registerNode(node);
+    var objectInstance = new PackedScene()
+      .setPath(path);
+
+    var objectResource = this.scene.addExternalResource(objectInstance);
+
+    const objectNode = new Node2D({
+      position,
+    }).setInstance(objectResource.id)
+      .setName(name)
+      .setGroups(mapObjectGroupList)
+      .setOwner(node)
+      .setProperties(propertyList);
+
+    this.scene.registerNode(objectNode);
   }
 
   /**

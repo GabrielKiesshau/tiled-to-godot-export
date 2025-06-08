@@ -28,6 +28,8 @@ export class GDObject {
     this.currentExternalResourceID = 0;
     /** @type {number} */
     this.currentSubResourceID = 0;
+    /** @type {{}} */
+    this.properties = {};
   }
 
   /**
@@ -61,11 +63,20 @@ export class GDObject {
     return this;
   }
 
-  addProperty(name, value) {
-    if (!this.properties) {
-      this.properties = {};
-    }
-    this.properties[name] = value;
+  /**
+   * Sets the properties of this object.
+   * 
+   * @param {Array<[string, any]>} properties - The new script to set.
+   * @returns {GDObject} - The object, updated.
+   */
+  setProperties(properties) {
+    properties.forEach((property) => {
+      const [prefixedName, value] = property;
+      const name = prefixedName.replace("🟢", "");
+
+      this.properties[name] = value;
+    });
+
     return this;
   }
 
