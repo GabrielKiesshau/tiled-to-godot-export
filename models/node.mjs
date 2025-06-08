@@ -122,27 +122,28 @@ export class Node extends GDObject {
 
   /**
    * Registers a node in the node list of this node.
-   * Ensures the node name is unique by appending a number if necessary.
+   * 
    * @param {Node} node - The node to be registered
    */
   registerNode(node) {
-    // Check if a node with the same name already exists in the nodeList
-    let existingNodes = this.nodeList.filter(n => n.name.startsWith(node.name));
+    let baseName = node.name;
 
-    // If there are any nodes with the same base name
-    if (existingNodes.length > 0) {
-        // Extract existing numbers from nodes with the same name pattern
-        const nameRegex = new RegExp(`^${node.name}(\\d*)$`);
-        const highestNumber = existingNodes
-            .map(n => {
-                const match = n.name.match(nameRegex);
-                return match && match[1] ? parseInt(match[1]) : 0;
-            })
-            .reduce((max, curr) => Math.max(max, curr), 0);
-
-        // Set the new name by appending a number higher than any existing sibling with the same name
-        node.name = `${node.name}_${highestNumber + 1}`;
+    const baseNameMatch = baseName.match(/^(.*?)(?:_\d+)?$/);
+    if (baseNameMatch && baseNameMatch[1]) {
+        baseName = baseNameMatch[1];
     }
+
+    let proposedName = baseName;
+    let counter = 0;
+
+    // Loop to find a unique name
+    // We check against the *existing* nodeList
+    while (this.nodeList.some(existingNode => existingNode.name === proposedName)) {
+      counter++;
+      proposedName = `${baseName}_${counter}`;
+    }
+
+    node.setName(proposedName);
 
     this.nodeList.push(node);
   }
