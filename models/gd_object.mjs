@@ -22,6 +22,8 @@ export class GDObject {
     this.currentSubResourceID = 0;
     /** @type {Map<string, any>} */
     this.propertyList = {};
+    /** @type {Map<string, any>} */
+    this.nodePathPropertyList = {};
   }
 
   /**
@@ -72,6 +74,7 @@ export class GDObject {
       const [prefixedName, value] = property;
       const name = prefixedName.replace("🟢", "");
 
+      this.nodePathPropertyList[name] = value;
       this.propertyList[name] = `NodePath("${value}")`;
     });
 
