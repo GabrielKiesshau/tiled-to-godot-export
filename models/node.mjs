@@ -89,12 +89,6 @@ export class Node extends GDObject {
     return `[${stringList.map(str => `"${str}"`).join(', ')}]`;
   }
 
-  getProperties() {
-    return {
-      script: this.script ? `ExtResource("${this.script.id}")` : null,
-    };
-  }
-
   /**
    * Determines the ownership chain of the node and returns a string.
    * 
@@ -159,8 +153,9 @@ export class Node extends GDObject {
     const parentProperty = parent ? ` parent="${parent}"` : "";
 
     let nodePathsProperty = "";
-    if (this.properties) {
-      const packedStringArray = Object.keys(this.properties).map(key => `"${key}"`).join(', ');
+
+    if (this.nodePathPropertyList) {
+      const packedStringArray = Object.keys(this.nodePathPropertyList).map(key => `"${key}"`).join(', ');
       nodePathsProperty = ` node_paths=PackedStringArray(${packedStringArray})`;
     }
 
@@ -185,20 +180,8 @@ export class Node extends GDObject {
       nodeString += `\n${keyValue}`;
     }
 
-    if (this.script) {
-      nodeString += `\nscript = ExtResource("${this.script.id}")`;
-
-      this.script.getProperties().forEach((value, key) => {
-        if (value === undefined || value === null) return;
-        
-        key = key.substring(1);
-        const keyValue = stringifyKeyValue(key, value, false, false, true);
-        nodeString += `\n${keyValue}`;
-      });
-    }
-
-    if (this.properties) {
-      for (let [key, value] of Object.entries(this.properties)) {
+    if (this.propertyList) {
+      for (let [key, value] of Object.entries(this.propertyList)) {
         if (value === undefined || value === null) continue;
 
         const keyValue = stringifyKeyValue(key, value, false, false, true);

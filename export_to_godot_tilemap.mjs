@@ -15,11 +15,13 @@ import { PolygonBuildMode } from './enums/polygon_build_mode.mjs';
 import { RectangleShape2D } from './models/rectangle_shape_2d.mjs';
 import { Resource } from './models/resource.mjs';
 import { Room } from './models/room.mjs';
-import { Script } from './models/script.mjs';
-import { Sprite2D } from './models/sprite_2d.mjs';
 import { TileMapLayer } from './models/tile_map_layer.mjs';
 import { GDTileset } from './models/tileset.mjs';
 import { Vector2 } from './models/vector2.mjs';
+
+// 🔵 - Godot property
+// 🟣 - Custom object property
+// 🟢 - Node path property
 
 /**
  * @class GodotTilemapExporter
@@ -263,20 +265,29 @@ class GodotTilemapExporter {
    * @param {GDNode} node - The owner object.
    */
   handleObject(mapObject, node) {
+    const path = mapObject.resolvedProperty(`${prefix}res_path`);
+
+    if (!path) {
+      tiled.warn(`Map object with id ${mapObject.id} doesn't have property 🔵res_path`);
+      return;
+    }
+
     if (mapObject.className == "Spawn Point") {
       return;
     }
 
-    const path = mapObject.property(`${prefix}res_path`);
     const position = new Vector2(
       mapObject.x + mapObject.width / 2,
       mapObject.y - mapObject.height / 2,
     );
-    const name = mapObject.name || mapObject.property(`${prefix}name`) || "Node";
+    const name = mapObject.name || "Node";
     const mapObjectGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
     const objectPropertyList = mapObject.resolvedProperties();
 
     const propertyList = Object.entries(objectPropertyList)
+      .filter(([key]) => key.startsWith('🟣'));
+
+    const nodePathPropertyList = Object.entries(objectPropertyList)
       .filter(([key]) => key.startsWith('🟢'));
 
     var objectInstance = new PackedScene()
@@ -290,7 +301,8 @@ class GodotTilemapExporter {
       .setName(name)
       .setGroups(mapObjectGroupList)
       .setOwner(node)
-      .setProperties(propertyList);
+      .setPropertyList(propertyList)
+      .setNodePathPropertyList(nodePathPropertyList);
 
     this.scene.registerNode(objectNode);
   }
@@ -341,14 +353,6 @@ class GodotTilemapExporter {
 
     const center = getAreaCenter(position, size, mapObject.rotation);
 
-    const scriptPath = mapObject.property(`${prefix}script`);
-    let script = null;
-
-    if (scriptPath) {
-      script = this.registerScript(scriptPath);
-      script.properties = this.resolveScriptProperties(mapObject);
-    }
-
     const area2DNode = new Area2D()
       .setCollisionLayer(mapObject.property(`${prefix}collision_layer`))
       .setCollisionMask(mapObject.property(`${prefix}collision_mask`))
@@ -357,8 +361,7 @@ class GodotTilemapExporter {
       .setZIndex(mapObject.property(`${prefix}z_index`))
       .setName(mapObject.name)
       .setOwner(owner)
-      .setGroups(groups)
-      .setScript(script);
+      .setGroups(groups);
 
     this.scene.registerNode(area2DNode);
 
@@ -396,14 +399,6 @@ class GodotTilemapExporter {
 
     const center = getAreaCenter(position, size, mapObject.rotation);
 
-    const scriptPath = mapObject.property(`${prefix}script`);
-    let script = null;
-
-    if (scriptPath) {
-      script = this.registerScript(scriptPath, scriptPropertyMap);
-      script.properties = this.resolveScriptProperties(mapObject);
-    }
-
     const area2DNode = new Area2D()
       .setCollisionLayer(mapObject.property(`${prefix}collision_layer`))
       .setCollisionMask(mapObject.property(`${prefix}collision_mask`))
@@ -412,8 +407,7 @@ class GodotTilemapExporter {
       .setZIndex(mapObject.property(`${prefix}z_index`))
       .setName(mapObject.name)
       .setOwner(owner)
-      .setGroups(groups)
-      .setScript(script);
+      .setGroups(groups);
 
     this.scene.registerNode(area2DNode);
 
@@ -455,14 +449,6 @@ class GodotTilemapExporter {
     
     const center = getAreaCenter(position, size, mapObject.rotation);
 
-    const scriptPath = mapObject.property(`${prefix}script`);
-    let script = null;
-
-    if (scriptPath) {
-      script = this.registerScript(scriptPath);
-      script.properties = this.resolveScriptProperties(mapObject);
-    }
-
     const area2DNode = new Area2D()
       .setCollisionLayer(mapObject.property(`${prefix}collision_layer`))
       .setCollisionMask(mapObject.property(`${prefix}collision_mask`))
@@ -471,8 +457,7 @@ class GodotTilemapExporter {
       .setZIndex(mapObject.property(`${prefix}z_index`))
       .setName(mapObject.name)
       .setOwner(owner)
-      .setGroups(groups)
-      .setScript(script);
+      .setGroups(groups);
 
     this.scene.registerNode(area2DNode);
 
@@ -504,22 +489,13 @@ class GodotTilemapExporter {
       roundToDecimals(mapObject.y),
     );
 
-    const scriptPath = mapObject.property(`${prefix}script`);
-    let script = null;
-
-    if (scriptPath) {
-      script = this.registerScript(scriptPath);
-      script.properties = this.resolveScriptProperties(mapObject);
-    }
-
     const node = new Node2D({
       position,
       rotation: getRotation(mapObject.rotation),
     }).setZIndex(mapObject.property(`${prefix}z_index`))
       .setName(name)
       .setOwner(owner)
-      .setGroups(groups)
-      .setScript(script);
+      .setGroups(groups);
 
     this.scene.registerNode(node);
   }
@@ -556,14 +532,6 @@ class GodotTilemapExporter {
    * @param {CanvasItem} owner - The owner node.
    */
   createTileMapLayerNode(tileLayer, tilesetName, tilemapData, groups, owner) {
-    const scriptPath = tileLayer.property(`${prefix}script`);
-    let script = null;
-
-    if (scriptPath) {
-      script = this.registerScript(scriptPath);
-      script.properties = this.resolveScriptProperties(mapObject);
-    }
-
     const tint_color_string = JSON.stringify(tileLayer.tintColor);
     const modulate = colorToValues(tint_color_string);
     const zIndex = owner?.zIndex ?? tileLayer.property(`${prefix}z_index`);
@@ -578,87 +546,16 @@ class GodotTilemapExporter {
       .setZIndex(zIndex)
       .setName(`${tileLayer.name}_${tilesetName}`)
       .setOwner(owner)
-      .setGroups(groups)
-      .setScript(script);
+      .setGroups(groups);
 
     this.scene.registerNode(node);
-  }
-
-  /**
-   * Resolve script properties and map them into a usable format.
-   * 
-   * @param {TiledObject} tiledObject - The object to extract the properties from.
-   * @returns {Map} - A map with each property and its values.
-   */
-  resolveScriptProperties(tiledObject) {
-    const objectProperties = tiledObject.resolvedProperties();
-
-    // Filter and map properties that start with "💠" into a usable format
-    const properties = Object.entries(objectProperties)
-      .filter(([key]) => key.startsWith('💠'))
-      .reduce((map, [key, value]) => {
-        const cleanKey = key.slice(1); // Remove "💠" prefix
-        let formattedValue;
-
-        switch(value.typeName) {
-          case 'Vector2':
-            formattedValue = `Vector2(${value.value.x}, ${value.value.y})`;
-            break;
-          case 'Vector2i':
-            formattedValue = `Vector2i(${value.value.x}, ${value.value.y})`;
-            break;
-          case 'Resource':
-            if (!value.value.path) {
-              const scriptPath = tiledObject.property(`${prefix}script`).value;
-              tiled.log(`Ignoring property of ${tiledObject.className}'s ${scriptPath} because it is blank.`);
-              break;
-            }
-
-            const resource = this.registerResource(value.value.path);
-            formattedValue = `ExtResource("${resource.id}")`;
-            break;
-          case 'Direction':
-            formattedValue = value.value;
-            break;
-          default:
-            formattedValue = value;
-        }
-
-        map.set(cleanKey, formattedValue);
-        return map;
-      }, new Map());
-
-    return properties;
-  }
-
-  /**
-   * Register a script in the external resource list and returns it.
-   * If the script is already registered, returns it instead.
-   * 
-   * @param {string} path - The filepath of the script.
-   * @param {Map} properties - The properties of the script.
-   * @returns {Script} - The registered script.
-   */
-  registerScript(path, properties = new Map()) {
-    for (const resource of this.scene.externalResourceList) {
-      if (resource instanceof Script && resource.path == path) {
-        return resource;
-      }
-    }
-
-    const script = new Script({ properties });
-    script.path = path;
-
-    this.scene.addExternalResource(script);
-
-    return script;
   }
 
   /**
    * Register a resource in the external resource list and returns it.
    * If the resource is already registered, returns it instead.
    * 
-   * @param {string} path - The filepath of the script.
+   * @param {string} path - The filepath of the resource.
    * @returns {Resource} - The registered resource.
    */
   registerResource(path) {

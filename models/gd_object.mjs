@@ -1,6 +1,5 @@
 /**
  * @typedef {import('./resource.mjs').Resource} Resource
- * @typedef {import('./script.mjs').Script} Script
  */
 
 /**
@@ -8,18 +7,11 @@
  * @class GDObject
  */
 export class GDObject {
-  /**
-   * @param {Script} [script]
-   */
-  constructor({
-    script = null,
-  } = { }) {
+  constructor({} = { }) {
     /** @type {number} */
     this.id = 0;
     /** @type {string} - The node type */
     this.type = "Object";
-    /** @type {Script} */
-    this.script = script;
     /** @type {Resource[]} */
     this.externalResourceList = [];
     /** @type {Resource[]} */
@@ -28,8 +20,10 @@ export class GDObject {
     this.currentExternalResourceID = 0;
     /** @type {number} */
     this.currentSubResourceID = 0;
-    /** @type {{}} */
-    this.properties = {};
+    /** @type {Map<string, any>} */
+    this.propertyList = {};
+    /** @type {Map<string, any>} */
+    this.nodePathPropertyList = {};
   }
 
   /**
@@ -53,28 +47,34 @@ export class GDObject {
   }
 
   /**
-   * Sets the script of this object.
+   * Sets the properties of this object.
    * 
-   * @param {Script} script - The new script to set.
+   * @param {Array<[string, any]>} propertyList - The new property list to set.
    * @returns {GDObject} - The object, updated.
    */
-  setScript(script) {
-    this.script = script;
+  setPropertyList(propertyList) {
+    propertyList.forEach((property) => {
+      const [prefixedName, value] = property;
+      const name = prefixedName.replace("🟣", "");
+
+      this.propertyList[name] = value;
+    });
+
     return this;
   }
 
   /**
    * Sets the properties of this object.
    * 
-   * @param {Array<[string, any]>} properties - The new script to set.
+   * @param {Array<[string, any]>} properties - The new node path property list to set.
    * @returns {GDObject} - The object, updated.
    */
-  setProperties(properties) {
-    properties.forEach((property) => {
+  setNodePathPropertyList(nodePathPropertyList) {
+    nodePathPropertyList.forEach((property) => {
       const [prefixedName, value] = property;
       const name = prefixedName.replace("🟢", "");
 
-      this.properties[name] = value;
+      this.nodePathPropertyList[name] = `NodePath("${value}")`;
     });
 
     return this;
@@ -146,6 +146,6 @@ export class GDObject {
   }
 
   getProperties() {
-    return this.properties || {};
+    return this.propertyList || {};
   }
 }
