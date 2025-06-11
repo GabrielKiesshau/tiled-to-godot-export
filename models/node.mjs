@@ -181,8 +181,8 @@ export class Node extends GDObject {
       nodeString += `\n${keyValue}`;
     }
 
-    if (this.propertyMap) {
-      for (let [key, value] of Object.entries(this.propertyMap)) {
+    if (this.propertyMap.size > 0) {
+      for (let [key, value] of this.propertyMap) {
         if (value === undefined || value === null) continue;
 
         const keyValue = stringifyKeyValue(key, value, false, false, true);

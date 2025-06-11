@@ -21,7 +21,7 @@ export class GDObject {
     /** @type {number} */
     this.currentSubResourceID = 0;
     /** @type {Map<string, any>} */
-    this.propertyMap = {};
+    this.propertyMap = new Map();
     /** @type {Map<string, any>} */
     this.nodePathPropertyMap = new Map();
   }
@@ -47,24 +47,19 @@ export class GDObject {
   }
 
   /**
-   * Sets the properties of this object.
+   * Adds a property to this object.
    * 
-   * @param {Array<[string, any]>} propertyMap - The new property list to set.
-   * @returns {GDObject} - The object, updated.
+   * @param {[string, any]} property - The new property to add.
    */
-  setPropertyMap(propertyMap) {
-    propertyMap.forEach((property) => {
-      const [prefixedName, value] = property;
-      const name = prefixedName.replace("🟣", "");
+  addProperty(property) {
+    const [prefixedName, value] = property;
+    const name = prefixedName.replace("🟣", "");
 
-      this.propertyMap[name] = value;
-    });
-
-    return this;
+    this.propertyMap.set(name, value);
   }
 
   /**
-   * Sets the properties of this object.
+   * Adds a node path property to this object.
    * 
    * @param {[string, any]} nodePathProperty - The new node path property to add.
    */
@@ -73,7 +68,7 @@ export class GDObject {
     const name = prefixedName.replace("🟢", "");
 
     this.nodePathPropertyMap.set(name, value);
-    this.propertyMap[name] = `NodePath("${value}")`;
+    this.propertyMap.set(name, `NodePath("${value}")`);
   }
 
   /**
@@ -142,6 +137,6 @@ export class GDObject {
   }
 
   getProperties() {
-    return this.propertyMap || {};
+    return this.propertyMap || new Map();
   }
 }

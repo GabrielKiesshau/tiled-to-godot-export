@@ -294,8 +294,11 @@ class GodotTilemapExporter {
     }).setInstance(objectResource.id)
       .setName(name)
       .setGroups(mapObjectGroupList)
-      .setOwner(node)
-      .setPropertyMap(propertyMap);
+      .setOwner(node);
+
+    propertyMap.forEach((property) => {
+      objectNode.addProperty(property);
+    });
 
     nodePathPropertyMap.forEach((nodePathProperty) => {
       objectNode.addNodePathProperty(nodePathProperty);
