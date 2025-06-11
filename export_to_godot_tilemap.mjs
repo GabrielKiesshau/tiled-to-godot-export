@@ -144,6 +144,11 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleLayer(layer, owner) {
+    if (layer.resolvedProperty(`${prefix}ignore`)) {
+      tiled.warn(`Ignoring layer ${layer.name}.`);
+      return;
+    }
+
     const groups = splitCommaSeparatedString(layer.property(`${prefix}groups`));
 
     if (layer.isTileLayer) {
@@ -167,10 +172,6 @@ class GodotTilemapExporter {
    * @param {GDNode} owner - The owner node.
    */
   handleTileLayer(tileLayer, groups, owner) {
-    if (tileLayer.resolvedProperty(`${prefix}ignore`)) {
-      return;
-    }
-
     // const isIsometric = this.map.orientation === TileMap.Isometric;
     // const mode = isIsometric ? 1 : undefined;
 
