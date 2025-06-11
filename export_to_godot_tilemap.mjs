@@ -260,7 +260,10 @@ class GodotTilemapExporter {
       return;
     }
 
-    if (mapObject.className == "Spawn Point") {
+    //* This property exists as a placeholder for now, because we can't retrieve a template className as of 06/11/2025 on Tiled 1.11.2
+    const classFix = mapObject.resolvedProperty(`${prefix}class`);
+
+    if (classFix == "Spawn Point") {
       const position = new Vector2(
         mapObject.x + mapObject.width / 2,
         mapObject.y - mapObject.height / 2,
