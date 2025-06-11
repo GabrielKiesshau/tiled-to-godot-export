@@ -154,8 +154,9 @@ export class Node extends GDObject {
 
     let nodePathsProperty = "";
 
-    if (this.nodePathPropertyList) {
-      const packedStringArray = Object.keys(this.nodePathPropertyList).map(key => `"${key}"`).join(', ');
+    if (this.nodePathPropertyMap.size > 0) {
+      const keys = Array.from(this.nodePathPropertyMap.keys());
+      const packedStringArray = keys.map(key => `"${key}"`).join(', ');
       nodePathsProperty = ` node_paths=PackedStringArray(${packedStringArray})`;
     }
 
@@ -180,8 +181,8 @@ export class Node extends GDObject {
       nodeString += `\n${keyValue}`;
     }
 
-    if (this.propertyList) {
-      for (let [key, value] of Object.entries(this.propertyList)) {
+    if (this.propertyMap) {
+      for (let [key, value] of Object.entries(this.propertyMap)) {
         if (value === undefined || value === null) continue;
 
         const keyValue = stringifyKeyValue(key, value, false, false, true);

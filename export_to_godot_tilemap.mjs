@@ -65,18 +65,6 @@ class GodotTilemapExporter {
     for (const layer of this.map.layers) {
       if (layer.isObjectLayer && layer.objects) {
         for (const mapObject of layer.objects) {
-          if (mapObject.className == "Spawn Point") {
-            const position = new Vector2(
-              mapObject.x + mapObject.width / 2,
-              mapObject.y - mapObject.height / 2,
-            );
-
-            const spawnPoint = new Node2D({ position })
-              .setName("PlayerSpawnPoint")
-              .hideType();
-            this.scene.registerNode(spawnPoint);
-          }
-
           if (mapObject.className == "Camera Limits") {
             hasCustomCameraLimits = true;
           }
@@ -273,6 +261,15 @@ class GodotTilemapExporter {
     }
 
     if (mapObject.className == "Spawn Point") {
+      const position = new Vector2(
+        mapObject.x + mapObject.width / 2,
+        mapObject.y - mapObject.height / 2,
+      );
+
+      const spawnPoint = new Node2D({ position })
+        .setName("PlayerSpawnPoint")
+        .hideType();
+      this.scene.registerNode(spawnPoint);
       return;
     }
 
@@ -284,16 +281,13 @@ class GodotTilemapExporter {
     const mapObjectGroupList = splitCommaSeparatedString(mapObject.property(`${prefix}groups`));
     const objectPropertyList = mapObject.resolvedProperties();
 
-    const propertyList = Object.entries(objectPropertyList)
+    const propertyMap = Object.entries(objectPropertyList)
       .filter(([key]) => key.startsWith('🟣'));
 
-    const nodePathPropertyList = Object.entries(objectPropertyList)
+    const nodePathPropertyMap = Object.entries(objectPropertyList)
       .filter(([key]) => key.startsWith('🟢'));
 
-    var objectInstance = new PackedScene()
-      .setPath(path);
-
-    var objectResource = this.scene.addExternalResource(objectInstance);
+    var objectResource = this.registerResource(path);
 
     const objectNode = new Node2D({
       position,
@@ -301,8 +295,11 @@ class GodotTilemapExporter {
       .setName(name)
       .setGroups(mapObjectGroupList)
       .setOwner(node)
-      .setPropertyList(propertyList)
-      .setNodePathPropertyList(nodePathPropertyList);
+      .setPropertyMap(propertyMap);
+
+    nodePathPropertyMap.forEach((nodePathProperty) => {
+      objectNode.addNodePathProperty(nodePathProperty);
+    });
 
     this.scene.registerNode(objectNode);
   }

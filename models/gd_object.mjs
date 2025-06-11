@@ -21,9 +21,9 @@ export class GDObject {
     /** @type {number} */
     this.currentSubResourceID = 0;
     /** @type {Map<string, any>} */
-    this.propertyList = {};
+    this.propertyMap = {};
     /** @type {Map<string, any>} */
-    this.nodePathPropertyList = {};
+    this.nodePathPropertyMap = new Map();
   }
 
   /**
@@ -49,15 +49,15 @@ export class GDObject {
   /**
    * Sets the properties of this object.
    * 
-   * @param {Array<[string, any]>} propertyList - The new property list to set.
+   * @param {Array<[string, any]>} propertyMap - The new property list to set.
    * @returns {GDObject} - The object, updated.
    */
-  setPropertyList(propertyList) {
-    propertyList.forEach((property) => {
+  setPropertyMap(propertyMap) {
+    propertyMap.forEach((property) => {
       const [prefixedName, value] = property;
       const name = prefixedName.replace("🟣", "");
 
-      this.propertyList[name] = value;
+      this.propertyMap[name] = value;
     });
 
     return this;
@@ -66,19 +66,14 @@ export class GDObject {
   /**
    * Sets the properties of this object.
    * 
-   * @param {Array<[string, any]>} properties - The new node path property list to set.
-   * @returns {GDObject} - The object, updated.
+   * @param {[string, any]} nodePathProperty - The new node path property to add.
    */
-  setNodePathPropertyList(nodePathPropertyList) {
-    nodePathPropertyList.forEach((property) => {
-      const [prefixedName, value] = property;
-      const name = prefixedName.replace("🟢", "");
+  addNodePathProperty(nodePathProperty) {
+    const [prefixedName, value] = nodePathProperty;
+    const name = prefixedName.replace("🟢", "");
 
-      this.nodePathPropertyList[name] = value;
-      this.propertyList[name] = `NodePath("${value}")`;
-    });
-
-    return this;
+    this.nodePathPropertyMap.set(name, value);
+    this.propertyMap[name] = `NodePath("${value}")`;
   }
 
   /**
@@ -147,6 +142,6 @@ export class GDObject {
   }
 
   getProperties() {
-    return this.propertyList || {};
+    return this.propertyMap || {};
   }
 }
